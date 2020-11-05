@@ -6,7 +6,7 @@
         "repositoryURL": "https://github.com/onevcat/Kingfisher.git",
         "state": {
           "branch": "master",
-          "revision": "1aa9889e5f7d9d92acda014eea9cdc7338d3d7d6",
+          "revision": "0e548b700c7c123dd3b2ac776e90d63a540f084d",
           "version": null
         }
       },
@@ -15,7 +15,7 @@
         "repositoryURL": "https://github.com/Juanpe/SkeletonView.git",
         "state": {
           "branch": "develop",
-          "revision": "efed2e7f323e08cbf8466104bf6c64d2117d768c",
+          "revision": "ef8e4578d790493ea6931c89d94b6b79cb469671",
           "version": null
         }
       }

@@ -34,6 +34,7 @@ class NetworkRouter {
         configuration.timeoutIntervalForRequest = 30
         configuration.timeoutIntervalForResource = 30
         configuration.waitsForConnectivity = true
+        configuration.httpAdditionalHeaders = ["User-Agent" : "RaceControl"]
         return configuration
     }
     
