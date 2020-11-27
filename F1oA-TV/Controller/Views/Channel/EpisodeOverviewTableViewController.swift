@@ -44,7 +44,7 @@ class EpisodeOverviewTableViewController: BaseTableViewController, EpisodeLoaded
     }
 
     override func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
-        if(self.episodes.count == 0) {
+        if(self.episodes.isEmpty) {
             return 3
         }
         
@@ -57,7 +57,7 @@ class EpisodeOverviewTableViewController: BaseTableViewController, EpisodeLoaded
         cell.titleLabel.hideSkeletonAnimation()
         cell.thumbnailImageView.hideSkeletonAnimation()
         
-        if(self.episodes.count == 0) {
+        if(self.episodes.isEmpty) {
             cell.titleLabel.linesCornerRadius = 5
             cell.titleLabel.showSkeletonAnimation()
             
@@ -82,7 +82,7 @@ class EpisodeOverviewTableViewController: BaseTableViewController, EpisodeLoaded
     }
     
     override func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
-        if(self.episodes.count == 0) {
+        if(self.episodes.isEmpty) {
             return
         }
         

@@ -46,7 +46,7 @@ class EventOverviewTableViewController: BaseTableViewController, EventLoadedProt
     }
 
     override func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
-        if(self.events.count == 0) {
+        if(self.events.isEmpty) {
             return 3
         }
         
@@ -60,7 +60,7 @@ class EventOverviewTableViewController: BaseTableViewController, EventLoadedProt
         cell.subtitleLabel.hideSkeletonAnimation()
         cell.thumbnailImageView.hideSkeletonAnimation()
         
-        if(self.events.count == 0) {
+        if(self.events.isEmpty) {
             cell.titleLabel.linesCornerRadius = 5
             cell.titleLabel.showSkeletonAnimation()
             cell.subtitleLabel.linesCornerRadius = 5
@@ -89,7 +89,7 @@ class EventOverviewTableViewController: BaseTableViewController, EventLoadedProt
     }
     
     override func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
-        if(self.events.count == 0) {
+        if(self.events.isEmpty) {
             return
         }
         

@@ -30,7 +30,7 @@ class SeasonOverviewTableViewController: BaseTableViewController {
     }
 
     override func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
-        if(DataManager.instance.seasons.count == 0) {
+        if(DataManager.instance.seasons.isEmpty) {
             return 3
         }
         
@@ -43,7 +43,7 @@ class SeasonOverviewTableViewController: BaseTableViewController {
         cell.titleLabel.hideSkeletonAnimation()
         cell.thumbnailImageView.hideSkeletonAnimation()
         
-        if(DataManager.instance.seasons.count == 0) {
+        if(DataManager.instance.seasons.isEmpty) {
             cell.titleLabel.linesCornerRadius = 5
             cell.titleLabel.showSkeletonAnimation()
             
@@ -63,7 +63,7 @@ class SeasonOverviewTableViewController: BaseTableViewController {
     }
     
     override func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
-        if(DataManager.instance.seasons.count == 0) {
+        if(DataManager.instance.seasons.isEmpty) {
             return
         }
         

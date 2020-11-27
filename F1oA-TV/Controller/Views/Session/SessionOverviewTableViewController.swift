@@ -46,7 +46,7 @@ class SessionOverviewTableViewController: BaseTableViewController, SessionLoaded
     }
 
     override func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
-        if(self.sessions.count == 0) {
+        if(self.sessions.isEmpty) {
             return 3
         }
         
@@ -60,7 +60,7 @@ class SessionOverviewTableViewController: BaseTableViewController, SessionLoaded
         cell.subtitleLabel.hideSkeletonAnimation()
         cell.thumbnailImageView.hideSkeletonAnimation()
         
-        if(self.sessions.count == 0) {
+        if(self.sessions.isEmpty) {
             cell.titleLabel.linesCornerRadius = 5
             cell.titleLabel.showSkeletonAnimation()
             cell.subtitleLabel.linesCornerRadius = 5
@@ -93,7 +93,7 @@ class SessionOverviewTableViewController: BaseTableViewController, SessionLoaded
     }
     
     override func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
-        if(self.sessions.count == 0) {
+        if(self.sessions.isEmpty) {
             return
         }
         

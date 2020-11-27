@@ -80,7 +80,7 @@ class ChannelOverviewTableViewController: BaseTableViewController, ChannelLoaded
     }
 
     override func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
-        if(self.channels.count == 0) {
+        if(self.channels.isEmpty) {
             return 3
         }
         
@@ -93,7 +93,7 @@ class ChannelOverviewTableViewController: BaseTableViewController, ChannelLoaded
         cell.titleLabel.hideSkeletonAnimation()
         cell.thumbnailImageView.hideSkeletonAnimation()
         
-        if(self.channels.count == 0) {
+        if(self.channels.isEmpty) {
             cell.titleLabel.linesCornerRadius = 5
             cell.titleLabel.showSkeletonAnimation()
             
@@ -128,7 +128,7 @@ class ChannelOverviewTableViewController: BaseTableViewController, ChannelLoaded
     }
     
     override func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
-        if(self.channels.count == 0) {
+        if(self.channels.isEmpty) {
             return
         }
         
