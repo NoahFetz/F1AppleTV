@@ -29,7 +29,6 @@
 		1BB23CE32544DFF500D0CC71 /* ThumbnailTitleSubtitleTableViewCell.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1BB23CE12544DFF500D0CC71 /* ThumbnailTitleSubtitleTableViewCell.swift */; };
 		1BB23CE42544DFF500D0CC71 /* ThumbnailTitleSubtitleTableViewCell.xib in Resources */ = {isa = PBXBuildFile; fileRef = 1BB23CE22544DFF500D0CC71 /* ThumbnailTitleSubtitleTableViewCell.xib */; };
 		1BB23CF42544E3C800D0CC71 /* DateExtension.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1BB23CF32544E3C800D0CC71 /* DateExtension.swift */; };
-		1BB23CF82544E5B300D0CC71 /* ImageDto.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1BB23CF72544E5B300D0CC71 /* ImageDto.swift */; };
 		1BB23CFF2544E8D200D0CC71 /* Kingfisher in Frameworks */ = {isa = PBXBuildFile; productRef = 1BB23CFE2544E8D200D0CC71 /* Kingfisher */; };
 		1BB23D042544EB2200D0CC71 /* ImageLoadedProtocol.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1BB23D032544EB2200D0CC71 /* ImageLoadedProtocol.swift */; };
 		1BB23D0A2544EB4500D0CC71 /* EventLoadedProtocol.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1BB23D092544EB4500D0CC71 /* EventLoadedProtocol.swift */; };
@@ -76,6 +75,7 @@
 		1BD5FE752544D16C00CA03B4 /* EventOverviewTableViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1BD5FE742544D16C00CA03B4 /* EventOverviewTableViewController.swift */; };
 		1BD62F312545948900614A24 /* DriverDto.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1BD62F302545948900614A24 /* DriverDto.swift */; };
 		1BD62F36254595E900614A24 /* DriverLoadedProtocol.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1BD62F35254595E900614A24 /* DriverLoadedProtocol.swift */; };
+		1BDC76AD2570FE7E00810DEA /* ImageDto.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1BDC76AC2570FE7E00810DEA /* ImageDto.swift */; };
 		1BE49DB725458AC1006FC090 /* LiveOverviewTableViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1BE49DB625458AC1006FC090 /* LiveOverviewTableViewController.swift */; };
 		67AD92869681451758990AC5 /* Pods_F1oA_TV.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 2529FF11085677AE1CE9563B /* Pods_F1oA_TV.framework */; };
 /* End PBXBuildFile section */
@@ -118,7 +118,6 @@
 		1BB23CE12544DFF500D0CC71 /* ThumbnailTitleSubtitleTableViewCell.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ThumbnailTitleSubtitleTableViewCell.swift; sourceTree = "<group>"; };
 		1BB23CE22544DFF500D0CC71 /* ThumbnailTitleSubtitleTableViewCell.xib */ = {isa = PBXFileReference; lastKnownFileType = file.xib; path = ThumbnailTitleSubtitleTableViewCell.xib; sourceTree = "<group>"; };
 		1BB23CF32544E3C800D0CC71 /* DateExtension.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DateExtension.swift; sourceTree = "<group>"; };
-		1BB23CF72544E5B300D0CC71 /* ImageDto.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = ImageDto.swift; path = ../../../../ImageDto.swift; sourceTree = "<group>"; };
 		1BB23D032544EB2200D0CC71 /* ImageLoadedProtocol.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ImageLoadedProtocol.swift; sourceTree = "<group>"; };
 		1BB23D092544EB4500D0CC71 /* EventLoadedProtocol.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EventLoadedProtocol.swift; sourceTree = "<group>"; };
 		1BB23D0E2544F38A00D0CC71 /* AccessoryIconType.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AccessoryIconType.swift; sourceTree = "<group>"; };
@@ -166,6 +165,7 @@
 		1BD5FE742544D16C00CA03B4 /* EventOverviewTableViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EventOverviewTableViewController.swift; sourceTree = "<group>"; };
 		1BD62F302545948900614A24 /* DriverDto.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DriverDto.swift; sourceTree = "<group>"; };
 		1BD62F35254595E900614A24 /* DriverLoadedProtocol.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DriverLoadedProtocol.swift; sourceTree = "<group>"; };
+		1BDC76AC2570FE7E00810DEA /* ImageDto.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ImageDto.swift; sourceTree = "<group>"; };
 		1BE49DB625458AC1006FC090 /* LiveOverviewTableViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LiveOverviewTableViewController.swift; sourceTree = "<group>"; };
 		1CD4D5E7BDBF69CB3C7BC23B /* Pods-F1TV.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-F1TV.release.xcconfig"; path = "Target Support Files/Pods-F1TV/Pods-F1TV.release.xcconfig"; sourceTree = "<group>"; };
 		226423C49B2F7C87ECF9ED10 /* Pods_F1_TVTests.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = Pods_F1_TVTests.framework; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -360,7 +360,6 @@
 				1BAEF5E72545D02200CDE17E /* Episode */,
 				1BB29BCF254464AA00ECC074 /* Security */,
 				1BD62F2F2545947D00614A24 /* Driver */,
-				1BB23CF72544E5B300D0CC71 /* ImageDto.swift */,
 			);
 			path = DataTransferObjects;
 			sourceTree = "<group>";
@@ -495,6 +494,7 @@
 			isa = PBXGroup;
 			children = (
 				1BD62F302545948900614A24 /* DriverDto.swift */,
+				1BDC76AC2570FE7E00810DEA /* ImageDto.swift */,
 			);
 			path = Driver;
 			sourceTree = "<group>";
@@ -636,6 +636,7 @@
 				1BB29BF22544690500ECC074 /* LoginViewController.swift in Sources */,
 				1BB23D0A2544EB4500D0CC71 /* EventLoadedProtocol.swift in Sources */,
 				1BB29C682544AC3400ECC074 /* SeasonOverviewTableViewController.swift in Sources */,
+				1BDC76AD2570FE7E00810DEA /* ImageDto.swift in Sources */,
 				1B28FDCF254572CC004E247C /* StreamDto.swift in Sources */,
 				1BB29C282544790D00ECC074 /* TokenRequestDto.swift in Sources */,
 				1BB29C3325449A8800ECC074 /* UIViewControllerExtension.swift in Sources */,
@@ -660,7 +661,6 @@
 				1BAEF5F32545D56900CDE17E /* AssetStreamTokenResultDto.swift in Sources */,
 				1BB29C892544BB6D00ECC074 /* SeasonDto.swift in Sources */,
 				1BB23D042544EB2200D0CC71 /* ImageLoadedProtocol.swift in Sources */,
-				1BB23CF82544E5B300D0CC71 /* ImageDto.swift in Sources */,
 				1BB29C2D254479FE00ECC074 /* TokenResultDto.swift in Sources */,
 				1BB29BE4254465BF00ECC074 /* KeyValueRepository.swift in Sources */,
 				1BB29C7E2544B2D100ECC074 /* ThumbnailTitleTableViewCell.swift in Sources */,
@@ -852,7 +852,7 @@
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				CODE_SIGN_ENTITLEMENTS = "F1oA-TV/F1oA-TV.entitlements";
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 20.1105.1;
+				CURRENT_PROJECT_VERSION = 20.1127.1;
 				DEVELOPMENT_TEAM = 8SW735FL99;
 				INFOPLIST_FILE = "F1oA-TV/Info.plist";
 				LD_RUNPATH_SEARCH_PATHS = (
@@ -876,7 +876,7 @@
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				CODE_SIGN_ENTITLEMENTS = "F1oA-TV/F1oA-TV.entitlements";
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 20.1105.1;
+				CURRENT_PROJECT_VERSION = 20.1127.1;
 				DEVELOPMENT_TEAM = 8SW735FL99;
 				INFOPLIST_FILE = "F1oA-TV/Info.plist";
 				LD_RUNPATH_SEARCH_PATHS = (
