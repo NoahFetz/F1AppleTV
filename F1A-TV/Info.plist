@@ -1,0 +1,65 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>CFBundleDevelopmentRegion</key>
+	<string>$(DEVELOPMENT_LANGUAGE)</string>
+	<key>CFBundleDisplayName</key>
+	<string>F1ATV</string>
+	<key>CFBundleExecutable</key>
+	<string>$(EXECUTABLE_NAME)</string>
+	<key>CFBundleIdentifier</key>
+	<string>$(PRODUCT_BUNDLE_IDENTIFIER)</string>
+	<key>CFBundleInfoDictionaryVersion</key>
+	<string>6.0</string>
+	<key>CFBundleName</key>
+	<string>$(PRODUCT_NAME)</string>
+	<key>CFBundlePackageType</key>
+	<string>$(PRODUCT_BUNDLE_PACKAGE_TYPE)</string>
+	<key>CFBundleShortVersionString</key>
+	<string>$(MARKETING_VERSION)</string>
+	<key>CFBundleVersion</key>
+	<string>$(CURRENT_PROJECT_VERSION)</string>
+	<key>ITSAppUsesNonExemptEncryption</key>
+	<false/>
+	<key>LSRequiresIPhoneOS</key>
+	<true/>
+	<key>UIAppFonts</key>
+	<array>
+		<string>Titillium-Black.otf</string>
+		<string>Titillium-Bold.otf</string>
+		<string>Titillium-BoldItalic.otf</string>
+		<string>Titillium-BoldUpright.otf</string>
+		<string>Titillium-Light.otf</string>
+		<string>Titillium-LightItalic.otf</string>
+		<string>Titillium-LightUpright.otf</string>
+		<string>Titillium-Regular.otf</string>
+		<string>Titillium-RegularItalic.otf</string>
+		<string>Titillium-RegularUpright.otf</string>
+		<string>Titillium-Semibold.otf</string>
+		<string>Titillium-SemiboldItalic.otf</string>
+		<string>Titillium-SemiboldUpright.otf</string>
+		<string>Titillium-Thin.otf</string>
+		<string>Titillium-ThinItalic.otf</string>
+		<string>Titillium-ThinUpright.otf</string>
+		<string>Formula1-Black.ttf</string>
+		<string>Formula1-Bold.ttf</string>
+		<string>Formula1-Regular.ttf</string>
+		<string>Formula1-Wide.ttf</string>
+	</array>
+	<key>UIBackgroundModes</key>
+	<array>
+		<string>audio</string>
+	</array>
+	<key>UILaunchStoryboardName</key>
+	<string>LaunchScreen</string>
+	<key>UIMainStoryboardFile</key>
+	<string>Main</string>
+	<key>UIRequiredDeviceCapabilities</key>
+	<array>
+		<string>arm64</string>
+	</array>
+	<key>UIUserInterfaceStyle</key>
+	<string>Automatic</string>
+</dict>
+</plist>

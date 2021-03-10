@@ -1,0 +1,12 @@
+{
+  "images" : [
+    {
+      "filename" : "f1tv_hero_hq.jpg",
+      "idiom" : "universal"
+    }
+  ],
+  "info" : {
+    "author" : "xcode",
+    "version" : 1
+  }
+}

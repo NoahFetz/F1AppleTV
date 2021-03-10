@@ -12,3 +12,9 @@
 - Select your personal team for code signing
 - Select your AppleTV as run destination and run it
 - Have fun :)
+
+## Screenshots
+
+![](Screenshots/F1TV-1.png)
+![](Screenshots/F1TV-2.png)
+![](Screenshots/F1TV-3.png)
