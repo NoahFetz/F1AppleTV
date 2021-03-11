@@ -35,7 +35,7 @@ class LiveOverviewCollectionViewController: BaseCollectionViewController, EventL
     }
     
     func didLoadEvent(event: EventDto) {
-        if(Date().isBetween(event.startDate, and: Calendar.current.date(byAdding: .day, value: 1, to: event.endDate) ?? Date())) {
+        if(Date().isBetween(Calendar.current.date(byAdding: .day, value: -1, to: event.startDate) ?? Date(), and: Calendar.current.date(byAdding: .day, value: 1, to: event.endDate) ?? Date())) {
             for session in event.sessionOccurrenceUrls {
                 DataManager.instance.loadSession(sessionUrl: session, sessionProtocol: self)
             }
