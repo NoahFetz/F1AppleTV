@@ -3,12 +3,17 @@
 ## Requirements
 
 - Your AppleTV must be running tvOS 14.0 or higher
-- You need a Mac running Xcode to install the app
 
-## Installation
+## Installation - TestFlight (Recommended)
+
+- Go to the AppStore on your AppleTV & iPhone and search for "TestFlight" and install it
+- Open this link with your iPhone and Accept the invite (https://testflight.apple.com/join/NRswe1IZ)
+- Open TestFlight on your AppleTV and download the App from there
+
+## Installation - Build it yourself
 
 - Connect your AppleTV to Xcode (https://developer.apple.com/forums/thread/100785)
-- Clone the Project and open it
+- Clone the Project and open the .xcworkspace file
 - Select your personal team for code signing
 - Select your AppleTV as run destination and run it
 - Have fun :)
