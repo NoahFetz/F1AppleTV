@@ -8,10 +8,10 @@
 import Foundation
 
 struct TokenResultDto: Codable {
-    let token: String
-    let oauth2AccessToken: String
-    let planUrls: [String]
-    let userIsVip: Bool
+    var token: String
+    var oauth2AccessToken: String
+    var planUrls: [String]
+    var userIsVip: Bool
 
     init() {
         self.token = ""

@@ -8,11 +8,11 @@
 import Foundation
 
 struct SeasonDto: Codable {
-    let eventOccurrenceUrls: [String]
-    let uid: String
-    let year: Int
-    let hasContent: Bool
-    let name: String
+    var eventOccurrenceUrls: [String]
+    var uid: String
+    var year: Int
+    var hasContent: Bool
+    var name: String
 
     init() {
         self.eventOccurrenceUrls = [String]()

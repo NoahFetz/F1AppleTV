@@ -18,6 +18,15 @@
 - Select your AppleTV as run destination and run it
 - Have fun :)
 
+## Acknowledgements
+* [F1viewer](https://github.com/SoMuchForSubtlety/f1viewer) and [RaceControl](https://github.com/robvdpol/RaceControl)  for deciphering the API
+* [SkeletonView](https://github.com/Juanpe/SkeletonView)
+* [Kingfisher](https://github.com/onevcat/Kingfisher)
+* [F1TV](https://f1tv.formula1.com)
+
+### If you like my work and feel the need to give something back,  my programmer can always use some caffeine :)
+[BuyMeACoffee](https://www.buymeacoffee.com/NoahFetz)
+
 ## Screenshots
 
 ![](Screenshots/F1TV-1.png)

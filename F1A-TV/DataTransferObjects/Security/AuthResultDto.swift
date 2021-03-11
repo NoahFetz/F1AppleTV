@@ -8,11 +8,11 @@
 import Foundation
 
 struct AuthResultDto: Codable {
-    let sessionId: String
-    let passwordIsTemporary: Bool
-    let subscriber: SubscriberDto
-    let country: String
-    let authData: AuthDataDto
+    var sessionId: String
+    var passwordIsTemporary: Bool
+    var subscriber: SubscriberDto
+    var country: String
+    var authData: AuthDataDto
    
     init() {
         self.sessionId = ""

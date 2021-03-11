@@ -8,10 +8,10 @@
 import Foundation
 
 class StreamDto: Codable {
-    let accountUrl: String
-    let path: String
-    let fullStreamUrl: String
-    let domain: String
+    var accountUrl: String
+    var path: String
+    var fullStreamUrl: String
+    var domain: String
 
     init() {
         self.accountUrl = ""

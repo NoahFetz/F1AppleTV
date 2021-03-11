@@ -39,6 +39,8 @@ struct ConstantsUtil {
     static let accountOverviewViewController = "AccountOverviewViewController"
     static let loginViewController = "LoginViewController"
     static let seasonOverviewCollectionViewController = "SeasonOverviewCollectionViewController"
+    static let vodOverviewCollectionViewController = "VodOverviewCollectionViewController"
+    static let vodEpisodeCollectionViewController = "VodEpisodeCollectionViewController"
     static let liveOverviewCollectionViewController = "LiveOverviewCollectionViewController"
     static let eventOverviewCollectionViewController = "EventOverviewCollectionViewController"
     static let sessionOverviewCollectionViewController = "SessionOverviewCollectionViewController"

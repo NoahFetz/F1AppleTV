@@ -8,8 +8,8 @@
 import Foundation
 
 struct AuthDataDto: Codable {
-    let subscriptionStatus: String
-    let subscriptionToken: String
+    var subscriptionStatus: String
+    var subscriptionToken: String
 
     init() {
             self.subscriptionStatus = ""

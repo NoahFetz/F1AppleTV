@@ -10,6 +10,7 @@ import UIKit
 class MenuSelectorTableViewController: BaseTableViewController {
     var liveViewController: LiveOverviewCollectionViewController?
     var seasonViewController: SeasonOverviewCollectionViewController?
+    var vodViewController: VodOverviewCollectionViewController?
     var accountViewController: AccountOverviewViewController?
     
     var menuSwitchTimer: Timer!
@@ -34,6 +35,7 @@ class MenuSelectorTableViewController: BaseTableViewController {
     func setupTableView() {
         self.liveViewController = self.getViewControllerWith(viewIdentifier: ConstantsUtil.liveOverviewCollectionViewController) as? LiveOverviewCollectionViewController
         self.seasonViewController = self.getViewControllerWith(viewIdentifier: ConstantsUtil.seasonOverviewCollectionViewController) as? SeasonOverviewCollectionViewController
+        self.vodViewController = self.getViewControllerWith(viewIdentifier: ConstantsUtil.vodOverviewCollectionViewController) as? VodOverviewCollectionViewController
         self.accountViewController = self.getViewControllerWith(viewIdentifier: ConstantsUtil.accountOverviewViewController) as? AccountOverviewViewController
         
         self.splitViewController?.showDetailViewController(self.liveViewController ?? UIViewController(), sender: self)
@@ -78,7 +80,7 @@ class MenuSelectorTableViewController: BaseTableViewController {
     }
 
     override func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
-        return 3
+        return 4
     }
 
     override func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
@@ -92,6 +94,9 @@ class MenuSelectorTableViewController: BaseTableViewController {
             cell.textLabel?.text = NSLocalizedString("seasons_title", comment: "")
             
         case 2:
+            cell.textLabel?.text = NSLocalizedString("vod_title", comment: "")
+            
+        case 3:
             cell.textLabel?.text = NSLocalizedString("account_title", comment: "")
             
         default:
@@ -129,6 +134,9 @@ class MenuSelectorTableViewController: BaseTableViewController {
                 self.splitViewController?.showDetailViewController(self.seasonViewController ?? UIViewController(), sender: self)
                 
             case 2:
+                self.splitViewController?.showDetailViewController(self.vodViewController ?? UIViewController(), sender: self)
+                
+            case 3:
                 self.splitViewController?.showDetailViewController(self.accountViewController ?? UIViewController(), sender: self)
                 
             default:

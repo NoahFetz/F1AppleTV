@@ -42,10 +42,10 @@
 "live_title" = "Jetzt Live";
 "seasons_title" = "Saisons";
 "race_seasons_header" = "Saison";
+"vod_title" = "Video On Demand";
 "channels_title" = "Kanäle";
 "episodes_title" = "Episoden";
 "wif" = "Haupt-Kanal";
 "driver" = "Fahrerkarte";
 "pit_lane" = "Boxengassenübertragung";
 "data" = "Datenkanal";
-

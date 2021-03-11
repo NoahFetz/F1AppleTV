@@ -10,15 +10,16 @@ import Kingfisher
 
 class SideBarInfoViewController: UIViewController, ImageLoadedProtocol, NationLoadedProtocol, SeriesLoadedProtocol {
     @IBOutlet weak var thumbnailImageView: UIImageView!
-    @IBOutlet weak var titleLabel: UILabel!
-    @IBOutlet weak var subtitleLabel: UILabel!
+    @IBOutlet weak var titleLabel: FontAdjustedUILabel!
+    @IBOutlet weak var subtitleLabel: FontAdjustedUILabel!
     @IBOutlet weak var topAccessoryImageView: UIImageView!
-    @IBOutlet weak var headerLabel: UILabel!
+    @IBOutlet weak var headerLabel: FontAdjustedUILabel!
     
     var sideBarInfoType = SideBarInfoType()
     var seasonInfo: SeasonDto?
     var eventInfo: EventDto?
     var sessionInfo: SessionDto?
+    var vodInfo: VodDto?
     
     override func viewDidLoad() {
         super.viewDidLoad()
@@ -57,6 +58,9 @@ class SideBarInfoViewController: UIViewController, ImageLoadedProtocol, NationLo
             
         case .Session:
             self.setupSessionInfo()
+            
+        case .Vod:
+            self.setupVodInfo()
         }
     }
     
@@ -73,6 +77,11 @@ class SideBarInfoViewController: UIViewController, ImageLoadedProtocol, NationLo
     func initialize(sessionInfo: SessionDto) {
         self.sideBarInfoType = .Session
         self.sessionInfo = sessionInfo
+    }
+    
+    func initialize(vodInfo: VodDto) {
+        self.sideBarInfoType = .Vod
+        self.vodInfo = vodInfo
     }
     
     func setupSeasonInfo() {
@@ -112,6 +121,11 @@ class SideBarInfoViewController: UIViewController, ImageLoadedProtocol, NationLo
         if(!sessionInfo.seriesUrl.isEmpty) {
             self.setSeries(seriesUrl: sessionInfo.seriesUrl)
         }
+    }
+    
+    func setupVodInfo() {
+        self.thumbnailImageView.image = UIImage(named: "thumb_placeholder")
+        self.titleLabel.text = self.vodInfo?.name
     }
     
     func applyImage(imageInfo: ImageDto, imageView: UIImageView) {

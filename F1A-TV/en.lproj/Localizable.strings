@@ -42,6 +42,7 @@
 "live_title" = "Live Now";
 "seasons_title" = "Seasons";
 "race_seasons_header" = "Season";
+"vod_title" = "Video On Demand";
 "channels_title" = "Channels";
 "episodes_title" = "Episodes";
 "wif" = "Main-Channel";

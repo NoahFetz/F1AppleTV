@@ -261,6 +261,7 @@ class ChannelAndEpisodeCollectionViewController: BaseCollectionViewController, E
                 
                 cell.subtitleLabel.font = UIFont(name: "Titillium-Regular", size: 20)
                 cell.titleLabel.font = UIFont(name: "Formula1-Display-Bold", size: 22)
+                cell.thumbnailImageView.image = nil
                 
                 cell.titleLabel.text = currentItem.title
                 cell.subtitleLabel.text = ""
@@ -268,6 +269,10 @@ class ChannelAndEpisodeCollectionViewController: BaseCollectionViewController, E
                 cell.accessoryFooterLabel.text = ""
                 cell.accessoryOverlayImageView.image = nil
                 cell.thumbnailImageView.backgroundColor = .clear
+                
+                if(!currentItem.items.isEmpty) {
+                    cell.setAsset(assetUrl: currentItem.items.first ?? "")
+                }
                 
                 if(currentItem.imageUrls.isEmpty) {
                     cell.thumbnailImageView.image = UIImage(named: "thumb_placeholder")
@@ -406,8 +411,8 @@ class ChannelAndEpisodeCollectionViewController: BaseCollectionViewController, E
                 subview.removeFromSuperview()
             }
             
-            let titleLabel = UILabel(frame: CGRect(x: 16, y: 80, width: self.view.bounds.width-32, height: 60))
-            titleLabel.font = UIFont.boldSystemFont(ofSize: 34)
+            let titleLabel = UILabel(frame: CGRect(x: 24, y: 80, width: self.view.bounds.width-48, height: 60))
+            titleLabel.font = UIFont(name: "Formula1-Display-Bold", size: 34)
             
             switch indexPath.section {
             case 0:

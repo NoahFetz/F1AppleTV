@@ -8,7 +8,7 @@
 import Foundation
 
 struct AssetStreamTokenResultDto: Codable {
-    let assetStreamTokenObjects: [AssetStreamTokenResultDtoObject]
+    var assetStreamTokenObjects: [AssetStreamTokenResultDtoObject]
 
     enum CodingKeys: String, CodingKey {
         case assetStreamTokenObjects = "objects"
@@ -20,7 +20,7 @@ struct AssetStreamTokenResultDto: Codable {
 }
 
 struct AssetStreamTokenResultDtoObject: Codable {
-    let assetStreamToken: AssetStreamTokenResultDtoToken
+    var assetStreamToken: AssetStreamTokenResultDtoToken
 
     enum CodingKeys: String, CodingKey {
         case assetStreamToken = "tata"
@@ -32,7 +32,7 @@ struct AssetStreamTokenResultDtoObject: Codable {
 }
 
 struct AssetStreamTokenResultDtoToken: Codable {
-    let tokenisedURL: String
+    var tokenisedURL: String
 
     enum CodingKeys: String, CodingKey {
         case tokenisedURL = "tokenised_url"

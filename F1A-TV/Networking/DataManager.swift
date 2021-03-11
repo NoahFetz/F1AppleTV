@@ -15,6 +15,7 @@ class DataManager {
     var nations = [NationDto]()
     var series = [SeriesDto]()
     var teams = [TeamDto]()
+    var assets = [AssetDto]()
     
     func loadSeasonLookup(returnInterface: SeasonsLoadedProtocol) {
         NetworkRouter.instance.getSeasonLookup(completion: { result in
@@ -25,6 +26,21 @@ class DataManager {
                 case .success(let requestResult):
                     DispatchQueue.main.async {
                         returnInterface.didLoadSeasons(seasons: requestResult.resultObjects.filter({$0.hasContent && $0.year >= 2018}).sorted(by: {$0.year > $1.year}))
+                    }
+                }
+            }
+        })
+    }
+    
+    func loadVodLookup(returnInterface: VodLoadedProtocol) {
+        NetworkRouter.instance.getVodLookup(completion: { result in
+            DispatchQueue.main.async {
+                switch result {
+                case .failure(let error):
+                    print("Error occured: \(error.localizedDescription)")
+                case .success(let requestResult):
+                    DispatchQueue.main.async {
+                        returnInterface.didLoadVod(vods: requestResult.resultObjects.filter({!$0.contentUrls.isEmpty}).sorted(by: {$0.name < $1.name}))
                     }
                 }
             }
@@ -109,6 +125,24 @@ class DataManager {
                     
                     DispatchQueue.main.async {
                         seriesProtocol.didLoadSeries(series: requestResult)
+                    }
+                }
+            }
+        })
+    }
+    
+    func loadAsset(assetUrl: String, assetProtocol: AssetLoadedProtocol) {
+        NetworkRouter.instance.getAssetLookup(assetUrl: assetUrl, completion: { result in
+            DispatchQueue.main.async {
+                switch result {
+                case .failure(let error):
+                    print("Error occured: \(error.localizedDescription)")
+                case .success(let requestResult):
+                    self.assets.removeAll(where: {$0.uid == requestResult.uid})
+                    self.assets.append(requestResult)
+                    
+                    DispatchQueue.main.async {
+                        assetProtocol.didLoadAsset(asset: requestResult)
                     }
                 }
             }

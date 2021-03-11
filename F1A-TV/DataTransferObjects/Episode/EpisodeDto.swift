@@ -8,14 +8,14 @@
 import Foundation
 
 struct EpisodeDto: Codable {
-    let imageUrls: [String]
-    let items: [String]
-    let uid: String
-    let dataSourceId: String
-    let title: String
-    let slug: String
-    let synopsis: String
-    let subtitle: String
+    var imageUrls: [String]
+    var items: [String]
+    var uid: String
+    var dataSourceId: String
+    var title: String
+    var slug: String
+    var synopsis: String
+    var subtitle: String
 
     init() {
         self.imageUrls = [String]()

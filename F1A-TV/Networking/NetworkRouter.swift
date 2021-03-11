@@ -167,6 +167,38 @@ class NetworkRouter {
         task.resume()
     }
     
+    func getVodLookup(completion: @escaping(Result<VodRequestResult, APIError>) -> Void) {
+        let request = RequestHelper.createRequestWithoutAuthentication(restService: "/api/vod-type-tag", method: "GET")
+        
+        let task = self.session.dataTask(with: request, completionHandler: {
+            data, response, error in
+            if(error != nil) {
+                completion(.failure(.otherError))
+                return
+            }
+            if let httpStatus = response as? HTTPURLResponse, httpStatus.statusCode != 200 {
+                print("statusCode should be 200, but is \(httpStatus.statusCode)")
+                print(response!)
+                if(httpStatus.statusCode == 401) {
+                    completion(.failure(.authenticationError))
+                    return
+                }
+                completion(.failure(.responseError))
+                return
+            }
+            let requestResult: VodRequestResult
+            do {
+//                print(String(data: data!,encoding: .utf8)!)
+                requestResult = try self.decoder.decode(VodRequestResult.self, from: data!)
+                completion(.success(requestResult))
+            } catch {
+                completion(.failure(.decodingError))
+                return
+            }
+        })
+        task.resume()
+    }
+    
     func getEventLookup(eventUrl: String, completion: @escaping(Result<EventDto, APIError>) -> Void) {
         let request = RequestHelper.createRequestWithoutAuthentication(restService: eventUrl, method: "GET")
         
@@ -288,6 +320,37 @@ class NetworkRouter {
             let requestResult: TeamDto
             do {
                 requestResult = try self.decoder.decode(TeamDto.self, from: data!)
+                completion(.success(requestResult))
+            } catch {
+                completion(.failure(.decodingError))
+                return
+            }
+        })
+        task.resume()
+    }
+    
+    func getAssetLookup(assetUrl: String, completion: @escaping(Result<AssetDto, APIError>) -> Void) {
+        let request = RequestHelper.createRequestWithoutAuthentication(restService: assetUrl, method: "GET")
+        
+        let task = self.session.dataTask(with: request, completionHandler: {
+            data, response, error in
+            if(error != nil) {
+                completion(.failure(.otherError))
+                return
+            }
+            if let httpStatus = response as? HTTPURLResponse, httpStatus.statusCode != 200 {
+                print("statusCode should be 200, but is \(httpStatus.statusCode)")
+                print(response!)
+                if(httpStatus.statusCode == 401) {
+                    completion(.failure(.authenticationError))
+                    return
+                }
+                completion(.failure(.responseError))
+                return
+            }
+            let requestResult: AssetDto
+            do {
+                requestResult = try self.decoder.decode(AssetDto.self, from: data!)
                 completion(.success(requestResult))
             } catch {
                 completion(.failure(.decodingError))

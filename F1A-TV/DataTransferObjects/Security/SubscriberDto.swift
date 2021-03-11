@@ -8,12 +8,12 @@
 import Foundation
 
 struct SubscriberDto: Codable {
-    let firstName: String
-    let lastName: String
-    let homeCountry: String
-    let id: Int
-    let email: String
-    let login: String
+    var firstName: String
+    var lastName: String
+    var homeCountry: String
+    var id: Int
+    var email: String
+    var login: String
     
     init() {
         self.firstName = ""

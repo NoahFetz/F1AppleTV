@@ -11,6 +11,7 @@ enum SideBarInfoType: CaseIterable {
     case Season
     case Event
     case Session
+    case Vod
     
     init() {
         self = .Season

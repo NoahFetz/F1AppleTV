@@ -7,6 +7,11 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		1B1734EF25FA9C0D00ACAB0E /* VodOverviewCollectionViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1B1734EE25FA9C0D00ACAB0E /* VodOverviewCollectionViewController.swift */; };
+		1B1734F125FAA1D900ACAB0E /* VodEpisodeCollectionViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1B1734F025FAA1D900ACAB0E /* VodEpisodeCollectionViewController.swift */; };
+		1B1734F325FAA8F400ACAB0E /* AssetDto.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1B1734F225FAA8F400ACAB0E /* AssetDto.swift */; };
+		1B1734F525FAA96F00ACAB0E /* AssetLoadedProtocol.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1B1734F425FAA96F00ACAB0E /* AssetLoadedProtocol.swift */; };
+		1B1734F725FAAD4C00ACAB0E /* FontAdjustedUILabel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1B1734F625FAAD4C00ACAB0E /* FontAdjustedUILabel.swift */; };
 		1B28FDB925456642004E247C /* SessionDto.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1B28FDB825456642004E247C /* SessionDto.swift */; };
 		1B28FDC025456A3F004E247C /* SessionOverviewTableViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1B28FDBF25456A3F004E247C /* SessionOverviewTableViewController.swift */; };
 		1B28FDC625456B7A004E247C /* SessionLoadedProtocol.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1B28FDC525456B7A004E247C /* SessionLoadedProtocol.swift */; };
@@ -51,6 +56,9 @@
 		1B85213525F8C5F900B3356B /* Titillium-Black.otf in Resources */ = {isa = PBXBuildFile; fileRef = 1B85212525F8C5F900B3356B /* Titillium-Black.otf */; };
 		1B85213625F8C5F900B3356B /* Titillium-Regular.otf in Resources */ = {isa = PBXBuildFile; fileRef = 1B85212625F8C5F900B3356B /* Titillium-Regular.otf */; };
 		1B85213725F8C5F900B3356B /* Titillium-ThinItalic.otf in Resources */ = {isa = PBXBuildFile; fileRef = 1B85212725F8C5F900B3356B /* Titillium-ThinItalic.otf */; };
+		1B8BD58225FA979600C2BAD8 /* VodDto.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1B8BD58125FA979600C2BAD8 /* VodDto.swift */; };
+		1B8BD58425FA999D00C2BAD8 /* VodRequestResult.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1B8BD58325FA999D00C2BAD8 /* VodRequestResult.swift */; };
+		1B8BD58625FA99C900C2BAD8 /* VodLoadedProtocol.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1B8BD58525FA99C900C2BAD8 /* VodLoadedProtocol.swift */; };
 		1B996F7E25F57D9C00395170 /* NoContentTableViewCell.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1B996F7C25F57D9C00395170 /* NoContentTableViewCell.swift */; };
 		1B996F7F25F57D9C00395170 /* NoContentTableViewCell.xib in Resources */ = {isa = PBXBuildFile; fileRef = 1B996F7D25F57D9C00395170 /* NoContentTableViewCell.xib */; };
 		1B996F8125F5806700395170 /* SeasonsLoadedProtocol.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1B996F8025F5806700395170 /* SeasonsLoadedProtocol.swift */; };
@@ -143,6 +151,11 @@
 
 /* Begin PBXFileReference section */
 		04234C9D74E844728C1D0346 /* Pods-F1TVTests.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-F1TVTests.release.xcconfig"; path = "Target Support Files/Pods-F1TVTests/Pods-F1TVTests.release.xcconfig"; sourceTree = "<group>"; };
+		1B1734EE25FA9C0D00ACAB0E /* VodOverviewCollectionViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VodOverviewCollectionViewController.swift; sourceTree = "<group>"; };
+		1B1734F025FAA1D900ACAB0E /* VodEpisodeCollectionViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VodEpisodeCollectionViewController.swift; sourceTree = "<group>"; };
+		1B1734F225FAA8F400ACAB0E /* AssetDto.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AssetDto.swift; sourceTree = "<group>"; };
+		1B1734F425FAA96F00ACAB0E /* AssetLoadedProtocol.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AssetLoadedProtocol.swift; sourceTree = "<group>"; };
+		1B1734F625FAAD4C00ACAB0E /* FontAdjustedUILabel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FontAdjustedUILabel.swift; sourceTree = "<group>"; };
 		1B28FDB825456642004E247C /* SessionDto.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SessionDto.swift; sourceTree = "<group>"; };
 		1B28FDBF25456A3F004E247C /* SessionOverviewTableViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SessionOverviewTableViewController.swift; sourceTree = "<group>"; };
 		1B28FDC525456B7A004E247C /* SessionLoadedProtocol.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SessionLoadedProtocol.swift; sourceTree = "<group>"; };
@@ -187,6 +200,9 @@
 		1B85212525F8C5F900B3356B /* Titillium-Black.otf */ = {isa = PBXFileReference; lastKnownFileType = file; path = "Titillium-Black.otf"; sourceTree = "<group>"; };
 		1B85212625F8C5F900B3356B /* Titillium-Regular.otf */ = {isa = PBXFileReference; lastKnownFileType = file; path = "Titillium-Regular.otf"; sourceTree = "<group>"; };
 		1B85212725F8C5F900B3356B /* Titillium-ThinItalic.otf */ = {isa = PBXFileReference; lastKnownFileType = file; path = "Titillium-ThinItalic.otf"; sourceTree = "<group>"; };
+		1B8BD58125FA979600C2BAD8 /* VodDto.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VodDto.swift; sourceTree = "<group>"; };
+		1B8BD58325FA999D00C2BAD8 /* VodRequestResult.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VodRequestResult.swift; sourceTree = "<group>"; };
+		1B8BD58525FA99C900C2BAD8 /* VodLoadedProtocol.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VodLoadedProtocol.swift; sourceTree = "<group>"; };
 		1B996F7C25F57D9C00395170 /* NoContentTableViewCell.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NoContentTableViewCell.swift; sourceTree = "<group>"; };
 		1B996F7D25F57D9C00395170 /* NoContentTableViewCell.xib */ = {isa = PBXFileReference; lastKnownFileType = file.xib; path = NoContentTableViewCell.xib; sourceTree = "<group>"; };
 		1B996F8025F5806700395170 /* SeasonsLoadedProtocol.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SeasonsLoadedProtocol.swift; sourceTree = "<group>"; };
@@ -389,10 +405,29 @@
 			path = Fonts;
 			sourceTree = "<group>";
 		};
+		1B8BD58025FA978900C2BAD8 /* VideoOnDemand */ = {
+			isa = PBXGroup;
+			children = (
+				1B8BD58125FA979600C2BAD8 /* VodDto.swift */,
+				1B8BD58325FA999D00C2BAD8 /* VodRequestResult.swift */,
+			);
+			path = VideoOnDemand;
+			sourceTree = "<group>";
+		};
+		1B8BD58725FA9B9700C2BAD8 /* VideoOnDemand */ = {
+			isa = PBXGroup;
+			children = (
+				1B1734EE25FA9C0D00ACAB0E /* VodOverviewCollectionViewController.swift */,
+				1B1734F025FAA1D900ACAB0E /* VodEpisodeCollectionViewController.swift */,
+			);
+			path = VideoOnDemand;
+			sourceTree = "<group>";
+		};
 		1BAEF5E72545D02200CDE17E /* Episode */ = {
 			isa = PBXGroup;
 			children = (
 				1BAEF5E82545D03100CDE17E /* EpisodeDto.swift */,
+				1B1734F225FAA8F400ACAB0E /* AssetDto.swift */,
 			);
 			path = Episode;
 			sourceTree = "<group>";
@@ -410,6 +445,8 @@
 				1B85210825F7C7A300B3356B /* NationLoadedProtocol.swift */,
 				1BFFAB7525F8FE8900EADC99 /* SeriesLoadedProtocol.swift */,
 				1BFFAB7B25F90A7800EADC99 /* TeamLoadedProtocol.swift */,
+				1B8BD58525FA99C900C2BAD8 /* VodLoadedProtocol.swift */,
+				1B1734F425FAA96F00ACAB0E /* AssetLoadedProtocol.swift */,
 			);
 			path = Protocols;
 			sourceTree = "<group>";
@@ -497,6 +534,7 @@
 		1BB29BCE2544648D00ECC074 /* DataTransferObjects */ = {
 			isa = PBXGroup;
 			children = (
+				1B8BD58025FA978900C2BAD8 /* VideoOnDemand */,
 				1BB29C922544C09300ECC074 /* Season */,
 				1B28FDB725456630004E247C /* Session */,
 				1B59D1072544D3FC0087E83F /* Event */,
@@ -560,6 +598,7 @@
 				1BD5FE6D2544CF6900CA03B4 /* UIViewExtension.swift */,
 				1BB23CF32544E3C800D0CC71 /* DateExtension.swift */,
 				1BC656AE25F6BD9E0025CA1D /* UIColorExtension.swift */,
+				1B1734F625FAAD4C00ACAB0E /* FontAdjustedUILabel.swift */,
 			);
 			path = Extensions;
 			sourceTree = "<group>";
@@ -586,6 +625,7 @@
 				1BD5FE722544D13D00CA03B4 /* Season */,
 				1BD5FE732544D15400CA03B4 /* Event */,
 				1B28FDBE25456A26004E247C /* Session */,
+				1B8BD58725FA9B9700C2BAD8 /* VideoOnDemand */,
 				1B28FDD625457543004E247C /* Channel */,
 			);
 			path = Views;
@@ -857,6 +897,7 @@
 				1BFFAB7825F901C600EADC99 /* SeriesType.swift in Sources */,
 				1BB23D0F2544F38A00D0CC71 /* AccessoryIconType.swift in Sources */,
 				1B28FDD325457478004E247C /* ChannelLoadedProtocol.swift in Sources */,
+				1B8BD58225FA979600C2BAD8 /* VodDto.swift in Sources */,
 				1BB29C1E2544773300ECC074 /* SubscriberDto.swift in Sources */,
 				1BB29C842544B8BA00ECC074 /* NotificationExtension.swift in Sources */,
 				1B85210525F7B4A100B3356B /* ChannelAndEpisodeCollectionViewController.swift in Sources */,
@@ -869,11 +910,13 @@
 				1BD62F36254595E900614A24 /* DriverLoadedProtocol.swift in Sources */,
 				1B28FDCB25457241004E247C /* ChannelDto.swift in Sources */,
 				1B85210E25F7CCC400B3356B /* IsoCountryCodes.swift in Sources */,
+				1B1734EF25FA9C0D00ACAB0E /* VodOverviewCollectionViewController.swift in Sources */,
 				1BC656A925F6A08D0025CA1D /* MenuSelectorTableViewController.swift in Sources */,
 				1BB29BDE2544655B00ECC074 /* DataSource.swift in Sources */,
 				1BB29BD92544652D00ECC074 /* DatabaseController.swift in Sources */,
 				1BFFAB7A25F9097B00EADC99 /* TeamDto.swift in Sources */,
 				1B85210925F7C7A300B3356B /* NationLoadedProtocol.swift in Sources */,
+				1B1734F725FAAD4C00ACAB0E /* FontAdjustedUILabel.swift in Sources */,
 				1BAEF5F32545D56900CDE17E /* AssetStreamTokenResultDto.swift in Sources */,
 				1BB29C892544BB6D00ECC074 /* SeasonDto.swift in Sources */,
 				1B36C7B425F79F8B005533F9 /* EventOverviewCollectionViewController.swift in Sources */,
@@ -883,15 +926,19 @@
 				1BB29BE4254465BF00ECC074 /* KeyValueRepository.swift in Sources */,
 				1BB29C7E2544B2D100ECC074 /* ThumbnailTitleTableViewCell.swift in Sources */,
 				1B28FDC025456A3F004E247C /* SessionOverviewTableViewController.swift in Sources */,
+				1B1734F325FAA8F400ACAB0E /* AssetDto.swift in Sources */,
 				1BD5FE752544D16C00CA03B4 /* EventOverviewTableViewController.swift in Sources */,
 				1B809533254576E300889DFE /* ChannelOverviewTableViewController.swift in Sources */,
 				1BB29C722544AF4600ECC074 /* CustomTabBarController.swift in Sources */,
+				1B8BD58625FA99C900C2BAD8 /* VodLoadedProtocol.swift in Sources */,
 				1BB29C5225449FE900ECC074 /* BaseCollectionViewCell.swift in Sources */,
 				1BFFAB7625F8FE8900EADC99 /* SeriesLoadedProtocol.swift in Sources */,
 				1BB29C8E2544BE6500ECC074 /* DataManager.swift in Sources */,
 				1BB29C192544770700ECC074 /* AuthResultDto.swift in Sources */,
 				1B78A79E2586440A007CF57C /* PlayerController.swift in Sources */,
 				1B996F8425F5822C00395170 /* ThumbnailBackgroundTableViewCell.swift in Sources */,
+				1B1734F125FAA1D900ACAB0E /* VodEpisodeCollectionViewController.swift in Sources */,
+				1B1734F525FAA96F00ACAB0E /* AssetLoadedProtocol.swift in Sources */,
 				1BAEF5E92545D03100CDE17E /* EpisodeDto.swift in Sources */,
 				1BB29C232544777300ECC074 /* AuthDataDto.swift in Sources */,
 				1B85210325F7AFCF00B3356B /* SessionOverviewCollectionViewController.swift in Sources */,
@@ -918,6 +965,7 @@
 				1BB29B9225445D6C00ECC074 /* AppDelegate.swift in Sources */,
 				1BB29BEC254465FA00ECC074 /* KeyValueStoreObject.swift in Sources */,
 				1BB29C622544A7C200ECC074 /* ThumbnailTitleCollectionViewCell.swift in Sources */,
+				1B8BD58425FA999D00C2BAD8 /* VodRequestResult.swift in Sources */,
 				1B80954525457D3E00889DFE /* CredentialHelper.swift in Sources */,
 				1BB29C0C25446DC000ECC074 /* ConstantsUtil.swift in Sources */,
 				1BB23CF42544E3C800D0CC71 /* DateExtension.swift in Sources */,
@@ -1085,7 +1133,7 @@
 				CODE_SIGN_ENTITLEMENTS = "F1A-TV/F1A-TV.entitlements";
 				CODE_SIGN_IDENTITY = "Apple Development";
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 21.0311.1;
+				CURRENT_PROJECT_VERSION = 21.0311.2;
 				DEVELOPMENT_TEAM = 8SW735FL99;
 				INFOPLIST_FILE = "$(SRCROOT)/F1A-TV/Info.plist";
 				LD_RUNPATH_SEARCH_PATHS = (
@@ -1113,7 +1161,7 @@
 				CODE_SIGN_ENTITLEMENTS = "F1A-TV/F1A-TV.entitlements";
 				CODE_SIGN_IDENTITY = "Apple Development";
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 21.0311.1;
+				CURRENT_PROJECT_VERSION = 21.0311.2;
 				DEVELOPMENT_TEAM = 8SW735FL99;
 				INFOPLIST_FILE = "$(SRCROOT)/F1A-TV/Info.plist";
 				LD_RUNPATH_SEARCH_PATHS = (

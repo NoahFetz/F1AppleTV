@@ -8,14 +8,14 @@
 import UIKit
 import Kingfisher
 
-class ThumbnailTitleSubtitleCollectionViewCell: BaseCollectionViewCell, ImageLoadedProtocol, NationLoadedProtocol, SeriesLoadedProtocol, TeamLoadedProtocol {
+class ThumbnailTitleSubtitleCollectionViewCell: BaseCollectionViewCell, ImageLoadedProtocol, NationLoadedProtocol, SeriesLoadedProtocol, TeamLoadedProtocol, AssetLoadedProtocol {
     @IBOutlet weak var containerView: UIView!
     @IBOutlet weak var thumbnailImageView: UIImageView!
     @IBOutlet weak var bottomContainerView: UIView!
-    @IBOutlet weak var subtitleLabel: UILabel!
-    @IBOutlet weak var titleLabel: UILabel!
-    @IBOutlet weak var footerLabel: UILabel!
-    @IBOutlet weak var accessoryFooterLabel: UILabel!
+    @IBOutlet weak var subtitleLabel: FontAdjustedUILabel!
+    @IBOutlet weak var titleLabel: FontAdjustedUILabel!
+    @IBOutlet weak var footerLabel: FontAdjustedUILabel!
+    @IBOutlet weak var accessoryFooterLabel: FontAdjustedUILabel!
     @IBOutlet weak var accessoryOverlayImageView: UIImageView!
     
     override func awakeFromNib() {
@@ -156,5 +156,18 @@ class ThumbnailTitleSubtitleCollectionViewCell: BaseCollectionViewCell, ImageLoa
         if(!team.imageUrls.isEmpty) {
             self.loadImage(imageUrl: team.imageUrls.first ?? "")
         }
+    }
+    
+    func setAsset(assetUrl: String) {
+        if let asset = DataManager.instance.assets.first(where: {$0.uid == (assetUrl.split(separator: "/").last ?? "")}) {
+            didLoadAsset(asset: asset)
+            return
+        }
+        
+        DataManager.instance.loadAsset(assetUrl: assetUrl, assetProtocol: self)
+    }
+    
+    func didLoadAsset(asset: AssetDto) {
+        self.subtitleLabel.text = TimeInterval(asset.durationInSeconds).stringFromTimeInterval()
     }
 }
