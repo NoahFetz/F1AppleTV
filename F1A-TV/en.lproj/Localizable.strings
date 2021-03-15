@@ -39,12 +39,20 @@
 "account_no_subscription_message" = "No active subscription was found. Please login or purchase a subscription on F1TV's website";
 
 //
-"live_title" = "Live Now";
-"seasons_title" = "Seasons";
+"featured_title" = "Featured";
+"archive_title" = "Archive";
+"shows_title" = "Shows";
+"docs_title" = "Documentaries";
 "race_seasons_header" = "Season";
 "vod_title" = "Video On Demand";
 "channels_title" = "Channels";
 "episodes_title" = "Episodes";
+"main_channels_title" = "Main channels";
+"driver_channels_title" = "Driver views";
+"main_feed_title" = "Main Feed";
+"pit_lane_feed_title" = "Pit Lane";
+"tracker_feed_title" = "Tracker Feed";
+"data_feed_title" = "Data Feed";
 "wif" = "Main-Channel";
 "driver" = "Driver Map";
 "pit_lane" = "Pit Lane Channel";

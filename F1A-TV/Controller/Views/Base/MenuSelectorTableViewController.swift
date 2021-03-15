@@ -8,9 +8,11 @@
 import UIKit
 
 class MenuSelectorTableViewController: BaseTableViewController {
-    var liveViewController: LiveOverviewCollectionViewController?
-    var seasonViewController: SeasonOverviewCollectionViewController?
-    var vodViewController: VodOverviewCollectionViewController?
+    var featuredViewController: PageOverviewCollectionViewController?
+    var currentSeasonViewController: PageOverviewCollectionViewController?
+    var archiveViewController: PageOverviewCollectionViewController?
+    var showsViewController: PageOverviewCollectionViewController?
+    var docsViewController: PageOverviewCollectionViewController?
     var accountViewController: AccountOverviewViewController?
     
     var menuSwitchTimer: Timer!
@@ -33,12 +35,24 @@ class MenuSelectorTableViewController: BaseTableViewController {
     }
     
     func setupTableView() {
-        self.liveViewController = self.getViewControllerWith(viewIdentifier: ConstantsUtil.liveOverviewCollectionViewController) as? LiveOverviewCollectionViewController
-        self.seasonViewController = self.getViewControllerWith(viewIdentifier: ConstantsUtil.seasonOverviewCollectionViewController) as? SeasonOverviewCollectionViewController
-        self.vodViewController = self.getViewControllerWith(viewIdentifier: ConstantsUtil.vodOverviewCollectionViewController) as? VodOverviewCollectionViewController
+        self.featuredViewController = self.getViewControllerWith(viewIdentifier: ConstantsUtil.pageOverviewCollectionViewController) as? PageOverviewCollectionViewController
+        self.featuredViewController?.initialize(pageUri: "/2.0/R/ENG/BIG_SCREEN_HLS/ALL/PAGE/395/F1_TV_Pro_Annual/2") //Home Uri
+        
+        self.currentSeasonViewController = self.getViewControllerWith(viewIdentifier: ConstantsUtil.pageOverviewCollectionViewController) as? PageOverviewCollectionViewController
+        self.currentSeasonViewController?.initialize(pageUri: "/2.0/R/ENG/BIG_SCREEN_HLS/ALL/PAGE/1510/F1_TV_Pro_Annual/2") //2021 Uri
+        
+        self.archiveViewController = self.getViewControllerWith(viewIdentifier: ConstantsUtil.pageOverviewCollectionViewController) as? PageOverviewCollectionViewController
+        self.archiveViewController?.initialize(pageUri: "/2.0/R/ENG/BIG_SCREEN_HLS/ALL/PAGE/493/F1_TV_Pro_Annual/2") //Archive Uri
+        
+        self.showsViewController = self.getViewControllerWith(viewIdentifier: ConstantsUtil.pageOverviewCollectionViewController) as? PageOverviewCollectionViewController
+        self.showsViewController?.initialize(pageUri: "/2.0/R/ENG/BIG_SCREEN_HLS/ALL/PAGE/410/F1_TV_Pro_Annual/2") //Shows Uri
+        
+        self.docsViewController = self.getViewControllerWith(viewIdentifier: ConstantsUtil.pageOverviewCollectionViewController) as? PageOverviewCollectionViewController
+        self.docsViewController?.initialize(pageUri: "/2.0/R/ENG/BIG_SCREEN_HLS/ALL/PAGE/413/F1_TV_Pro_Annual/2") //Docs Uri
+        
         self.accountViewController = self.getViewControllerWith(viewIdentifier: ConstantsUtil.accountOverviewViewController) as? AccountOverviewViewController
         
-        self.splitViewController?.showDetailViewController(self.liveViewController ?? UIViewController(), sender: self)
+        self.splitViewController?.showDetailViewController(self.featuredViewController ?? UIViewController(), sender: self)
         
         let backgroundImageView = UIImageView(frame: self.tableView.bounds)
         self.tableView.backgroundView = backgroundImageView
@@ -80,7 +94,7 @@ class MenuSelectorTableViewController: BaseTableViewController {
     }
 
     override func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
-        return 4
+        return 6
     }
 
     override func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
@@ -88,15 +102,21 @@ class MenuSelectorTableViewController: BaseTableViewController {
         
         switch indexPath.row {
         case 0:
-            cell.textLabel?.text = NSLocalizedString("live_title", comment: "")
+            cell.textLabel?.text = NSLocalizedString("featured_title", comment: "")
             
         case 1:
-            cell.textLabel?.text = NSLocalizedString("seasons_title", comment: "")
+            cell.textLabel?.text = Date().getYear() + " " + NSLocalizedString("race_seasons_header", comment: "")
             
         case 2:
-            cell.textLabel?.text = NSLocalizedString("vod_title", comment: "")
+            cell.textLabel?.text = NSLocalizedString("archive_title", comment: "")
             
         case 3:
+            cell.textLabel?.text = NSLocalizedString("shows_title", comment: "")
+            
+        case 4:
+            cell.textLabel?.text = NSLocalizedString("docs_title", comment: "")
+            
+        case 5:
             cell.textLabel?.text = NSLocalizedString("account_title", comment: "")
             
         default:
@@ -128,15 +148,21 @@ class MenuSelectorTableViewController: BaseTableViewController {
             
             switch context.nextFocusedIndexPath?.row {
             case 0:
-                self.splitViewController?.showDetailViewController(self.liveViewController ?? UIViewController(), sender: self)
+                self.splitViewController?.showDetailViewController(self.featuredViewController ?? UIViewController(), sender: self)
                 
             case 1:
-                self.splitViewController?.showDetailViewController(self.seasonViewController ?? UIViewController(), sender: self)
+                self.splitViewController?.showDetailViewController(self.currentSeasonViewController ?? UIViewController(), sender: self)
                 
             case 2:
-                self.splitViewController?.showDetailViewController(self.vodViewController ?? UIViewController(), sender: self)
+                self.splitViewController?.showDetailViewController(self.archiveViewController ?? UIViewController(), sender: self)
                 
             case 3:
+                self.splitViewController?.showDetailViewController(self.showsViewController ?? UIViewController(), sender: self)
+                
+            case 4:
+                self.splitViewController?.showDetailViewController(self.docsViewController ?? UIViewController(), sender: self)
+                
+            case 5:
                 self.splitViewController?.showDetailViewController(self.accountViewController ?? UIViewController(), sender: self)
                 
             default:

@@ -140,6 +140,6 @@ class LiveOverviewTableViewController: BaseTableViewController, EventLoadedProto
     }
 
     override func tableView(_ tableView: UITableView, titleForHeaderInSection section: Int) -> String? {
-        return NSLocalizedString("live_title", comment: "")
+        return NSLocalizedString("featured_title", comment: "")
     }
 }

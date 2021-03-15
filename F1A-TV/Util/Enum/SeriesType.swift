@@ -8,13 +8,14 @@
 import UIKit
 
 enum SeriesType: CaseIterable {
+    case None
     case Formula1
     case Formula2
     case Formula3
     case PorscheSuperCup
     
     init() {
-        self = .Formula1
+        self = .None
     }
     
     static func fromIdentifier(identifier: Int) -> SeriesType {
@@ -23,11 +24,23 @@ enum SeriesType: CaseIterable {
                 return type
             }
         }
-        return .Formula1
+        return .None
+    }
+    
+    static func fromCapitalDisplayName(capitalDisplayName: String) -> SeriesType {
+        for type in SeriesType.allCases {
+            if(type.getCapitalDisplayName() == capitalDisplayName) {
+                return type
+            }
+        }
+        return .None
     }
     
     func getIdentifier() -> Int {
         switch self {
+        case .None:
+            return 0
+        
         case .Formula1:
             return 1
             
@@ -42,8 +55,30 @@ enum SeriesType: CaseIterable {
         }
     }
     
+    func getCapitalDisplayName() -> String {
+        switch self {
+        case .None:
+            return ""
+        
+        case .Formula1:
+            return "FORMULA 1"
+            
+        case .Formula2:
+            return "FORMULA 2"
+            
+        case .Formula3:
+            return "FORMULA 3"
+            
+        case .PorscheSuperCup:
+            return "PORSCHE"
+        }
+    }
+    
     func getColor() -> UIColor {
         switch self {
+        case .None:
+            return UIColor.white
+        
         case .Formula1:
             return UIColor(rgb: 0xe10600)
             

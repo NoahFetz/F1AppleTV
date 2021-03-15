@@ -81,7 +81,7 @@
 		37341E0179D579BBB1E77C57C258EA55 /* UIView+Autolayout.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = "UIView+Autolayout.swift"; path = "Sources/Extensions/UIView+Autolayout.swift"; sourceTree = "<group>"; };
 		3827CA1086CDDB2745DDA40094B036A9 /* UIView+UIApplicationDelegate.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = "UIView+UIApplicationDelegate.swift"; path = "Sources/Extensions/UIView+UIApplicationDelegate.swift"; sourceTree = "<group>"; };
 		3E673C81145A4A99EB01C60D5F9D1D99 /* UITableView+CollectionSkeleton.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = "UITableView+CollectionSkeleton.swift"; path = "Sources/Collections/TableViews/UITableView+CollectionSkeleton.swift"; sourceTree = "<group>"; };
-		405A2F5F1748D4DF3206AC468C9D0789 /* Pods_F1A_TV.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = Pods_F1A_TV.framework; sourceTree = BUILT_PRODUCTS_DIR; };
+		405A2F5F1748D4DF3206AC468C9D0789 /* Pods_F1A_TV.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; name = Pods_F1A_TV.framework; path = "Pods-F1A-TV.framework"; sourceTree = BUILT_PRODUCTS_DIR; };
 		405FFA38E8F33B994BF06B6EE5063EC2 /* SkeletonView.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = SkeletonView.swift; path = Sources/SkeletonView.swift; sourceTree = "<group>"; };
 		4C5B8ABDA045C603024136B877CE98F5 /* SkeletonLayerBuilder.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = SkeletonLayerBuilder.swift; path = Sources/Builders/SkeletonLayerBuilder.swift; sourceTree = "<group>"; };
 		4DE67A84B4DE567B173CCFE4587A1865 /* SkeletonTableViewProtocols.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = SkeletonTableViewProtocols.swift; path = Sources/Collections/TableViews/SkeletonTableViewProtocols.swift; sourceTree = "<group>"; };
@@ -104,7 +104,7 @@
 		96C30DC61523D9971810C6DAA73F35F8 /* Pods-F1A-TV-umbrella.h */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.c.h; path = "Pods-F1A-TV-umbrella.h"; sourceTree = "<group>"; };
 		972598C5EFBB78B5AC1EC6DE22DC29B2 /* AssociationPolicy.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = AssociationPolicy.swift; path = Sources/Helpers/AssociationPolicy.swift; sourceTree = "<group>"; };
 		9CA768F04ECAD48C95FDA84B29EC0A74 /* SkeletonCollectionDataSource.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = SkeletonCollectionDataSource.swift; path = Sources/Collections/SkeletonCollectionDataSource.swift; sourceTree = "<group>"; };
-		9D940727FF8FB9C785EB98E56350EF41 /* Podfile */ = {isa = PBXFileReference; explicitFileType = text.script.ruby; includeInIndex = 1; indentWidth = 2; name = Podfile; path = ../Podfile; sourceTree = SOURCE_ROOT; tabWidth = 2; xcLanguageSpecificationIdentifier = xcode.lang.ruby; };
+		9D940727FF8FB9C785EB98E56350EF41 /* Podfile */ = {isa = PBXFileReference; explicitFileType = text.script.ruby; includeInIndex = 1; indentWidth = 2; lastKnownFileType = text; name = Podfile; path = ../Podfile; sourceTree = SOURCE_ROOT; tabWidth = 2; xcLanguageSpecificationIdentifier = xcode.lang.ruby; };
 		A1A5BC1D17F298EB06956DADC8FF10FA /* SkeletonView-umbrella.h */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.c.h; path = "SkeletonView-umbrella.h"; sourceTree = "<group>"; };
 		A4CF4FE240AE45E8C0937A941DD2A03E /* SkeletonTransitionStyle.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = SkeletonTransitionStyle.swift; path = Sources/Transitions/SkeletonTransitionStyle.swift; sourceTree = "<group>"; };
 		A64A563135FE3C9DC96F011B23BC0040 /* SkeletonConfig.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = SkeletonConfig.swift; path = Sources/SkeletonConfig.swift; sourceTree = "<group>"; };
@@ -114,7 +114,7 @@
 		BD6FE222D0020D16179946C23AD41472 /* UIView+Transitions.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = "UIView+Transitions.swift"; path = "Sources/Transitions/UIView+Transitions.swift"; sourceTree = "<group>"; };
 		C583BBB8EF71FCF1BB15730F8D8F0400 /* Pods-F1A-TV.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; path = "Pods-F1A-TV.release.xcconfig"; sourceTree = "<group>"; };
 		C5E5486D18DE189EA1E45FACAE5E6AE2 /* CALayer+Extensions.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = "CALayer+Extensions.swift"; path = "Sources/Extensions/CALayer+Extensions.swift"; sourceTree = "<group>"; };
-		CDC8C1E54D1F3A8B5CAC89FFFF6A3F80 /* SkeletonView.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = SkeletonView.framework; sourceTree = BUILT_PRODUCTS_DIR; };
+		CDC8C1E54D1F3A8B5CAC89FFFF6A3F80 /* SkeletonView.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; name = SkeletonView.framework; path = SkeletonView.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 		D224DAF9AE3B57E3F2F4C391E53A2567 /* RecoverableViewState.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = RecoverableViewState.swift; path = Sources/Recoverable/RecoverableViewState.swift; sourceTree = "<group>"; };
 		D6340837A7DB6244F17413FDED58E064 /* SkeletonCollectionDelegate.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = SkeletonCollectionDelegate.swift; path = Sources/Collections/SkeletonCollectionDelegate.swift; sourceTree = "<group>"; };
 		D9FFEBE1255409FF8484E0963273C99A /* UICollectionView+CollectionSkeleton.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = "UICollectionView+CollectionSkeleton.swift"; path = "Sources/Collections/CollectionViews/UICollectionView+CollectionSkeleton.swift"; sourceTree = "<group>"; };
@@ -283,6 +283,7 @@
 				3827CA1086CDDB2745DDA40094B036A9 /* UIView+UIApplicationDelegate.swift */,
 				D98313CA2B830974F942D7D7E27FFE50 /* Support Files */,
 			);
+			name = SkeletonView;
 			path = SkeletonView;
 			sourceTree = "<group>";
 		};
@@ -352,7 +353,7 @@
 			isa = PBXProject;
 			attributes = {
 				LastSwiftUpdateCheck = 1100;
-				LastUpgradeCheck = 1250;
+				LastUpgradeCheck = 1100;
 			};
 			buildConfigurationList = 4821239608C13582E20E6DA73FD5F1F9 /* Build configuration list for PBXProject "Pods" */;
 			compatibilityVersion = "Xcode 11.0";
@@ -690,7 +691,7 @@
 				SWIFT_ACTIVE_COMPILATION_CONDITIONS = "$(inherited) ";
 				SWIFT_VERSION = 5.0;
 				TARGETED_DEVICE_FAMILY = 3;
-				TVOS_DEPLOYMENT_TARGET = 12.0;
+				TVOS_DEPLOYMENT_TARGET = 9.0;
 				VALIDATE_PRODUCT = YES;
 				VERSIONING_SYSTEM = "apple-generic";
 				VERSION_INFO_PREFIX = "";
@@ -725,7 +726,7 @@
 				SWIFT_ACTIVE_COMPILATION_CONDITIONS = "$(inherited) ";
 				SWIFT_VERSION = 5.0;
 				TARGETED_DEVICE_FAMILY = 3;
-				TVOS_DEPLOYMENT_TARGET = 12.0;
+				TVOS_DEPLOYMENT_TARGET = 9.0;
 				VERSIONING_SYSTEM = "apple-generic";
 				VERSION_INFO_PREFIX = "";
 			};

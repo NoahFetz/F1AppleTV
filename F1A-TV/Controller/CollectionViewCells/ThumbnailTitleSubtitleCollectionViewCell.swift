@@ -26,6 +26,12 @@ class ThumbnailTitleSubtitleCollectionViewCell: BaseCollectionViewCell, ImageLoa
         self.bottomContainerView.backgroundColor = ConstantsUtil.brandingItemColor
         self.containerView.layer.masksToBounds = true
         
+        self.setDefaultConfig()
+        
+        NotificationCenter.default.addObserver(self, selector: #selector(self.userInterfaceStyleChanged), name: .userInterfaceStyleChanged, object: nil)
+    }
+    
+    func setDefaultConfig() {
         self.subtitleLabel.font = UIFont(name: "Formula1-Display-Bold", size: 20)
         self.titleLabel.font = UIFont(name: "Titillium-Regular", size: 22)
         self.footerLabel.font = UIFont(name: "Titillium-Regular", size: 20)
@@ -36,7 +42,38 @@ class ThumbnailTitleSubtitleCollectionViewCell: BaseCollectionViewCell, ImageLoa
         self.footerLabel.text = ""
         self.accessoryFooterLabel.text = ""
         
-        NotificationCenter.default.addObserver(self, selector: #selector(self.userInterfaceStyleChanged), name: .userInterfaceStyleChanged, object: nil)
+        self.titleLabel.textAlignment = .natural
+        
+        self.accessoryOverlayImageView.image = nil
+        self.thumbnailImageView.image = nil
+    }
+    
+    func disableSkeleton() {
+        self.titleLabel.hideSkeletonAnimation()
+        self.subtitleLabel.hideSkeletonAnimation()
+        self.footerLabel.hideSkeletonAnimation()
+        self.accessoryFooterLabel.hideSkeletonAnimation()
+        self.thumbnailImageView.hideSkeletonAnimation()
+    }
+    
+    func configureSkeleton() {
+        self.titleLabel.text = ""
+        self.titleLabel.linesCornerRadius = 5
+        self.titleLabel.showSkeletonAnimation()
+        
+        self.subtitleLabel.text = ""
+        self.subtitleLabel.linesCornerRadius = 5
+        self.subtitleLabel.showSkeletonAnimation()
+        
+        self.footerLabel.text = ""
+        self.footerLabel.linesCornerRadius = 5
+        self.footerLabel.showSkeletonAnimation()
+        
+        self.accessoryFooterLabel.text = ""
+        self.accessoryFooterLabel.linesCornerRadius = 5
+        self.accessoryFooterLabel.showSkeletonAnimation()
+        
+        self.thumbnailImageView.showSkeletonAnimation()
     }
     
     @objc func userInterfaceStyleChanged() {
@@ -68,27 +105,65 @@ class ThumbnailTitleSubtitleCollectionViewCell: BaseCollectionViewCell, ImageLoa
     }
     
     func applyImage(imageInfo: ImageDto, imageView: UIImageView) {
-        let url = URL(string: imageInfo.url)
+        if let url = URL(string: imageInfo.url) {
+            let processor = DownsamplingImageProcessor(size: imageView.bounds.size)
+            imageView.kf.indicatorType = .activity
+            imageView.kf.setImage(
+                with: url,
+                options: [
+                    .processor(processor),
+                    .scaleFactor(UIScreen.main.scale),
+                    .transition(.fade(0.2)),
+                    .cacheOriginalImage
+                ], completionHandler:
+                    {
+                        result in
+                        switch result {
+                        case .success(let value):
+                            print("Task done for: \(value.source.url?.absoluteString ?? "")")
+                        case .failure(let error):
+                            print("Job failed: \(error.localizedDescription)")
+                        }
+                    })
+        }
+    }
+    
+    func applyImage(pictureId: String, imageView: UIImageView) {
+        var newApiUrlString = "https://ott.formula1.com/image-resizer/image/"
+        newApiUrlString.append(pictureId)
+        newApiUrlString.append("?w=1920&h=1080&q=HI&o=L")
         
-        let processor = DownsamplingImageProcessor(size: imageView.bounds.size)
-        imageView.kf.indicatorType = .activity
-        imageView.kf.setImage(
-            with: url,
-            options: [
-                .processor(processor),
-                .scaleFactor(UIScreen.main.scale),
-                .transition(.fade(0.2)),
-                .cacheOriginalImage
-            ], completionHandler:
-                {
-                    result in
-                    switch result {
-                    case .success(let value):
-                        print("Task done for: \(value.source.url?.absoluteString ?? "")")
-                    case .failure(let error):
-                        print("Job failed: \(error.localizedDescription)")
-                    }
-                })
+        self.applyImage(imageUrl: newApiUrlString, imageView: imageView)
+    }
+    
+    func applyImage(countryId: String, imageView: UIImageView) {
+        let countryUrlString = "https://ott-img.formula1.com/countries/" + countryId + ".png"
+        
+        self.applyImage(imageUrl: countryUrlString, imageView: imageView)
+    }
+    
+    func applyImage(imageUrl: String, imageView: UIImageView) {
+        if let url = URL(string: imageUrl) {
+            let processor = DownsamplingImageProcessor(size: imageView.bounds.size)
+            imageView.kf.indicatorType = .activity
+            imageView.kf.setImage(
+                with: url,
+                options: [
+                    .processor(processor),
+                    .scaleFactor(UIScreen.main.scale),
+                    .transition(.fade(0.2)),
+                    .cacheOriginalImage
+                ], completionHandler:
+                    {
+                        result in
+                        switch result {
+                        case .success(let value):
+                            print("Task done for: \(value.source.url?.absoluteString ?? "")")
+                        case .failure(let error):
+                            print("Job failed: \(error.localizedDescription)")
+                        }
+                    })
+        }
     }
     
     func didLoadImage(image: ImageDto) {

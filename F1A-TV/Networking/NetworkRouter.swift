@@ -608,6 +608,130 @@ class NetworkRouter {
         })
         task.resume()
     }
+    
+    func getContentPageLookup(pageUri: String, completion: @escaping(Result<ApiResponseDto, APIError>) -> Void) {
+        let request = RequestHelper.createRequestWithoutAuthentication(restService: pageUri, method: "GET")
+        let task = self.session.dataTask(with: request, completionHandler: {
+            data, response, error in
+            if(error != nil) {
+                completion(.failure(.otherError))
+                return
+            }
+            if let httpStatus = response as? HTTPURLResponse, httpStatus.statusCode != 200 {
+                print("statusCode should be 200, but is \(httpStatus.statusCode)")
+                print(response!)
+                if(httpStatus.statusCode == 401) {
+                    completion(.failure(.authenticationError))
+                    return
+                }
+                completion(.failure(.responseError))
+                return
+            }
+            let requestResult: ApiResponseDto
+            do {
+//                print(String(data: data!,encoding: .utf8)!)
+                requestResult = try self.decoder.decode(ApiResponseDto.self, from: data!)
+                completion(.success(requestResult))
+            } /*catch {
+                completion(.failure(.decodingError))
+                return
+            }*/
+            
+            catch let DecodingError.dataCorrupted(context) {
+                print(context)
+            } catch let DecodingError.keyNotFound(key, context) {
+                print("Key '\(key)' not found:", context.debugDescription)
+                print("codingPath:", context.codingPath)
+            } catch let DecodingError.valueNotFound(value, context) {
+                print("Value '\(value)' not found:", context.debugDescription)
+                print("codingPath:", context.codingPath)
+            } catch let DecodingError.typeMismatch(type, context)  {
+                print("Type '\(type)' mismatch:", context.debugDescription)
+                print("codingPath:", context.codingPath)
+            } catch {
+                print("error: ", error)
+            }
+        })
+        task.resume()
+    }
+    
+    func getContentVideo(videoId: String, completion: @escaping(Result<ApiResponseDto, APIError>) -> Void) {
+        let request = RequestHelper.createRequestWithoutAuthentication(restService: "/2.0/R/ENG/BIG_SCREEN_HLS/ALL/CONTENT/VIDEO/" + videoId + "/F1_TV_Pro_Annual/2", method: "GET")
+        let task = self.session.dataTask(with: request, completionHandler: {
+            data, response, error in
+            if(error != nil) {
+                completion(.failure(.otherError))
+                return
+            }
+            if let httpStatus = response as? HTTPURLResponse, httpStatus.statusCode != 200 {
+                print("statusCode should be 200, but is \(httpStatus.statusCode)")
+                print(response!)
+                if(httpStatus.statusCode == 401) {
+                    completion(.failure(.authenticationError))
+                    return
+                }
+                completion(.failure(.responseError))
+                return
+            }
+            let requestResult: ApiResponseDto
+            do {
+//                print(String(data: data!,encoding: .utf8)!)
+                requestResult = try self.decoder.decode(ApiResponseDto.self, from: data!)
+                completion(.success(requestResult))
+            } /*catch {
+                completion(.failure(.decodingError))
+                return
+            }*/
+            
+            catch let DecodingError.dataCorrupted(context) {
+                print(context)
+            } catch let DecodingError.keyNotFound(key, context) {
+                print("Key '\(key)' not found:", context.debugDescription)
+                print("codingPath:", context.codingPath)
+            } catch let DecodingError.valueNotFound(value, context) {
+                print("Value '\(value)' not found:", context.debugDescription)
+                print("codingPath:", context.codingPath)
+            } catch let DecodingError.typeMismatch(type, context)  {
+                print("Type '\(type)' mismatch:", context.debugDescription)
+                print("codingPath:", context.codingPath)
+            } catch {
+                print("error: ", error)
+            }
+        })
+        task.resume()
+    }
+    
+    func getStreamEntitlement(contentId: String, completion: @escaping(Result<StreamEntitlementResultDto, APIError>) -> Void) {
+        var request = RequestHelper.createRequestWithoutAuthentication(restService: "/1.0/R/ENG/BIG_SCREEN_HLS/ALL/" + contentId, method: "GET")
+        request.setValue(CredentialHelper.getUserInfo().authData.subscriptionToken, forHTTPHeaderField: "ascendontoken")
+        let task = self.session.dataTask(with: request, completionHandler: {
+            data, response, error in
+            if(error != nil) {
+                completion(.failure(.otherError))
+                return
+            }
+            if let httpStatus = response as? HTTPURLResponse, httpStatus.statusCode != 200 {
+                print("statusCode should be 200, but is \(httpStatus.statusCode)")
+                print(response!)
+                if(httpStatus.statusCode == 401) {
+                    completion(.failure(.authenticationError))
+                    return
+                }
+                completion(.failure(.responseError))
+                return
+            }
+            let requestResult: StreamEntitlementResultDto
+            do {
+//                print(String(data: data!,encoding: .utf8)!)
+                requestResult = try self.decoder.decode(StreamEntitlementResultDto.self, from: data!)
+                completion(.success(requestResult))
+            } catch {
+                completion(.failure(.decodingError))
+                return
+            }
+        })
+        task.resume()
+    }
 }
 
 enum APIError: Error {

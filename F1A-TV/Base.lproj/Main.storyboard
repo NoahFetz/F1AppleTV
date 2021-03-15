@@ -168,10 +168,10 @@
             </objects>
             <point key="canvasLocation" x="11071" y="-660"/>
         </scene>
-        <!--Live Overview Collection View Controller-->
+        <!--Home Overview Collection View Controller-->
         <scene sceneID="907-hf-gr0">
             <objects>
-                <collectionViewController storyboardIdentifier="LiveOverviewCollectionViewController" id="vi9-SX-fVU" customClass="LiveOverviewCollectionViewController" customModule="F1A_TV" customModuleProvider="target" sceneMemberID="viewController">
+                <collectionViewController storyboardIdentifier="HomeOverviewCollectionViewController" id="vi9-SX-fVU" customClass="HomeOverviewCollectionViewController" customModule="F1A_TV" customModuleProvider="target" sceneMemberID="viewController">
                     <collectionView key="view" clipsSubviews="YES" multipleTouchEnabled="YES" contentMode="scaleToFill" dataMode="prototypes" id="knW-6x-eDm">
                         <rect key="frame" x="0.0" y="0.0" width="1920" height="1080"/>
                         <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
@@ -205,10 +205,10 @@
             </objects>
             <point key="canvasLocation" x="8572" y="1055"/>
         </scene>
-        <!--Season Overview Collection View Controller-->
+        <!--Page Overview Collection View Controller-->
         <scene sceneID="i14-3I-3m8">
             <objects>
-                <collectionViewController storyboardIdentifier="SeasonOverviewCollectionViewController" id="EtL-OZ-ZfC" customClass="SeasonOverviewCollectionViewController" customModule="F1A_TV" customModuleProvider="target" sceneMemberID="viewController">
+                <collectionViewController storyboardIdentifier="PageOverviewCollectionViewController" id="EtL-OZ-ZfC" customClass="PageOverviewCollectionViewController" customModule="F1A_TV" customModuleProvider="target" sceneMemberID="viewController">
                     <collectionView key="view" clipsSubviews="YES" multipleTouchEnabled="YES" contentMode="scaleToFill" dataMode="prototypes" id="0vm-Ni-00g">
                         <rect key="frame" x="0.0" y="0.0" width="1920" height="1080"/>
                         <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>

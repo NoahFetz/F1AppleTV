@@ -39,12 +39,20 @@
 "account_no_subscription_message" = "Es konnte kein aktives Abonnement gefunden werden. Bitte melde dich an, oder kaufe ein Abonnement auf der F1TV Webseite";
 
 //
-"live_title" = "Jetzt Live";
-"seasons_title" = "Saisons";
+"featured_title" = "Featured";
+"archive_title" = "Archiv";
+"shows_title" = "Shows";
+"docs_title" = "Dokumentationen";
 "race_seasons_header" = "Saison";
 "vod_title" = "Video On Demand";
 "channels_title" = "Kanäle";
 "episodes_title" = "Episoden";
+"main_channels_title" = "Hauptkanäle";
+"driver_channels_title" = "Fahreransichten";
+"main_feed_title" = "Main Feed";
+"pit_lane_feed_title" = "Pit Lane";
+"tracker_feed_title" = "Tracker Feed";
+"data_feed_title" = "Data Feed";
 "wif" = "Haupt-Kanal";
 "driver" = "Fahrerkarte";
 "pit_lane" = "Boxengassenübertragung";

@@ -2,12 +2,9 @@
 <Workspace
    version = "1.0">
    <FileRef
-      location = "group:/Users/noahfetz/Documents/F1AppleTV/F1A-TV.xcodeproj">
+      location = "group:F1A-TV.xcodeproj">
    </FileRef>
    <FileRef
       location = "group:Pods/Pods.xcodeproj">
-   </FileRef>
-   <FileRef
-      location = "group:F1A-TV.xcodeproj">
    </FileRef>
 </Workspace>

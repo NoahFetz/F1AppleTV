@@ -22,8 +22,8 @@ class CustomTabBarController: UITabBarController {
     }
     
     func setupTabItems() {
-        self.tabBar.items?[0].title = NSLocalizedString("live_title", comment: "")
-        self.tabBar.items?[1].title = NSLocalizedString("seasons_title", comment: "")
+        self.tabBar.items?[0].title = NSLocalizedString("featured_title", comment: "")
+        self.tabBar.items?[1].title = NSLocalizedString("archive_title", comment: "")
         self.tabBar.items?[2].title = NSLocalizedString("account_title", comment: "")
     }
     
