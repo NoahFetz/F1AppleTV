@@ -13,6 +13,7 @@ struct ConstantsUtil {
     //Colors
     static let brandingBackgroundColor = UIColor(rgb: 0x15151e)
     static let brandingItemColor = UIColor(rgb: 0x1f1f27)
+    static let brandingRed = UIColor(rgb: 0xE10600)
     
     //General
     static let authenticateUrl = "https://api.formula1.com/v2/account/subscriber/authenticate/by-password"
@@ -30,34 +31,17 @@ struct ConstantsUtil {
 
     
     //Controller
-//    static let mainNavigationController = "MainNavigationController"
-//    static let eventOverviewTableViewController = "EventOverviewTableViewController"
-//    static let sessionOverviewTableViewController = "SessionOverviewTableViewController"
-//    static let channelEpisodeTabBarController = "ChannelEpisodeTabBarController"
-//    static let liveOverviewTableViewController = "LiveOverviewTableViewController"
-//    static let seasonOverviewTableViewController = "SeasonOverviewTableViewController"
     static let accountOverviewViewController = "AccountOverviewViewController"
     static let loginViewController = "LoginViewController"
     static let pageOverviewCollectionViewController = "PageOverviewCollectionViewController"
-    static let vodOverviewCollectionViewController = "VodOverviewCollectionViewController"
-    static let vodEpisodeCollectionViewController = "VodEpisodeCollectionViewController"
-    static let homeOverviewCollectionViewController = "HomeOverviewCollectionViewController"
-    static let eventOverviewCollectionViewController = "EventOverviewCollectionViewController"
-    static let sessionOverviewCollectionViewController = "SessionOverviewCollectionViewController"
-    static let channelAndEpisodeCollectionViewController = "ChannelAndEpisodeCollectionViewController"
     static let sideBarInfoViewController = "SideBarInfoViewController"
     
     //TableViewCells
     static let rightDetailTableViewCell = "RightDetailTableViewCell"
-    static let thumbnailTitleTableViewCell = "ThumbnailTitleTableViewCell"
-    static let thumbnailTitleSubtitleTableViewCell = "ThumbnailTitleSubtitleTableViewCell"
-    static let noContentTableViewCell = "NoContentTableViewCell"
-    static let thumbnailBackgroundTableViewCell = "ThumbnailBackgroundTableViewCell"
     
     //CollectionViewCells
     static let basicCollectionViewCell = "BasicCollectionViewCell"
     static let customHeaderCollectionReusableView = "CustomHeaderCollectionReusableView"
-    static let thumbnailTitleCollectionViewCell = "ThumbnailTitleCollectionViewCell"
     static let thumbnailTitleSubtitleCollectionViewCell = "ThumbnailTitleSubtitleCollectionViewCell"
     static let noContentCollectionViewCell = "NoContentCollectionViewCell"
 }

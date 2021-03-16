@@ -7,6 +7,7 @@
 */
 
 //General
+"api_endpoing_language_id" = "ENG";
 "display_name" = "Race Control";
 "cancel" = "Cancel";
 "confirm" = "Confirm";
@@ -20,7 +21,7 @@
 "no_content_press_to_refresh" = "No content found. Press to reload";
 "live" = "Live";
 
-//login
+//Login
 "login_title" = "Login";
 "login_email_title" = "Email";
 "login_password_title" = "Password";
@@ -39,6 +40,7 @@
 "account_no_subscription_message" = "No active subscription was found. Please login or purchase a subscription on F1TV's website";
 
 //
+"view_all" = "View All";
 "featured_title" = "Featured";
 "archive_title" = "Archive";
 "shows_title" = "Shows";

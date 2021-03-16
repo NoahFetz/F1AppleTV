@@ -14,7 +14,6 @@ class BaseCollectionViewController: UICollectionViewController {
         
         self.collectionView.register(UINib(nibName: ConstantsUtil.customHeaderCollectionReusableView, bundle: nil), forSupplementaryViewOfKind: UICollectionView.elementKindSectionHeader, withReuseIdentifier: ConstantsUtil.customHeaderCollectionReusableView)
         self.collectionView.register(UICollectionViewCell.self, forCellWithReuseIdentifier: ConstantsUtil.basicCollectionViewCell)
-        self.collectionView.register(UINib(nibName: ConstantsUtil.thumbnailTitleCollectionViewCell, bundle: nil), forCellWithReuseIdentifier: ConstantsUtil.thumbnailTitleCollectionViewCell)
         self.collectionView.register(UINib(nibName: ConstantsUtil.thumbnailTitleSubtitleCollectionViewCell, bundle: nil), forCellWithReuseIdentifier: ConstantsUtil.thumbnailTitleSubtitleCollectionViewCell)
         self.collectionView.register(UINib(nibName: ConstantsUtil.noContentCollectionViewCell, bundle: nil), forCellWithReuseIdentifier: ConstantsUtil.noContentCollectionViewCell)
     }

@@ -19,10 +19,6 @@ class BaseTableViewController: UITableViewController {
     }
     
     func registerTableViewCells() {
-        self.tableView.register(UINib(nibName: ConstantsUtil.thumbnailTitleTableViewCell, bundle: nil), forCellReuseIdentifier: ConstantsUtil.thumbnailTitleTableViewCell)
-        self.tableView.register(UINib(nibName: ConstantsUtil.thumbnailTitleSubtitleTableViewCell, bundle: nil), forCellReuseIdentifier: ConstantsUtil.thumbnailTitleSubtitleTableViewCell)
-        self.tableView.register(UINib(nibName: ConstantsUtil.noContentTableViewCell, bundle: nil), forCellReuseIdentifier: ConstantsUtil.noContentTableViewCell)
-        self.tableView.register(UINib(nibName: ConstantsUtil.thumbnailBackgroundTableViewCell, bundle: nil), forCellReuseIdentifier: ConstantsUtil.thumbnailBackgroundTableViewCell)
     }
     
     func setTitle(title: String) {

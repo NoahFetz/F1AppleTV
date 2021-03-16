@@ -8,18 +8,13 @@
 import UIKit
 import Kingfisher
 
-class SideBarInfoViewController: UIViewController, ImageLoadedProtocol, NationLoadedProtocol, SeriesLoadedProtocol {
+class SideBarInfoViewController: UIViewController {
     @IBOutlet weak var thumbnailImageView: UIImageView!
     @IBOutlet weak var titleLabel: FontAdjustedUILabel!
     @IBOutlet weak var subtitleLabel: FontAdjustedUILabel!
     @IBOutlet weak var topAccessoryImageView: UIImageView!
     @IBOutlet weak var headerLabel: FontAdjustedUILabel!
     
-    var sideBarInfoType = SideBarInfoType()
-    var seasonInfo: SeasonDto?
-    var eventInfo: EventDto?
-    var sessionInfo: SessionDto?
-    var vodInfo: VodDto?
     var contentItem: ContentItem?
     
     override func viewDidLoad() {
@@ -92,94 +87,6 @@ class SideBarInfoViewController: UIViewController, ImageLoadedProtocol, NationLo
         }
     }
     
-    func initialize(seasonInfo: SeasonDto) {
-        self.sideBarInfoType = .Season
-        self.seasonInfo = seasonInfo
-    }
-    
-    func initialize(eventInfo: EventDto) {
-        self.sideBarInfoType = .Event
-        self.eventInfo = eventInfo
-    }
-    
-    func initialize(sessionInfo: SessionDto) {
-        self.sideBarInfoType = .Session
-        self.sessionInfo = sessionInfo
-    }
-    
-    func initialize(vodInfo: VodDto) {
-        self.sideBarInfoType = .Vod
-        self.vodInfo = vodInfo
-    }
-    
-    func setupSeasonInfo() {
-        self.thumbnailImageView.image = UIImage(named: "thumb_placeholder")
-        self.titleLabel.text = self.seasonInfo?.name
-    }
-    
-    func setupEventInfo() {
-        let eventInfo = self.eventInfo ?? EventDto()
-        
-        if(eventInfo.imageUrls.isEmpty) {
-            self.thumbnailImageView.image = UIImage(named: "thumb_placeholder")
-        }else{
-            self.loadImage(imageUrl: eventInfo.imageUrls.first ?? "")
-        }
-        
-        self.titleLabel.text = eventInfo.officialName.uppercased()
-        self.subtitleLabel.text = eventInfo.startDate.getDayWithShortMonth().uppercased() + " - " + eventInfo.endDate.getDayWithShortMonth().uppercased()
-        
-        if(!eventInfo.nationUrl.isEmpty) {
-            self.setNation(nationUrl: eventInfo.nationUrl)
-        }
-    }
-    
-    func setupSessionInfo() {
-        let sessionInfo = self.sessionInfo ?? SessionDto()
-        
-        if(sessionInfo.imageUrls.isEmpty) {
-            self.thumbnailImageView.image = UIImage(named: "thumb_placeholder")
-        }else{
-            self.loadImage(imageUrl: sessionInfo.imageUrls.first ?? "")
-        }
-        
-        self.titleLabel.text = sessionInfo.sessionName.uppercased()
-        self.subtitleLabel.text = sessionInfo.startTime.distance(to: sessionInfo.endTime).stringFromTimeInterval() + " | " + (sessionInfo.nbcStatus?.uppercased() ?? "")
-        
-        if(!sessionInfo.seriesUrl.isEmpty) {
-            self.setSeries(seriesUrl: sessionInfo.seriesUrl)
-        }
-    }
-    
-    func setupVodInfo() {
-        self.thumbnailImageView.image = UIImage(named: "thumb_placeholder")
-        self.titleLabel.text = self.vodInfo?.name
-    }
-    
-    func applyImage(imageInfo: ImageDto, imageView: UIImageView) {
-        let url = URL(string: imageInfo.url)
-        
-        let processor = DownsamplingImageProcessor(size: imageView.bounds.size)
-        imageView.kf.indicatorType = .activity
-        imageView.kf.setImage(
-            with: url,
-            options: [
-                .processor(processor),
-                .scaleFactor(UIScreen.main.scale),
-                .transition(.fade(0.2)),
-                .cacheOriginalImage
-            ], completionHandler:
-                {
-                    result in
-                    switch result {
-                    case .success(let value):
-                        print("Task done for: \(value.source.url?.absoluteString ?? "")")
-                    case .failure(let error):
-                        print("Job failed: \(error.localizedDescription)")
-                    }
-                })
-    }
-    
     func applyImage(pictureId: String, imageView: UIImageView) {
         var newApiUrlString = "https://ott.formula1.com/image-resizer/image/"
         newApiUrlString.append(pictureId)
@@ -217,54 +124,5 @@ class SideBarInfoViewController: UIViewController, ImageLoadedProtocol, NationLo
                         }
                     })
         }
-    }
-    
-    func didLoadImage(image: ImageDto) {
-        if(image.url.contains("nation")){
-            self.applyImage(imageInfo: image, imageView: self.topAccessoryImageView)
-            return
-        }
-        
-        self.applyImage(imageInfo: image, imageView: self.thumbnailImageView)
-    }
-    
-    func loadImage(imageUrl: String) {
-        if let imageInfo = DataManager.instance.images.first(where: {$0.uid == imageUrl.split(separator: "/").last ?? ""}) {
-            self.didLoadImage(image: imageInfo)
-        }else{
-            DataManager.instance.loadImage(imageUrl: imageUrl, imageProtocol: self)
-        }
-    }
-    
-    func setNation(nationUrl: String) {
-        if let nation = DataManager.instance.nations.first(where: {$0.uid == (nationUrl.split(separator: "/").last ?? "")}) {
-            didLoadNation(nation: nation)
-            return
-        }
-        
-        DataManager.instance.loadNation(nationUrl: nationUrl, nationProtocol: self)
-    }
-    
-    func didLoadNation(nation: NationDto) {
-        self.headerLabel.text = nation.name.uppercased()
-        if(!nation.imageUrls.isEmpty) {
-            self.loadImage(imageUrl: nation.imageUrls.first ?? "")
-        }
-    }
-    
-    func setSeries(seriesUrl: String) {
-        if let series = DataManager.instance.series.first(where: {$0.uid == (seriesUrl.split(separator: "/").last ?? "")}) {
-            didLoadSeries(series: series)
-            return
-        }
-        
-        DataManager.instance.loadSeries(seriesUrl: seriesUrl, seriesProtocol: self)
-    }
-    
-    func didLoadSeries(series: SeriesDto) {
-        self.headerLabel.text = series.name.uppercased()
-        self.headerLabel.textColor = SeriesType.fromIdentifier(identifier: Int(series.dataSourceId) ?? SeriesType().getIdentifier()).getColor()
-        self.topAccessoryImageView.backgroundColor = SeriesType.fromIdentifier(identifier: Int(series.dataSourceId) ?? SeriesType().getIdentifier()).getColor()
-        self.topAccessoryImageView.layer.cornerRadius = 10
     }
 }

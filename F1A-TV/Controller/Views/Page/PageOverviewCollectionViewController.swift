@@ -37,6 +37,24 @@ class PageOverviewCollectionViewController: BaseCollectionViewController, UIColl
     func didLoadContentPage(contentPage: ResultObjectDto) {
         var localSections = [ContentSection]()
         for contentContainer in contentPage.containers ?? [ContainerDto]() {
+            //Some sub pages don't have sections, so we put them all into one big section
+            if(ContainerLayoutType.fromIdentifier(identifier: contentContainer.layout ?? "") == .ContentItem) {
+                if(localSections.isEmpty){
+                    var section = ContentSection()
+                    section.layoutType = ContainerLayoutType.fromIdentifier(identifier: contentContainer.layout ?? "")
+                    section.container = contentContainer
+                    localSections.append(section)
+                }
+                
+                if var firstSection = localSections.first {
+                    localSections.remove(at: 0)
+                    firstSection.items.append(self.getContentItem(itemContainer: contentContainer))
+                    localSections.insert(firstSection, at: 0)
+                }
+                
+                continue
+            }
+            
             localSections.append(self.getContentSection(contentContainer: contentContainer))
         }
         
@@ -49,6 +67,8 @@ class PageOverviewCollectionViewController: BaseCollectionViewController, UIColl
         case .Hero:
             var heroSection = ContentSection()
             
+            heroSection.layoutType = ContainerLayoutType.fromIdentifier(identifier: contentContainer.layout ?? "")
+            heroSection.container = contentContainer
             heroSection.title = NSLocalizedString("featured_title", comment: "")
             
             for itemContainer in contentContainer.retrieveItems?.resultObj.containers ?? [ContainerDto]() {
@@ -60,6 +80,8 @@ class PageOverviewCollectionViewController: BaseCollectionViewController, UIColl
         case .HorizontalThumbnail, .VerticalThumbnail:
             var thumbnailSection = ContentSection()
             
+            thumbnailSection.layoutType = ContainerLayoutType.fromIdentifier(identifier: contentContainer.layout ?? "")
+            thumbnailSection.container = contentContainer
             thumbnailSection.title = contentContainer.metadata?.label ?? ""
             
             for itemContainer in contentContainer.retrieveItems?.resultObj.containers ?? [ContainerDto]() {
@@ -68,18 +90,22 @@ class PageOverviewCollectionViewController: BaseCollectionViewController, UIColl
             
             return thumbnailSection
             
-        case .ContentItem:
-            var contentSection = ContentSection()
-            
-            contentSection.title = contentContainer.metadata?.label ?? ""
-            
-            for itemContainer in contentContainer.retrieveItems?.resultObj.containers ?? [ContainerDto]() {
-                contentSection.items.append(self.getContentItem(itemContainer: itemContainer))
+        case .Title:
+            if let title = contentContainer.metadata?.label {
+                if(!title.isEmpty){
+                    var titleSection = ContentSection()
+                    
+                    titleSection.layoutType = ContainerLayoutType.fromIdentifier(identifier: contentContainer.layout ?? "")
+                    titleSection.container = contentContainer
+                    titleSection.title = contentContainer.metadata?.label ?? ""
+                    
+                    return titleSection
+                }
             }
             
-            return contentSection
+            return ContentSection()
             
-        case .Title, .Unknown:
+        default:
             print("Not recognizing this layout")
             return ContentSection()
         }
@@ -139,6 +165,7 @@ class PageOverviewCollectionViewController: BaseCollectionViewController, UIColl
                             cell.thumbnailImageView.backgroundColor = UIColor(rgb: additionalStream.hex ?? "#00000000")
                             cell.subtitleLabel.text = String(additionalStream.racingNumber) + " | " + additionalStream.title
                             cell.accessoryFooterLabel.text = additionalStream.teamName
+                            cell.accessoryFooterLabel.textColor = UIColor(rgb: additionalStream.hex ?? "#00000000")
                         }else{
                             cell.thumbnailImageView.image = UIImage(named: "thumb_placeholder")
                         }
@@ -203,29 +230,6 @@ class PageOverviewCollectionViewController: BaseCollectionViewController, UIColl
     }
     
     override func collectionView(_ collectionView: UICollectionView, didSelectItemAt indexPath: IndexPath) {
-        /*if(self.seasons == nil) {
-            DataManager.instance.loadSeasonLookup(returnInterface: self)
-            return
-        }
-        
-        if((self.seasons?.isEmpty) ?? false) {
-            DataManager.instance.loadSeasonLookup(returnInterface: self)
-            return
-        }
-        
-        let currentItem = self.seasons?[indexPath.item] ?? SeasonDto()
-        
-        let sideInfoVc = self.getViewControllerWith(viewIdentifier: ConstantsUtil.sideBarInfoViewController) as! SideBarInfoViewController
-        sideInfoVc.initialize(seasonInfo: currentItem)
-        
-        let eventVc = self.getViewControllerWith(viewIdentifier: ConstantsUtil.eventOverviewCollectionViewController) as! EventOverviewCollectionViewController
-        eventVc.initialize(season: currentItem)
-        
-        let splitVc = UISplitViewController()
-        splitVc.viewControllers = [sideInfoVc, eventVc]
-        
-        self.presentFullscreenInNavigationController(viewController: splitVc)*/
-        
         if(self.contentSections == nil) {
             if let pageUri = self.pageUri {
                 DataManager.instance.loadContentPage(pageUri: pageUri, contentPageProtocol: self)
@@ -357,6 +361,24 @@ class PageOverviewCollectionViewController: BaseCollectionViewController, UIColl
         }
     }
     
+    @objc func viewAllPressed(_ button: UIButton) {
+        var currentItem = self.contentSections?[button.tag] ?? ContentSection()
+        
+        if let actionUrl = currentItem.container.actions?.first?.uri {
+            let sideInfoVc = self.getViewControllerWith(viewIdentifier: ConstantsUtil.sideBarInfoViewController) as! SideBarInfoViewController
+            currentItem.container.metadata?.title = currentItem.title
+            sideInfoVc.initialize(contentItem: ContentItem(objectType: .Bundle, container: currentItem.container))
+            
+            let subPageVc = self.getViewControllerWith(viewIdentifier: ConstantsUtil.pageOverviewCollectionViewController) as! PageOverviewCollectionViewController
+            subPageVc.initialize(pageUri: actionUrl)
+            
+            let splitVc = UISplitViewController()
+            splitVc.viewControllers = [sideInfoVc, subPageVc]
+            
+            self.presentFullscreenInNavigationController(viewController: splitVc)
+        }
+    }
+    
     func collectionView(_ collectionView: UICollectionView, layout collectionViewLayout: UICollectionViewLayout, sizeForItemAt indexPath: IndexPath) -> CGSize {
         //2*24 between cells + 2*24 for left and right
         let width = (collectionView.frame.width-96)/3
@@ -374,11 +396,46 @@ class PageOverviewCollectionViewController: BaseCollectionViewController, UIColl
             
             let currentItem = self.contentSections?[indexPath.section]
             if(!((currentItem?.title.isEmpty) ?? false)) {
-                let titleLabel = UILabel(frame: CGRect(x: 24, y: 80, width: self.view.bounds.width-48, height: 60))
-                titleLabel.font = UIFont(name: "Formula1-Display-Bold", size: 34)
-                titleLabel.text = currentItem?.title
+                let height = self.getSupplementaryHeight(section: indexPath.section, contentSection: currentItem ?? ContentSection())
                 
-                headerView.addSubview(titleLabel)
+                let holderStackView = UIStackView(frame: CGRect(x: 24, y: height-80, width: self.view.bounds.width-48, height: 60))
+                holderStackView.axis = .horizontal
+                holderStackView.spacing = 2
+                
+                switch currentItem?.layoutType {
+                case .Title:
+                    let titleLabel = FontAdjustedUILabel()
+                    titleLabel.font = UIFont(name: "Formula1-Display-Bold", size: 60)
+                    titleLabel.text = currentItem?.title
+                    
+                    titleLabel.setContentHuggingPriority(UILayoutPriority(rawValue: 250), for: .horizontal)
+                    titleLabel.setContentCompressionResistancePriority(UILayoutPriority(rawValue: 750), for: .horizontal)
+                    
+                    holderStackView.addArrangedSubview(titleLabel)
+                    
+                default:
+                    let titleLabel = FontAdjustedUILabel()
+                    titleLabel.font = UIFont(name: "Formula1-Display-Bold", size: 34)
+                    titleLabel.text = currentItem?.title
+                    
+                    holderStackView.addArrangedSubview(titleLabel)
+                }
+                
+                if let actionUrl = currentItem?.container.actions?.first?.uri {
+                    if(!actionUrl.isEmpty) {
+                        let actionButton = UIButton(type: .system)
+                        actionButton.setTitle(NSLocalizedString("view_all", comment: ""), for: .normal)
+                        actionButton.tag = indexPath.section
+                        actionButton.addTarget(self, action: #selector(self.viewAllPressed), for: .primaryActionTriggered)
+                        
+                        actionButton.setContentHuggingPriority(UILayoutPriority(rawValue: 251), for: .horizontal)
+                        actionButton.setContentCompressionResistancePriority(UILayoutPriority(rawValue: 751), for: .horizontal)
+                        
+                        holderStackView.addArrangedSubview(actionButton)
+                    }
+                }
+                
+                headerView.addSubview(holderStackView)
             }
             
             return headerView
@@ -392,9 +449,29 @@ class PageOverviewCollectionViewController: BaseCollectionViewController, UIColl
     func collectionView(_ collectionView: UICollectionView, layout collectionViewLayout: UICollectionViewLayout, referenceSizeForHeaderInSection section: Int) -> CGSize {
         
         let currentItem = self.contentSections?[section]
-        if((currentItem?.title.isEmpty) ?? true) {
-            return CGSize(width: self.view.frame.width, height: 50)
+        
+        return CGSize(width: self.view.frame.width, height: self.getSupplementaryHeight(section: section, contentSection: currentItem ?? ContentSection()))
+    }
+    
+    func getSupplementaryHeight(section: Int, contentSection: ContentSection) -> CGFloat {
+        var heigt: CGFloat = 120
+        
+        if(section == 0) {
+            heigt = 80
         }
-        return CGSize(width: self.view.frame.width, height: 150)
+        
+        switch contentSection.layoutType {
+        case .Title:
+            heigt+=100
+            
+        default:
+            print("It's fine like that")
+        }
+        
+        if(contentSection.title.isEmpty) {
+            heigt = 50
+        }
+        
+        return heigt
     }
 }

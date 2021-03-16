@@ -1,6 +1,7 @@
 # Xcode
 
 .DS_Store
+UserInterfaceState.xcuserstate
 
 ## Build generated
 build/
