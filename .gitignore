@@ -1,7 +1,6 @@
 # Xcode
 
 .DS_Store
-UserInterfaceState.xcuserstate
 
 ## Build generated
 build/
@@ -17,6 +16,13 @@ DerivedData/
 *.perspectivev3
 !default.perspectivev3
 xcuserdata/
+
+*.xcuserstate
+project.xcworkspace
+xcuserdata
+UserInterfaceState.xcuserstate
+project.xcworkspace/
+UserInterface.xcuserstate
 
 ## Other
 *.moved-aside
