@@ -9,24 +9,19 @@ import Foundation
 
 struct PlatformVariantDto: Codable {
     var audioLanguages: [AudioLanguageDto]
-    var cpId: Int
-    var videoType: String
-    var pictureUrl: String
+    var cpId: Int?
+    var videoType: String?
+    var pictureUrl: String?
     var technicalPackages: [TechnicalPackageDto]
-    var trailerUrl: String
-    var hasTrailer: Bool
+    var trailerUrl: String?
+    var hasTrailer: Bool?
     
     init() {
         self.audioLanguages = [AudioLanguageDto]()
-        self.cpId = 0
-        self.videoType = ""
-        self.pictureUrl = ""
         self.technicalPackages = [TechnicalPackageDto]()
-        self.trailerUrl = ""
-        self.hasTrailer = false
     }
     
-    init(audioLanguages: [AudioLanguageDto], cpId: Int, videoType: String, pictureUrl: String, technicalPackages: [TechnicalPackageDto], trailerUrl: String, hasTrailer: Bool) {
+    init(audioLanguages: [AudioLanguageDto], cpId: Int?, videoType: String?, pictureUrl: String?, technicalPackages: [TechnicalPackageDto], trailerUrl: String?, hasTrailer: Bool?) {
         self.audioLanguages = audioLanguages
         self.cpId = cpId
         self.videoType = videoType

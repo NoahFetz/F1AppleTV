@@ -8,17 +8,15 @@
 import Foundation
 
 struct TechnicalPackageDto: Codable {
-    var packageId: Int
-    var packageName: String
+    var packageId: Int?
+    var packageName: String?
     var packageType: String
 
     init() {
-        self.packageId = 0
-        self.packageName = ""
         self.packageType = ""
     }
     
-    init(packageId: Int, packageName: String, packageType: String) {
+    init(packageId: Int?, packageName: String?, packageType: String) {
         self.packageId = packageId
         self.packageName = packageName
         self.packageType = packageType
