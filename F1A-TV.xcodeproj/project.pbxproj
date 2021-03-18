@@ -130,6 +130,10 @@
 		1B20CB3225FB7261002F39D8 /* StreamEntitlementLoadedProtocol.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StreamEntitlementLoadedProtocol.swift; sourceTree = "<group>"; };
 		1B34C5F22545F614008325CC /* F1ATV.xcdatamodel */ = {isa = PBXFileReference; lastKnownFileType = wrapper.xcdatamodel; path = F1ATV.xcdatamodel; sourceTree = "<group>"; };
 		1B36C7AF25F781E6005533F9 /* SideBarInfoViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SideBarInfoViewController.swift; sourceTree = "<group>"; };
+		1B58A3C526037BDA00B6CF82 /* es */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = es; path = es.lproj/Localizable.strings; sourceTree = "<group>"; };
+		1B58A3C826037ECB00B6CF82 /* fr */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = fr; path = fr.lproj/Localizable.strings; sourceTree = "<group>"; };
+		1B58A3CB2603808F00B6CF82 /* nl */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = nl; path = nl.lproj/Localizable.strings; sourceTree = "<group>"; };
+		1B58A3CE260381F000B6CF82 /* pt-PT */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = "pt-PT"; path = "pt-PT.lproj/Localizable.strings"; sourceTree = "<group>"; };
 		1B78A79D2586440A007CF57C /* PlayerController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PlayerController.swift; sourceTree = "<group>"; };
 		1B80954425457D3E00889DFE /* CredentialHelper.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CredentialHelper.swift; sourceTree = "<group>"; };
 		1B85210B25F7CCA800B3356B /* IsoCountries.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = IsoCountries.swift; sourceTree = "<group>"; };
@@ -403,7 +407,6 @@
 			isa = PBXGroup;
 			children = (
 				1BB29BD0254464BB00ECC074 /* AuthRequestDto.swift */,
-				1BB29C182544770700ECC074 /* AuthResultDto.swift */,
 				1BB29C1D2544773300ECC074 /* SubscriberDto.swift */,
 				1BB29C222544777300ECC074 /* AuthDataDto.swift */,
 				1BB29C272544790D00ECC074 /* TokenRequestDto.swift */,
@@ -509,6 +512,7 @@
 				1B8DEEF725FC074C004780B9 /* ContainerDto.swift */,
 				1B8DEEF925FC0C88004780B9 /* EmfAttributesDto.swift */,
 				1B8DEEFB25FC0EDA004780B9 /* NewEpisodeDto.swift */,
+				1BB29C182544770700ECC074 /* AuthResultDto.swift */,
 				1B8DEEFF25FC11C1004780B9 /* MetadataDto.swift */,
 				1B8DEF0125FC150A004780B9 /* PayloadDto.swift */,
 				1B8DEF0325FC1573004780B9 /* PlatformVariantDto.swift */,
@@ -604,6 +608,10 @@
 				en,
 				Base,
 				de,
+				es,
+				fr,
+				nl,
+				"pt-PT",
 			);
 			mainGroup = 1BB29B8525445D6C00ECC074;
 			packageReferences = (
@@ -798,6 +806,10 @@
 			children = (
 				1BB29BFF25446A1000ECC074 /* en */,
 				1BB29C0125446A2D00ECC074 /* de */,
+				1B58A3C526037BDA00B6CF82 /* es */,
+				1B58A3C826037ECB00B6CF82 /* fr */,
+				1B58A3CB2603808F00B6CF82 /* nl */,
+				1B58A3CE260381F000B6CF82 /* pt-PT */,
 			);
 			name = Localizable.strings;
 			sourceTree = "<group>";
@@ -933,7 +945,7 @@
 				CODE_SIGN_ENTITLEMENTS = "F1A-TV/F1A-TV.entitlements";
 				CODE_SIGN_IDENTITY = "Apple Development";
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 21.0317.3;
+				CURRENT_PROJECT_VERSION = 21.0318.1;
 				DEVELOPMENT_TEAM = 8SW735FL99;
 				INFOPLIST_FILE = "$(SRCROOT)/F1A-TV/Info.plist";
 				LD_RUNPATH_SEARCH_PATHS = (
@@ -961,7 +973,7 @@
 				CODE_SIGN_ENTITLEMENTS = "F1A-TV/F1A-TV.entitlements";
 				CODE_SIGN_IDENTITY = "Apple Development";
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 21.0317.3;
+				CURRENT_PROJECT_VERSION = 21.0318.1;
 				DEVELOPMENT_TEAM = 8SW735FL99;
 				INFOPLIST_FILE = "$(SRCROOT)/F1A-TV/Info.plist";
 				LD_RUNPATH_SEARCH_PATHS = (

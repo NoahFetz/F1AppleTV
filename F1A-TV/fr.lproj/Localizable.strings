@@ -1,0 +1,46 @@
+/* 
+  Localizable.strings
+  F1TV
+
+  Created by Noah Fetz on 24.10.20.
+  
+*/
+
+//General
+"api_endpoing_language_id" = "FRA";
+"display_name" = "F1A-TV";
+"error" = "Erreur";
+"delete" = "Effacer";
+"close" = "Fermer";
+
+//Login
+"login_title" = "Connexion";
+"login_email_title" = "E-mail";
+"login_password_title" = "Mot de passe";
+"login_button_title" = "Connexion";
+"login_failed" = "Échec de la connexion";
+
+//Account
+"account_title" = "Compte";
+"account_id_title" = "Identifiant de compte";
+"account_name_title" = "Nom";
+"account_email_title" = "E-mail";
+"account_country_title" = "Pays";
+"account_subscription_title" = "État de l'abonnement";
+"logout_button_title" = "Se déconnecter";
+"account_no_subscription_title" = "Pas d'abonnement";
+"account_no_subscription_message" = "Aucun abonnement actif n'a été trouvé. Veuillez vous connecter ou acheter un abonnement sur le site Web de F1TV";
+
+//Pages
+"view_all" = "Tout voir";
+"featured_title" = "Mis en exergue";
+"archive_title" = "Archive";
+"shows_title" = "Émissions";
+"docs_title" = "Documentaires";
+"race_seasons_header" = "Saison";
+"main_channels_title" = "Principaux canaux";
+"driver_channels_title" = "Vues du conducteur";
+"main_feed_title" = "Main Feed";
+"pit_lane_feed_title" = "Pit Lane";
+"tracker_feed_title" = "Tracker Feed";
+"data_feed_title" = "Data Feed";

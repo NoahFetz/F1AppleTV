@@ -8,18 +8,10 @@
 
 //General
 "api_endpoing_language_id" = "ENG";
-"display_name" = "Race Control";
-"cancel" = "Cancel";
-"confirm" = "Confirm";
+"display_name" = "F1A-TV";
 "error" = "Error";
-"success" = "Success";
-"info" = "Information";
-"back" = "Back";
 "delete" = "Delete";
-"communication_error" = "Failed to connect to server";
 "close" = "Close";
-"no_content_press_to_refresh" = "No content found. Press to reload";
-"live" = "Live";
 
 //Login
 "login_title" = "Login";
@@ -39,23 +31,16 @@
 "account_no_subscription_title" = "No subscription";
 "account_no_subscription_message" = "No active subscription was found. Please login or purchase a subscription on F1TV's website";
 
-//
+//Pages
 "view_all" = "View All";
 "featured_title" = "Featured";
 "archive_title" = "Archive";
 "shows_title" = "Shows";
 "docs_title" = "Documentaries";
 "race_seasons_header" = "Season";
-"vod_title" = "Video On Demand";
-"channels_title" = "Channels";
-"episodes_title" = "Episodes";
 "main_channels_title" = "Main channels";
 "driver_channels_title" = "Driver views";
 "main_feed_title" = "Main Feed";
 "pit_lane_feed_title" = "Pit Lane";
 "tracker_feed_title" = "Tracker Feed";
 "data_feed_title" = "Data Feed";
-"wif" = "Main-Channel";
-"driver" = "Driver Map";
-"pit_lane" = "Pit Lane Channel";
-"data" = "Data Channel";
