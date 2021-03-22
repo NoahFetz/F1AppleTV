@@ -3,6 +3,7 @@
   F1TV
 
   Created by Noah Fetz on 24.10.20.
+  Edited by Priyantha Bleeker on 22.3.21
   
 */
 
@@ -11,14 +12,14 @@
 "display_name" = "F1A-TV";
 "error" = "Fout";
 "delete" = "Verwijderen";
-"close" = "Dichtbij";
+"close" = "Sluiten";
 
 //Login
-"login_title" = "Aanmelden";
+"login_title" = "Inloggen";
 "login_email_title" = "E-mail";
 "login_password_title" = "Wachtwoord";
-"login_button_title" = "Aanmelden";
-"login_failed" = "Aanmelden mislukt";
+"login_button_title" = "Inloggen";
+"login_failed" = "Inloggen mislukt";
 
 //Account
 "account_title" = "Account";
@@ -33,14 +34,14 @@
 
 //Pages
 "view_all" = "Bekijk alles";
-"featured_title" = "Uitgelicht";
+"featured_title" = "Aanbevolen";
 "archive_title" = "Archief";
-"shows_title" = "Programma's";
+"shows_title" = "Shows";
 "docs_title" = "Documentaires";
 "race_seasons_header" = "Seizoen";
 "main_channels_title" = "Hoofdkanalen";
-"driver_channels_title" = "Bestuurdersweergaven";
-"main_feed_title" = "Main Feed";
+"driver_channels_title" = "Coureurs weergave";
+"main_feed_title" = "Standaard uitzending";
 "pit_lane_feed_title" = "Pit Lane";
-"tracker_feed_title" = "Tracker Feed";
-"data_feed_title" = "Data Feed";
+"tracker_feed_title" = "Tracker uitzending";
+"data_feed_title" = "Data uitzending";
