@@ -55,14 +55,16 @@ class PageOverviewCollectionViewController: BaseCollectionViewController, UIColl
                 continue
             }
             
-            localSections.append(self.getContentSection(contentContainer: contentContainer))
+            if let contentSection = self.getContentSection(contentContainer: contentContainer) {
+                localSections.append(contentSection)
+            }
         }
         
         self.contentSections = localSections
         self.collectionView.reloadData()
     }
     
-    func getContentSection(contentContainer: ContainerDto) -> ContentSection {
+    func getContentSection(contentContainer: ContainerDto) -> ContentSection? {
         switch ContainerLayoutType.fromIdentifier(identifier: contentContainer.layout ?? "") {
         case .Hero:
             var heroSection = ContentSection()
@@ -103,11 +105,18 @@ class PageOverviewCollectionViewController: BaseCollectionViewController, UIColl
                 }
             }
             
-            return ContentSection()
+            return nil
+            
+        case .Schedule:
+            if let sideBarController = self.splitViewController?.viewControllers.first as? SideBarInfoViewController {
+                sideBarController.setSchedule(container: contentContainer)
+            }
+            
+            return nil
             
         default:
             print("Not recognizing this layout")
-            return ContentSection()
+            return nil
         }
     }
     
@@ -180,7 +189,7 @@ class PageOverviewCollectionViewController: BaseCollectionViewController, UIColl
                     cell.accessoryFooterLabel.text = ""
                     if let property = currentItem.container.properties?.first {
                         let series = SeriesType.fromCapitalDisplayName(capitalDisplayName: property.series)
-                        cell.accessoryFooterLabel.text = series.getCapitalDisplayName()
+                        cell.accessoryFooterLabel.text = series.getShortDisplayName()
                         cell.accessoryFooterLabel.textColor = series.getColor()
                     }
                     
@@ -306,7 +315,7 @@ class PageOverviewCollectionViewController: BaseCollectionViewController, UIColl
             mainFeedMetadata?.title = NSLocalizedString("main_feed_title", comment: "")
             mainFeedMetadata?.emfAttributes?.videoType = ""
             mainFeedMetadata?.additionalStreams = nil
-            let mainFeedChannel = ContentItem(objectType: .Video, container: ContainerDto(layout: "CONTENT_ITEM", actions: nil, properties: container.properties, metadata: mainFeedMetadata, bundles: nil, categories: nil, platformVariants: container.platformVariants, retrieveItems: nil, contentId: container.metadata?.contentId ?? 0, suggest: container.suggest, platformName: container.platformName))
+            let mainFeedChannel = ContentItem(objectType: .Video, container: ContainerDto(layout: "CONTENT_ITEM", actions: nil, properties: container.properties, metadata: mainFeedMetadata, bundles: nil, categories: nil, platformVariants: container.platformVariants, retrieveItems: nil, contentId: container.metadata?.contentId ?? 0, suggest: container.suggest, platformName: container.platformName, eventName: nil, events: nil))
             mainItems.append(mainFeedChannel)
             
             for additionalChannel in container.metadata?.additionalStreams ?? [AdditionalStreamDto]() {
@@ -331,13 +340,13 @@ class PageOverviewCollectionViewController: BaseCollectionViewController, UIColl
                         additionalChannelMetadata?.title = additionalChannel.title
                     }
                     
-                    let additionalFeedChannel = ContentItem(objectType: .Video, container: ContainerDto(layout: "CONTENT_ITEM", actions: nil, properties: container.properties, metadata: additionalChannelMetadata, bundles: nil, categories: nil, platformVariants: container.platformVariants, retrieveItems: nil, contentId: container.metadata?.contentId ?? 0, suggest: container.suggest, platformName: container.platformName))
+                    let additionalFeedChannel = ContentItem(objectType: .Video, container: ContainerDto(layout: "CONTENT_ITEM", actions: nil, properties: container.properties, metadata: additionalChannelMetadata, bundles: nil, categories: nil, platformVariants: container.platformVariants, retrieveItems: nil, contentId: container.metadata?.contentId ?? 0, suggest: container.suggest, platformName: container.platformName, eventName: nil, events: nil))
                     mainItems.append(additionalFeedChannel)
                     
                 case "obc":
                     additionalChannelMetadata?.title = (additionalChannel.driverFirstName ?? "") + " " + (additionalChannel.driverLastName ?? "")
                     
-                    let additionalFeedChannel = ContentItem(objectType: .Video, container: ContainerDto(layout: "CONTENT_ITEM", actions: nil, properties: container.properties, metadata: additionalChannelMetadata, bundles: nil, categories: nil, platformVariants: container.platformVariants, retrieveItems: nil, contentId: container.metadata?.contentId ?? 0, suggest: container.suggest, platformName: container.platformName))
+                    let additionalFeedChannel = ContentItem(objectType: .Video, container: ContainerDto(layout: "CONTENT_ITEM", actions: nil, properties: container.properties, metadata: additionalChannelMetadata, bundles: nil, categories: nil, platformVariants: container.platformVariants, retrieveItems: nil, contentId: container.metadata?.contentId ?? 0, suggest: container.suggest, platformName: container.platformName, eventName: nil, events: nil))
                     driverItems.append(additionalFeedChannel)
                     
                 default:

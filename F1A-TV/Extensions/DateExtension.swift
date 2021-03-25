@@ -50,6 +50,12 @@ extension Date {
         return df.string(from: self)
     }
     
+    func getShortDay() -> String {
+        let df = DateFormatter()
+        df.dateFormat = "EE"
+        return df.string(from: self)
+    }
+    
     func getDateAsRelativeStringWithWeekday() -> String {
         let relDf = DateFormatter()
         let df = DateFormatter()
@@ -235,6 +241,18 @@ extension Date {
     func isTomorrow() -> Bool {
         return Calendar.current.isDateInTomorrow(self)
     }
+    
+    var iso8601: String {
+        return Formatter.Date.iso8601.string(from: self)
+    }
+    
+    var millisecondsSince1970:Int64 {
+        return Int64((self.timeIntervalSince1970 * 1000.0).rounded())
+    }
+    
+    init(milliseconds:Int64) {
+        self = Date(timeIntervalSince1970: TimeInterval(milliseconds) / 1000)
+    }
 }
 
 extension Formatter {
@@ -248,12 +266,6 @@ extension Formatter {
     }
 }
 
-extension Date {
-    var iso8601: String {
-        return Formatter.Date.iso8601.string(from: self)
-    }
-}
-
 extension String {
     var iso8601: Date? {
         return Formatter.Date.iso8601.date(from: self)
@@ -261,14 +273,14 @@ extension String {
 }
 
 extension TimeInterval{
-        func stringFromTimeInterval() -> String {
-
-            let time = NSInteger(self)
-
-            let seconds = time % 60
-            let minutes = (time / 60) % 60
-            let hours = (time / 3600)
-
-            return String(format: "%0.2d:%0.2d:%0.2d",hours,minutes,seconds)
-        }
+    func stringFromTimeInterval() -> String {
+        
+        let time = NSInteger(self)
+        
+        let seconds = time % 60
+        let minutes = (time / 60) % 60
+        let hours = (time / 3600)
+        
+        return String(format: "%0.2d:%0.2d:%0.2d",hours,minutes,seconds)
     }
+}

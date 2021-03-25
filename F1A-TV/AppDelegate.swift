@@ -26,16 +26,21 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
     }
 
     func applicationWillResignActive(_ application: UIApplication) {
+        print("Will resign active")
     }
 
     func applicationDidEnterBackground(_ application: UIApplication) {
+        print("Did enter background")
         self.saveContext()
     }
 
     func applicationWillEnterForeground(_ application: UIApplication) {
+        print("Will enter foreground")
     }
 
     func applicationDidBecomeActive(_ application: UIApplication) {
+        print("Did become active")
+        CredentialHelper.performLoginRefresh()
     }
 
     // MARK: - Core Data stack

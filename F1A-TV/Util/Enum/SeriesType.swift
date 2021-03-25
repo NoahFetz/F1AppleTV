@@ -74,6 +74,25 @@ enum SeriesType: CaseIterable {
         }
     }
     
+    func getShortDisplayName() -> String {
+        switch self {
+        case .None:
+            return ""
+        
+        case .Formula1:
+            return "F1"
+            
+        case .Formula2:
+            return "F2"
+            
+        case .Formula3:
+            return "F3"
+            
+        case .PorscheSuperCup:
+            return "PSC"
+        }
+    }
+    
     func getColor() -> UIColor {
         switch self {
         case .None:

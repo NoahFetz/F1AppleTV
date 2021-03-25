@@ -16,6 +16,7 @@ class BaseTableViewController: UITableViewController {
     override func viewDidLoad() {
         super.viewDidLoad()
         self.registerTableViewCells()
+//        self.tableView.backgroundColor = ConstantsUtil.brandingBackgroundColor
     }
     
     func registerTableViewCells() {

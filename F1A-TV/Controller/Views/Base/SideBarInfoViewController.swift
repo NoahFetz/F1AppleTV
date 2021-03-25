@@ -14,6 +14,7 @@ class SideBarInfoViewController: UIViewController {
     @IBOutlet weak var subtitleLabel: FontAdjustedUILabel!
     @IBOutlet weak var topAccessoryImageView: UIImageView!
     @IBOutlet weak var headerLabel: FontAdjustedUILabel!
+    @IBOutlet weak var bottomContentStackView: UIStackView!
     
     var contentItem: ContentItem?
     
@@ -23,6 +24,8 @@ class SideBarInfoViewController: UIViewController {
     }
     
     func setupViewController() {
+//        self.view.backgroundColor = ConstantsUtil.brandingBackgroundColor
+        
         let maskLayer = CAGradientLayer()
         let thumbnailFrame = CGRect(x: 0, y: 0, width: self.thumbnailImageView.bounds.width/3, height: self.thumbnailImageView.bounds.height)
         maskLayer.frame = thumbnailFrame
@@ -46,20 +49,6 @@ class SideBarInfoViewController: UIViewController {
         self.subtitleLabel.backgroundShadow()
         
         self.setupContentInfo()
-        
-        /*switch self.sideBarInfoType {
-        case .Season:
-            self.setupSeasonInfo()
-            
-        case .Event:
-            self.setupEventInfo()
-            
-        case .Session:
-            self.setupSessionInfo()
-            
-        case .Vod:
-            self.setupVodInfo()
-        }*/
     }
     
     func initialize(contentItem: ContentItem) {
@@ -85,6 +74,65 @@ class SideBarInfoViewController: UIViewController {
         }else{
             self.applyImage(pictureId: contentItem.container.metadata?.pictureUrl ?? "", imageView: self.thumbnailImageView)
         }
+    }
+    
+    func setSchedule(container: ContainerDto) {
+        self.bottomContentStackView.arrangedSubviews.forEach({$0.removeFromSuperview()})
+        
+        for scheduleContainer in container.retrieveItems?.resultObj.containers ?? [ContainerDto]() {
+            if(scheduleContainer.eventName != "ALL") {
+                continue
+            }
+            
+            for event in scheduleContainer.events?.sorted(by: {$0.metadata?.emfAttributes?.sessionStartDate ?? 0 < $1.metadata?.emfAttributes?.sessionEndDate ?? 0}) ?? [ContainerDto]() {
+                
+                let startDate = Date(milliseconds: event.metadata?.emfAttributes?.sessionStartDate ?? Date().millisecondsSince1970)
+                let endDate = Date(milliseconds: event.metadata?.emfAttributes?.sessionEndDate ?? Date().millisecondsSince1970)
+                let series = SeriesType.fromCapitalDisplayName(capitalDisplayName: event.properties?.first?.series ?? SeriesType().getCapitalDisplayName())
+                
+                let seriesLabel = UILabel()
+                seriesLabel.font = UIFont(name: "Titillium-Bold", size: 28)
+                seriesLabel.text = series.getShortDisplayName()
+                seriesLabel.textColor = series.getColor()
+                seriesLabel.backgroundShadow()
+                seriesLabel.setContentHuggingPriority(UILayoutPriority(rawValue: 251), for: .horizontal)
+                
+                let scheduleItemTitleLabel = UILabel()
+                scheduleItemTitleLabel.font = UIFont(name: "Titillium-Regular", size: 28)
+                scheduleItemTitleLabel.text = event.metadata?.longDescription?.uppercased()
+                scheduleItemTitleLabel.textColor = .white
+                scheduleItemTitleLabel.backgroundShadow()
+                
+                let scheduleTimesLabel = UILabel()
+                scheduleTimesLabel.font = UIFont(name: "Titillium-Regular", size: 28)
+                var timesString = startDate.getShortDay()
+                timesString.append(" " + startDate.getTimeAsString())
+                timesString.append(" " + endDate.getTimeAsString())
+                scheduleTimesLabel.text = timesString
+                scheduleTimesLabel.textColor = .white
+                scheduleTimesLabel.backgroundShadow()
+                
+                self.addViewsToStackView(views: [seriesLabel, scheduleItemTitleLabel, scheduleTimesLabel])
+            }
+        }
+        
+        //Add a spacer view to the bottom so the content spreads out correctly
+        let spacerView = UIView()
+        spacerView.backgroundColor = .clear
+        spacerView.setContentCompressionResistancePriority(UILayoutPriority(rawValue: 749), for: .horizontal)
+        self.bottomContentStackView.addArrangedSubview(spacerView)
+    }
+    
+    func addViewsToStackView(views: [UIView], spacing: CGFloat = 8) {
+        let horizontalStack = UIStackView()
+        horizontalStack.axis = .horizontal
+        horizontalStack.spacing = spacing
+        
+        for view in views {
+            horizontalStack.addArrangedSubview(view)
+        }
+        
+        self.bottomContentStackView.addArrangedSubview(horizontalStack)
     }
     
     func applyImage(pictureId: String, imageView: UIImageView) {

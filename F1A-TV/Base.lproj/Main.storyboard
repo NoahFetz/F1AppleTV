@@ -175,27 +175,36 @@
                                     </label>
                                 </subviews>
                             </stackView>
+                            <stackView opaque="NO" contentMode="scaleToFill" axis="vertical" spacing="8" translatesAutoresizingMaskIntoConstraints="NO" id="Ult-Qf-nyJ">
+                                <rect key="frame" x="32" y="346" width="1856" height="658"/>
+                            </stackView>
                         </subviews>
                         <viewLayoutGuide key="safeArea" id="Yz0-ng-Ss3"/>
                         <constraints>
                             <constraint firstItem="h6C-xQ-mcH" firstAttribute="leading" secondItem="FF9-Q0-AwE" secondAttribute="leading" id="24o-0f-jH0"/>
+                            <constraint firstItem="Ult-Qf-nyJ" firstAttribute="leading" secondItem="FF9-Q0-AwE" secondAttribute="leading" constant="32" id="5UZ-fr-ZnM"/>
                             <constraint firstAttribute="trailing" secondItem="h6C-xQ-mcH" secondAttribute="trailing" id="614-KX-Nlb"/>
                             <constraint firstItem="lvy-i7-Mmm" firstAttribute="top" secondItem="Bnh-4r-p0O" secondAttribute="bottom" constant="16" id="79z-Ci-ezQ"/>
                             <constraint firstItem="Bnh-4r-p0O" firstAttribute="top" secondItem="Yz0-ng-Ss3" secondAttribute="top" constant="16" id="BcH-kq-Aex"/>
                             <constraint firstItem="lvy-i7-Mmm" firstAttribute="leading" secondItem="FF9-Q0-AwE" secondAttribute="leading" constant="32" id="S6n-FY-QJf"/>
+                            <constraint firstAttribute="trailing" secondItem="Ult-Qf-nyJ" secondAttribute="trailing" constant="32" id="SzC-WY-BSR"/>
                             <constraint firstItem="lvy-i7-Mmm" firstAttribute="top" secondItem="Bnh-4r-p0O" secondAttribute="bottom" constant="16" id="UFX-yg-rgE"/>
                             <constraint firstAttribute="trailing" secondItem="Bnh-4r-p0O" secondAttribute="trailing" constant="32" id="YvI-Am-68E"/>
                             <constraint firstItem="Bnh-4r-p0O" firstAttribute="leading" secondItem="FF9-Q0-AwE" secondAttribute="leading" constant="32" id="bbd-wR-jy3"/>
                             <constraint firstAttribute="trailing" relation="greaterThanOrEqual" secondItem="lvy-i7-Mmm" secondAttribute="trailing" constant="20" symbolic="YES" id="dRr-XD-qAZ"/>
                             <constraint firstAttribute="bottom" secondItem="h6C-xQ-mcH" secondAttribute="bottom" id="fKU-tI-hB8"/>
+                            <constraint firstItem="Ult-Qf-nyJ" firstAttribute="top" secondItem="HTh-04-Rdr" secondAttribute="bottom" constant="16" id="fZC-as-rTT"/>
                             <constraint firstItem="HTh-04-Rdr" firstAttribute="leading" secondItem="FF9-Q0-AwE" secondAttribute="leading" constant="32" id="fcJ-Y2-THh"/>
                             <constraint firstItem="h6C-xQ-mcH" firstAttribute="top" secondItem="FF9-Q0-AwE" secondAttribute="top" id="fne-kL-6Xd"/>
                             <constraint firstItem="HTh-04-Rdr" firstAttribute="top" secondItem="lvy-i7-Mmm" secondAttribute="bottom" constant="16" id="gox-At-DN4"/>
                             <constraint firstItem="HTh-04-Rdr" firstAttribute="top" secondItem="lvy-i7-Mmm" secondAttribute="bottom" constant="16" id="iQi-go-GLx"/>
+                            <constraint firstItem="Ult-Qf-nyJ" firstAttribute="top" secondItem="HTh-04-Rdr" secondAttribute="bottom" constant="16" id="ng0-zN-YJG"/>
+                            <constraint firstItem="Yz0-ng-Ss3" firstAttribute="bottom" secondItem="Ult-Qf-nyJ" secondAttribute="bottom" constant="16" id="wES-Nh-ExW"/>
                             <constraint firstAttribute="trailing" relation="greaterThanOrEqual" secondItem="HTh-04-Rdr" secondAttribute="trailing" constant="20" symbolic="YES" id="yEf-4V-VO4"/>
                         </constraints>
                     </view>
                     <connections>
+                        <outlet property="bottomContentStackView" destination="Ult-Qf-nyJ" id="Fu3-LZ-bvG"/>
                         <outlet property="headerLabel" destination="JZc-Ls-JIz" id="66o-OR-Nzi"/>
                         <outlet property="subtitleLabel" destination="HTh-04-Rdr" id="sPC-jN-mlF"/>
                         <outlet property="thumbnailImageView" destination="h6C-xQ-mcH" id="oW3-SS-ibN"/>
@@ -428,6 +437,6 @@
         </scene>
     </scenes>
     <resources>
-        <image name="app_icon_rounded" width="1280" height="768"/>
+        <image name="app_icon_rounded" width="3200" height="1920"/>
     </resources>
 </document>

@@ -10,6 +10,12 @@ import Foundation
 class CredentialHelper {
     static let instance = CredentialHelper()
     
+    class func performLoginRefresh() {
+        if(self.isLoginInformationCached()) {
+            self.performAuthRequest(authRequest: AuthRequestDto(login: self.getUserInfo().subscriber.email, password: self.getPassword()))
+        }
+    }
+    
     class func isLoginInformationCached() -> Bool {
         return !self.getUserInfo().sessionId.isEmpty
     }
@@ -67,5 +73,36 @@ class CredentialHelper {
             return
         }
         DataSource.instance.addKeyValue(keyValuePair: KeyValueStoreObject(id: UUID().uuidString.lowercased(), key: ConstantsUtil.userInfoKeyValueStorageKey, value: dataString))
+    }
+    
+    class func performAuthRequest(authRequest: AuthRequestDto) {
+        NetworkRouter.instance.authRequest(authRequest: authRequest, completion: { result in
+            DispatchQueue.main.async {
+                switch result {
+                case .failure(let error):
+                    print("Error occured: \(error.localizedDescription)")
+                    UserInteractionHelper.instance.showAlert(title: NSLocalizedString("error", comment: ""), message: NSLocalizedString("login_failed", comment: ""))
+                case .success(let requestResult):
+                    let tokenRequest = TokenRequestDto(accessToken: requestResult.authData.subscriptionToken, identityProviderUrl: ConstantsUtil.identityProvider)
+                    CredentialHelper.setUserInfo(userInfo: requestResult)
+                    self.performTokenRequest(tokenRequest: tokenRequest)
+                }
+            }
+        })
+    }
+    
+    class func performTokenRequest(tokenRequest: TokenRequestDto) {
+        NetworkRouter.instance.tokenRequest(tokenRequest: tokenRequest, completion: { result in
+            DispatchQueue.main.async {
+                switch result {
+                case .failure(let error):
+                    print("Error occured: \(error.localizedDescription)")
+                    UserInteractionHelper.instance.showAlert(title: NSLocalizedString("error", comment: ""), message: NSLocalizedString("login_failed", comment: ""))
+                case .success(let requestResult):
+                    print(requestResult.token)
+                    CredentialHelper.setJWTToken(jwtToken: requestResult.token)
+                }
+            }
+        })
     }
 }
