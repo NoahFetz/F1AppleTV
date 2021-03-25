@@ -117,10 +117,10 @@ jobs:
                 sleep ${6:-1}
             done
         }
-        api_url="$API_BASE/builds?filter[version]=$GITHUB_RUN_NUMBER&include=buildBetaDetail,betaBuildLocalizations&fields[buildBetaDetails]=externalBuildState&fields[betaBuildLocalizations]=whatsNew"
+        api_url="$API_BASE/builds?filter[version]=$BUILD_IDENTIFIER&include=buildBetaDetail,betaBuildLocalizations&fields[buildBetaDetails]=externalBuildState&fields[betaBuildLocalizations]=whatsNew"
         query='. as $parent | .included[] | select(.type == "buildBetaDetails") | select(.attributes.externalBuildState != "PROCESSING") | $parent'
         # Wait until Build is ready
-        echo "Waiting for App Store Connect to process build $GITHUB_RUN_NUMBER"
+        echo "Waiting for App Store Connect to process build $BUILD_IDENTIFIER"
         callWithRetry "$api_url" "$query" "GET" "" 100 10 "Waiting for build processing..." 
         # Get ids
         build_id=$(echo $output | jq '.data[].id' -r)
