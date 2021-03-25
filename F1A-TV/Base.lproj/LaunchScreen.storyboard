@@ -35,7 +35,7 @@
         </scene>
     </scenes>
     <resources>
-        <image name="app_icon_rounded" width="1280" height="768"/>
+        <image name="app_icon_rounded" width="3200" height="1920"/>
         <namedColor name="AccentColor">
             <color red="0.88235294117647056" green="0.023529411764705882" blue="0.0" alpha="1" colorSpace="custom" customColorSpace="sRGB"/>
         </namedColor>
