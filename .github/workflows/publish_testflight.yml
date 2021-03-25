@@ -1,0 +1,146 @@
+name: Testflight Deploy
+
+on:
+  push:
+    branches: [ master ]
+
+jobs:
+  build:
+    runs-on: macos-latest
+
+    steps:
+    - uses: actions/checkout@v2
+      with:
+        fetch-depth: 0
+        
+    - name: Set current build identifier
+      run: |
+        echo "BUILD_IDENTIFIER=$(date +'%y.%m%d.')$GITHUB_RUN_NUMBER" >> $GITHUB_ENV
+        
+    - name: Import Codesign Certificate
+      id: codesign-cert
+      uses: Apple-Actions/import-codesign-certs@v1
+      with:
+        p12-file-base64: ${{ secrets.DIST_CERT_BASE64 }}
+        p12-password: ${{ secrets.DIST_CERT_P12_PASSWORD }}
+        
+    - name: Generate App Store Connect API Token
+      id: app-store-api-token
+      env:
+        ISSUER_ID: ${{ secrets.APPCONNECT_API_ISSUER }}
+        KEY_ID: ${{ secrets.APPCONNECT_API_KEY_ID }}
+        AUTH_KEY: ${{ secrets.APPCONNECT_API_KEY_PRIVATE }}
+      run: |
+        pip3 install cryptography
+        pip3 install pyjwt
+        exp=$(date -v +20M +%s)
+        iss=$(date -v -1M +%s)
+        jwt=$(python3 -c "import jwt; print(jwt.encode({'aud':'appstoreconnect-v1','iss':'$ISSUER_ID','exp':$exp,'iat':$iss},'''$AUTH_KEY''',algorithm='ES256', headers={'kid': '$KEY_ID'}))")
+        echo "::add-mask::$jwt"
+        echo "::set-output name=appStoreToken::$jwt"
+        
+    - name: Prime App Store Connect API
+      env:
+        JWT: ${{ steps.app-store-api-token.outputs.appStoreToken }}
+      uses: nick-invision/retry@v1.0.0
+      with:
+        timeout_minutes: 1
+        max_attempts: 30
+        command: 'curl --header "Authorization: Bearer $JWT" -s -o /dev/null -w "%{http_code}" --fail https://api.appstoreconnect.apple.com/v1/bundleIds'
+        
+    - name: 'Download Provisioning Profiles'
+      id: provisioning
+      uses: apple-actions/download-provisioning-profiles@v1
+      with: 
+        bundle-id: 'ch.fetz-gr.F1A-TV'
+        profile-type: 'TVOS_APP_STORE'
+        issuer-id: ${{ secrets.APPCONNECT_API_ISSUER }}
+        api-key-id: ${{ secrets.APPCONNECT_API_KEY_ID }}
+        api-private-key: ${{ secrets.APPCONNECT_API_KEY_PRIVATE }}
+        
+    - name: Bump Build Version
+      run: |
+        agvtool new-version -all $BUILD_IDENTIFIER
+        
+    - name: Generate Export Plist
+      env:
+        TEAM_ID: ${{ secrets.TEAM_ID }}
+        METHOD: app-store
+      run: |
+        /usr/libexec/PlistBuddy -c Clear _XcodeTaskExportOptions.plist
+        /usr/libexec/PlistBuddy -c "Add teamID string $TEAM_ID" _XcodeTaskExportOptions.plist
+        /usr/libexec/PlistBuddy -c "Add method string $METHOD" _XcodeTaskExportOptions.plist
+        
+    - name: Xcodebuild Archive & Export & Sign
+      env:
+        ARCHIVE_PATH: ${{ github.workspace }}/archive/F1A-TV.xcarchive
+        EXPORT_PATH: ${{ github.workspace }}/export/F1A-TV
+        IPA_PATH: ${{ github.workspace }}/export/F1A-TV/F1A-TV.ipa
+        signing_identity: ${{ secrets.DIST_CERT_SIGNING_IDENTITY }}
+      run: |
+        /usr/bin/xcodebuild -workspace F1A-TV.xcworkspace -scheme F1A-TV archive -configuration Release -archivePath $ARCHIVE_PATH CODE_SIGNING_ALLOWED=NO
+        /usr/bin/xcodebuild -exportArchive -archivePath $ARCHIVE_PATH -exportPath $EXPORT_PATH -exportOptionsPlist _XcodeTaskExportOptions.plist
+        fastlane sigh resign $IPA_PATH --signing_identity $signing_identity -p "/Users/runner/Library/MobileDevice/Provisioning Profiles/05931e23-2847-4cd7-85a2-40143617ab3b.mobileprovision" --verbose
+       
+    - name: Upload a Build Artifact
+      uses: actions/upload-artifact@v2
+      with:
+        path: ${{ github.workspace }}/export/F1A-TV/F1A-TV.ipa
+    
+    - name: Upload to TestFlight
+      env:
+        FASTLANE_USERNAME:  ${{ secrets.FASTLANE_USERNAME }}
+        FASTLANE_APPLE_APPLICATION_SPECIFIC_PASSWORD: ${{ secrets.FASTLANE_APP_PASSWORD }}
+        APPLE_ID: ${{ secrets.APPLE_ID }}
+      run: fastlane pilot upload -u $FASTLANE_USERNAME -p $APPLE_ID -i ${{ github.workspace }}/export/F1A-TV/F1A-TV.ipa -a preecington.HealthShare --skip_waiting_for_build_processing true --app_platform=appletvos --verbose
+    
+    - name: Publish Testflight Build
+      env:
+        GROUP_NAME: Testers
+        JWT: ${{ steps.app-store-api-token.outputs.appStoreToken }}
+        API_BASE: https://api.appstoreconnect.apple.com/v1
+        REL_NOTES: ${{ steps.release-notes.outputs.relNotes }}
+      run: |
+        set -o pipefail
+        output=""
+        callWithRetry() {
+            attempt_counter=0
+            output=""
+            max_attempts=${5:-30}
+            until output=$(curl --header "Authorization: Bearer $JWT" -s -f -X ${3:-GET} -H "Content-Type: application/json" -d "${4:-}" "$1" | jq -r -e "${2:-.}" ) ; do
+                if [ ${attempt_counter} -eq ${max_attempts} ];then
+                echo "Max attempts reached"
+                exit -1
+                fi
+                printf "${7:-.}\n"
+                attempt_counter=$(($attempt_counter+1))
+                sleep ${6:-1}
+            done
+        }
+        api_url="$API_BASE/builds?filter[version]=$GITHUB_RUN_NUMBER&include=buildBetaDetail,betaBuildLocalizations&fields[buildBetaDetails]=externalBuildState&fields[betaBuildLocalizations]=whatsNew"
+        query='. as $parent | .included[] | select(.type == "buildBetaDetails") | select(.attributes.externalBuildState != "PROCESSING") | $parent'
+        # Wait until Build is ready
+        echo "Waiting for App Store Connect to process build $GITHUB_RUN_NUMBER"
+        callWithRetry "$api_url" "$query" "GET" "" 100 10 "Waiting for build processing..." 
+        # Get ids
+        build_id=$(echo $output | jq '.data[].id' -r)
+        build_localization_id=$(echo $output | jq '.included[] | select(.type == "betaBuildLocalizations") | .id' -r) 
+        # Set compliance
+        echo "Updating export compliance"
+        data='{"data":{"attributes":{"usesNonExemptEncryption":false},"id":"'$build_id'","type":"builds"}}'
+        callWithRetry "$API_BASE/builds/$build_id" "." "PATCH" "$data"
+        # Get Group Id
+        callWithRetry "$API_BASE/betaGroups?filter[name]=$GROUP_NAME" ".data[].id"
+        group_id=$output
+        # Set group
+        echo "Assigning external testers"
+        data='{"data":[{"id":"'$group_id'","type":"betaGroups"}]}'
+        callWithRetry "$API_BASE/builds/$build_id/relationships/betaGroups" "." "POST" "$data"
+        # Set release notes
+        echo "Assigning release notes"
+        data='{"data":{"id":"'$build_localization_id'","attributes":{"whatsNew":"'$REL_NOTES'"},"type":"betaBuildLocalizations"}}'
+        callWithRetry "$API_BASE/betaBuildLocalizations/$build_localization_id" "." "PATCH" "$data"
+        # Submit for review
+        echo "Submitting for external review"
+        data='{"data":{"relationships":{"build":{"data":{"id":"'$build_id'","type":"builds"}}},"type":"betaAppReviewSubmissions"}}'
+        callWithRetry "$API_BASE/betaAppReviewSubmissions" "." "POST" "$data"
