@@ -94,53 +94,53 @@ jobs:
         APPLE_ID: ${{ secrets.APPLE_ID }}
       run: fastlane pilot upload -u $FASTLANE_USERNAME -p $APPLE_ID -i ${{ github.workspace }}/export/F1A-TV/F1A-TV.ipa -a preecington.HealthShare --skip_waiting_for_build_processing true --app_platform=appletvos --verbose
     
-    - name: Publish Testflight Build
-      env:
-        GROUP_NAME: Testers
-        JWT: ${{ steps.app-store-api-token.outputs.appStoreToken }}
-        API_BASE: https://api.appstoreconnect.apple.com/v1
-        REL_NOTES: ${{ steps.release-notes.outputs.relNotes }}
-      run: |
-        set -o pipefail
-        output=""
-        callWithRetry() {
-            attempt_counter=0
-            output=""
-            max_attempts=${5:-30}
-            until output=$(curl --header "Authorization: Bearer $JWT" -s -f -X ${3:-GET} -H "Content-Type: application/json" -d "${4:-}" "$1" | jq -r -e "${2:-.}" ) ; do
-                if [ ${attempt_counter} -eq ${max_attempts} ];then
-                echo "Max attempts reached"
-                exit -1
-                fi
-                printf "${7:-.}\n"
-                attempt_counter=$(($attempt_counter+1))
-                sleep ${6:-1}
-            done
-        }
-        api_url="$API_BASE/builds?filter[version]=$BUILD_IDENTIFIER&include=buildBetaDetail,betaBuildLocalizations&fields[buildBetaDetails]=externalBuildState&fields[betaBuildLocalizations]=whatsNew"
-        query='. as $parent | .included[] | select(.type == "buildBetaDetails") | select(.attributes.externalBuildState != "PROCESSING") | $parent'
+    #- name: Publish Testflight Build
+      #env:
+        #GROUP_NAME: Testers
+        #JWT: ${{ steps.app-store-api-token.outputs.appStoreToken }}
+        #API_BASE: https://api.appstoreconnect.apple.com/v1
+        #REL_NOTES: ${{ steps.release-notes.outputs.relNotes }}
+      #run: |
+        #set -o pipefail
+        #output=""
+        #callWithRetry() {
+            #attempt_counter=0
+            #output=""
+            #max_attempts=${5:-30}
+            #until output=$(curl --header "Authorization: Bearer $JWT" -s -f -X ${3:-GET} -H "Content-Type: application/json" -d "${4:-}" "$1" | jq -r -e "${2:-.}" ) ; do
+                #if [ ${attempt_counter} -eq ${max_attempts} ];then
+                #echo "Max attempts reached"
+                #exit -1
+                #fi
+                #printf "${7:-.}\n"
+                #attempt_counter=$(($attempt_counter+1))
+                #sleep ${6:-1}
+            #done
+        #}
+        #api_url="$API_BASE/builds?filter[version]=$BUILD_IDENTIFIER&include=buildBetaDetail,betaBuildLocalizations&fields[buildBetaDetails]=externalBuildState&fields[betaBuildLocalizations]=whatsNew"
+        #query='. as $parent | .included[] | select(.type == "buildBetaDetails") | select(.attributes.externalBuildState != "PROCESSING") | $parent'
         # Wait until Build is ready
-        echo "Waiting for App Store Connect to process build $BUILD_IDENTIFIER"
-        callWithRetry "$api_url" "$query" "GET" "" 100 10 "Waiting for build processing..." 
+        #echo "Waiting for App Store Connect to process build $BUILD_IDENTIFIER"
+        #callWithRetry "$api_url" "$query" "GET" "" 100 10 "Waiting for build processing..." 
         # Get ids
-        build_id=$(echo $output | jq '.data[].id' -r)
-        build_localization_id=$(echo $output | jq '.included[] | select(.type == "betaBuildLocalizations") | .id' -r) 
+        #build_id=$(echo $output | jq '.data[].id' -r)
+        #build_localization_id=$(echo $output | jq '.included[] | select(.type == "betaBuildLocalizations") | .id' -r) 
         # Set compliance
-        echo "Updating export compliance"
-        data='{"data":{"attributes":{"usesNonExemptEncryption":false},"id":"'$build_id'","type":"builds"}}'
-        callWithRetry "$API_BASE/builds/$build_id" "." "PATCH" "$data"
+        #echo "Updating export compliance"
+        #data='{"data":{"attributes":{"usesNonExemptEncryption":false},"id":"'$build_id'","type":"builds"}}'
+        #callWithRetry "$API_BASE/builds/$build_id" "." "PATCH" "$data"
         # Get Group Id
-        callWithRetry "$API_BASE/betaGroups?filter[name]=$GROUP_NAME" ".data[].id"
-        group_id=$output
+        #callWithRetry "$API_BASE/betaGroups?filter[name]=$GROUP_NAME" ".data[].id"
+        #group_id=$output
         # Set group
-        echo "Assigning external testers"
-        data='{"data":[{"id":"'$group_id'","type":"betaGroups"}]}'
-        callWithRetry "$API_BASE/builds/$build_id/relationships/betaGroups" "." "POST" "$data"
+        #echo "Assigning external testers"
+        #data='{"data":[{"id":"'$group_id'","type":"betaGroups"}]}'
+        #callWithRetry "$API_BASE/builds/$build_id/relationships/betaGroups" "." "POST" "$data"
         # Set release notes
-        echo "Assigning release notes"
-        data='{"data":{"id":"'$build_localization_id'","attributes":{"whatsNew":"'$REL_NOTES'"},"type":"betaBuildLocalizations"}}'
-        callWithRetry "$API_BASE/betaBuildLocalizations/$build_localization_id" "." "PATCH" "$data"
+        #echo "Assigning release notes"
+        #data='{"data":{"id":"'$build_localization_id'","attributes":{"whatsNew":"'$REL_NOTES'"},"type":"betaBuildLocalizations"}}'
+        #callWithRetry "$API_BASE/betaBuildLocalizations/$build_localization_id" "." "PATCH" "$data"
         # Submit for review
-        echo "Submitting for external review"
-        data='{"data":{"relationships":{"build":{"data":{"id":"'$build_id'","type":"builds"}}},"type":"betaAppReviewSubmissions"}}'
-        callWithRetry "$API_BASE/betaAppReviewSubmissions" "." "POST" "$data"
+        #echo "Submitting for external review"
+        #data='{"data":{"relationships":{"build":{"data":{"id":"'$build_id'","type":"builds"}}},"type":"betaAppReviewSubmissions"}}'
+        #callWithRetry "$API_BASE/betaAppReviewSubmissions" "." "POST" "$data"
