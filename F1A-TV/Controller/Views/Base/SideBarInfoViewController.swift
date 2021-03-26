@@ -84,10 +84,10 @@ class SideBarInfoViewController: UIViewController {
                 continue
             }
             
-            for event in scheduleContainer.events?.sorted(by: {$0.metadata?.emfAttributes?.sessionStartDate ?? 0 < $1.metadata?.emfAttributes?.sessionEndDate ?? 0}) ?? [ContainerDto]() {
+            for event in scheduleContainer.events?.sorted(by: {$0.metadata?.emfAttributes?.sessionStartDate?.value ?? 0 < $1.metadata?.emfAttributes?.sessionEndDate?.value ?? 0}) ?? [ContainerDto]() {
                 
-                let startDate = Date(milliseconds: event.metadata?.emfAttributes?.sessionStartDate ?? Date().millisecondsSince1970)
-                let endDate = Date(milliseconds: event.metadata?.emfAttributes?.sessionEndDate ?? Date().millisecondsSince1970)
+                let startDate = Date(milliseconds: event.metadata?.emfAttributes?.sessionStartDate?.value ?? Date().millisecondsSince1970)
+                let endDate = Date(milliseconds: event.metadata?.emfAttributes?.sessionEndDate?.value ?? Date().millisecondsSince1970)
                 let series = SeriesType.fromCapitalDisplayName(capitalDisplayName: event.properties?.first?.series ?? SeriesType().getCapitalDisplayName())
                 
                 let seriesLabel = UILabel()

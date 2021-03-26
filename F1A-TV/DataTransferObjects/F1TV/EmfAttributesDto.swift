@@ -43,8 +43,8 @@ struct EmfAttributesDto: Codable {
     var meetingDisplayDate: String?
     var pageId: Int?
     var meetingCountryName: String?
-    var sessionEndDate: Int64? // They can't decide whether this is an int or string, ignoring it to prevent json decoding errors
-    var sessionStartDate: Int64? // They can't decide whether this is an int or string, ignoring it to prevent json decoding errors
+    var sessionEndDate: F1TVsImSometimesAnIntAndSometimesAStringDto? // They can't decide whether this is an int or string, ignoring it to prevent json decoding errors
+    var sessionStartDate: F1TVsImSometimesAnIntAndSometimesAStringDto? // They can't decide whether this is an int or string, ignoring it to prevent json decoding errors
     var globalTitle: String?
     var globalMeetingCountryName: String?
     var globalMeetingName: String?
@@ -62,7 +62,7 @@ struct EmfAttributesDto: Codable {
         self.trackLength = ""
     }
     
-    init(videoType: String, meetingKey: String, meetingSessionKey: String, meetingName: String, meetingNumber: String?, circuitShortName: String, meetingCode: String?, meetingCountryKey: String?, circuitKey: String, meetingLocation: String?, series: String, obc: Bool, state: String, timetableKey: String?, sessionKey: String?, sessionPeriod: String?, circuitOfficialName: String?, activityDescription: String?, seriesMeetingSessionIdentifier: String?, sessionEndTime: String?, meetingStartDate: String?, meetingEndDate: String?, trackLength: String, scheduledLapCount: String?, scheduledDistance: String?, circuitLocation: String?, meetingSponsor: String?, isTestEvent: String?, championshipMeetingOrdinal: String?, meetingOfficialName: String?, meetingDisplayDate: String?, pageId: Int?, meetingCountryName: String?, sessionStartDate: Int64?, sessionEndDate: Int64?, globalTitle: String?, globalMeetingCountryName: String?, globalMeetingName: String?) {
+    init(videoType: String, meetingKey: String, meetingSessionKey: String, meetingName: String, meetingNumber: String?, circuitShortName: String, meetingCode: String?, meetingCountryKey: String?, circuitKey: String, meetingLocation: String?, series: String, obc: Bool, state: String, timetableKey: String?, sessionKey: String?, sessionPeriod: String?, circuitOfficialName: String?, activityDescription: String?, seriesMeetingSessionIdentifier: String?, sessionEndTime: String?, meetingStartDate: String?, meetingEndDate: String?, trackLength: String, scheduledLapCount: String?, scheduledDistance: String?, circuitLocation: String?, meetingSponsor: String?, isTestEvent: String?, championshipMeetingOrdinal: String?, meetingOfficialName: String?, meetingDisplayDate: String?, pageId: Int?, meetingCountryName: String?, sessionStartDate: F1TVsImSometimesAnIntAndSometimesAStringDto?, sessionEndDate: F1TVsImSometimesAnIntAndSometimesAStringDto?, globalTitle: String?, globalMeetingCountryName: String?, globalMeetingName: String?) {
         self.videoType = videoType
         self.meetingKey = meetingKey
         self.meetingSessionKey = meetingSessionKey
@@ -103,6 +103,20 @@ struct EmfAttributesDto: Codable {
         self.globalMeetingName = globalMeetingName
     }
     
+    /*func getSessionStartDate() -> Int64 {
+        if let dataString = String(data: self.sessionStartDate ?? Data(), encoding: .utf8) {
+            return Int64(dataString) ?? 0
+        }
+        return 0
+    }
+    
+    func getSessionEndDate() -> Int64 {
+        if let dataString = String(data: self.sessionEndDate ?? Data(), encoding: .utf8) {
+            return Int64(dataString) ?? 0
+        }
+        return 0
+    }*/
+    
     enum CodingKeys: String, CodingKey {
         case videoType = "VideoType"
         case meetingKey = "MeetingKey"
@@ -137,8 +151,8 @@ struct EmfAttributesDto: Codable {
         case meetingDisplayDate = "Meeting_Display_Date"
         case pageId = "PageID"
         case meetingCountryName = "Meeting_Country_Name"
-//        case sessionStartDate = "sessionStartDate"
-//        case sessionEndDate = "sessionEndDate"
+        case sessionStartDate = "sessionStartDate"
+        case sessionEndDate = "sessionEndDate"
         case globalTitle = "Global_Title"
         case globalMeetingCountryName = "Global_Meeting_Country_Name"
         case globalMeetingName = "Global_Meeting_Name"
