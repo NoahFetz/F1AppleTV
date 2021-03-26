@@ -15,7 +15,7 @@ class DataManager {
             DispatchQueue.main.async {
                 switch result {
                 case .failure(let error):
-                    print("Error occured: \(error.localizedDescription)")
+                    NetworkRouter.instance.handleFailure(error: error)
                 case .success(let requestResult):
                     if let resultObject = requestResult.resultObj {
                         DispatchQueue.main.async {
@@ -32,7 +32,7 @@ class DataManager {
             DispatchQueue.main.async {
                 switch result {
                 case .failure(let error):
-                    print("Error occured: \(error.localizedDescription)")
+                    NetworkRouter.instance.handleFailure(error: error)
                 case .success(let requestResult):
                     if let resultObject = requestResult.resultObj {
                         DispatchQueue.main.async {
@@ -49,7 +49,7 @@ class DataManager {
             DispatchQueue.main.async {
                 switch result {
                 case .failure(let error):
-                    print("Error occured: \(error.localizedDescription)")
+                    NetworkRouter.instance.handleFailure(error: error)
                 case .success(let requestResult):
                     if let resultObject = requestResult.resultObj {
                         DispatchQueue.main.async {

@@ -40,14 +40,9 @@ class NetworkRouter {
     
     func handleFailure(error: APIError) {
         print("Error occured: \(error.localizedDescription)")
-        /*DispatchQueue.main.async {
-            switch error {
-            case .authenticationError:
-                UserInteractionHelper.instance.showError(message: NSLocalizedString("credentials_invalid", comment: ""))
-            default:
-                UserInteractionHelper.instance.showError(message: error.localizedDescription)
-            }
-        }*/
+        DispatchQueue.main.async {
+            UserInteractionHelper.instance.showAlert(title: NSLocalizedString("error", comment: ""), message: error.getDescription())
+        }
     }
     
     func authRequest(authRequest: AuthRequestDto, completion: @escaping(Result<AuthResultDto, APIError>) -> Void) {
@@ -158,6 +153,7 @@ class NetworkRouter {
 //                print(String(data: data!,encoding: .utf8)!)
                 requestResult = try self.decoder.decode(ApiResponseDto.self, from: data!)
                 completion(.success(requestResult))
+                return
             } /*catch {
                 completion(.failure(.decodingError))
                 return
@@ -177,6 +173,8 @@ class NetworkRouter {
             } catch {
                 print("error: ", error)
             }
+            
+            completion(.failure(.decodingError))
         })
         task.resume()
     }
@@ -204,6 +202,7 @@ class NetworkRouter {
 //                print(String(data: data!,encoding: .utf8)!)
                 requestResult = try self.decoder.decode(ApiResponseDto.self, from: data!)
                 completion(.success(requestResult))
+                return
             } /*catch {
                 completion(.failure(.decodingError))
                 return
@@ -223,6 +222,8 @@ class NetworkRouter {
             } catch {
                 print("error: ", error)
             }
+            
+            completion(.failure(.decodingError))
         })
         task.resume()
     }
@@ -266,4 +267,23 @@ enum APIError: Error {
     case decodingError
     case encodingError
     case otherError
+    
+    func getDescription() -> String {
+        switch self {
+        case .authenticationError:
+            return "Authentication Error"
+            
+        case .responseError:
+            return "Response Error"
+            
+        case .decodingError:
+            return "Decoding Error"
+            
+        case .encodingError:
+            return "Encoding Error"
+            
+        case .otherError:
+            return "Generic Error"
+        }
+    }
 }
