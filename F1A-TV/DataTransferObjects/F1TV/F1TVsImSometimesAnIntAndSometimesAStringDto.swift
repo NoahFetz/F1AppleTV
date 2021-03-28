@@ -8,17 +8,17 @@
 import Foundation
 
 struct F1TVsImSometimesAnIntAndSometimesAStringDto: Codable {
-    var value: Int64
+    var value: Int64?
     
     init(from decoder: Decoder) throws {
         let container = try decoder.singleValueContainer()
         if let value = try? container.decode(Int64.self) {
-            self.value = Int64(value)
+            self.value = value
             return
         }
         
         if let value = try? container.decode(String.self) {
-            self.value = Int64(value) ?? 0
+            self.value = Int64(value)
             return
         }
         throw DecodingError.typeMismatch(F1TVsImSometimesAnIntAndSometimesAStringDto.self, DecodingError.Context(codingPath: decoder.codingPath, debugDescription: "They changed it again to something else, who knows what it could be now"))

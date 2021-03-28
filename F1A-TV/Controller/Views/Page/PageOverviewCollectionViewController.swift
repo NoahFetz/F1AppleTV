@@ -149,10 +149,28 @@ class PageOverviewCollectionViewController: BaseCollectionViewController, UIColl
     }
 
     override func collectionView(_ collectionView: UICollectionView, numberOfItemsInSection section: Int) -> Int {
-        return self.contentSections?[section].items.count ?? 3
+        var additionalItems = 0
+        
+        if let actionUrl = self.contentSections?[section].container.actions?.first?.uri {
+            if(!actionUrl.isEmpty) {
+                additionalItems += 1
+            }
+        }
+        
+        return (self.contentSections?[section].items.count ?? 3) + additionalItems
     }
 
     override func collectionView(_ collectionView: UICollectionView, cellForItemAt indexPath: IndexPath) -> UICollectionViewCell {
+        if let actionUrl = self.contentSections?[indexPath.section].container.actions?.first?.uri {
+            if(!actionUrl.isEmpty && indexPath.row >= (self.contentSections?[indexPath.section].items.count ?? Int.max)) {
+                let cell = collectionView.dequeueReusableCell(withReuseIdentifier: ConstantsUtil.noContentCollectionViewCell, for: indexPath) as! NoContentCollectionViewCell
+                
+                cell.centerLabel.text = NSLocalizedString("view_all", comment: "")
+                
+                return cell
+            }
+        }
+        
         let cell = collectionView.dequeueReusableCell(withReuseIdentifier: ConstantsUtil.thumbnailTitleSubtitleCollectionViewCell, for: indexPath) as! ThumbnailTitleSubtitleCollectionViewCell
        
         cell.setDefaultConfig()
@@ -244,6 +262,28 @@ class PageOverviewCollectionViewController: BaseCollectionViewController, UIColl
                 DataManager.instance.loadContentPage(pageUri: pageUri, contentPageProtocol: self)
             }
             return
+        }
+        
+        if var currentSection = self.contentSections?[indexPath.section] {
+            if let actionUrl = currentSection.container.actions?.first?.uri {
+                if(!actionUrl.isEmpty && indexPath.row >= currentSection.items.count) {
+                    if let actionUrl = currentSection.container.actions?.first?.uri {
+                        let sideInfoVc = self.getViewControllerWith(viewIdentifier: ConstantsUtil.sideBarInfoViewController) as! SideBarInfoViewController
+                        currentSection.container.metadata?.title = currentSection.title
+                        sideInfoVc.initialize(contentItem: ContentItem(objectType: .Bundle, container: currentSection.container))
+                        
+                        let subPageVc = self.getViewControllerWith(viewIdentifier: ConstantsUtil.pageOverviewCollectionViewController) as! PageOverviewCollectionViewController
+                        subPageVc.initialize(pageUri: actionUrl)
+                        
+                        let splitVc = UISplitViewController()
+                        splitVc.viewControllers = [sideInfoVc, subPageVc]
+                        
+                        self.presentFullscreenInNavigationController(viewController: splitVc)
+                        
+                        return
+                    }
+                }
+            }
         }
         
         let currentItem = self.contentSections?[indexPath.section].items[indexPath.row] ?? ContentItem()
@@ -389,6 +429,14 @@ class PageOverviewCollectionViewController: BaseCollectionViewController, UIColl
     }
     
     func collectionView(_ collectionView: UICollectionView, layout collectionViewLayout: UICollectionViewLayout, sizeForItemAt indexPath: IndexPath) -> CGSize {
+        /*let currentItem = self.contentSections?[indexPath.section]
+        
+        if(currentItem?.layoutType == .Hero) {
+            //2*24 between cells + 2*24 for left and right
+            let width = (collectionView.frame.width-48)
+            return CGSize(width: width, height: width*ConstantsUtil.thumnailCardHeightMultiplier/3)
+        }*/
+        
         //2*24 between cells + 2*24 for left and right
         let width = (collectionView.frame.width-96)/3
         return CGSize(width: width, height: width*ConstantsUtil.thumnailCardHeightMultiplier)
@@ -428,20 +476,6 @@ class PageOverviewCollectionViewController: BaseCollectionViewController, UIColl
                     titleLabel.text = currentItem?.title
                     
                     holderStackView.addArrangedSubview(titleLabel)
-                }
-                
-                if let actionUrl = currentItem?.container.actions?.first?.uri {
-                    if(!actionUrl.isEmpty) {
-                        let actionButton = UIButton(type: .system)
-                        actionButton.setTitle(NSLocalizedString("view_all", comment: ""), for: .normal)
-                        actionButton.tag = indexPath.section
-                        actionButton.addTarget(self, action: #selector(self.viewAllPressed), for: .primaryActionTriggered)
-                        
-                        actionButton.setContentHuggingPriority(UILayoutPriority(rawValue: 251), for: .horizontal)
-                        actionButton.setContentCompressionResistancePriority(UILayoutPriority(rawValue: 751), for: .horizontal)
-                        
-                        holderStackView.addArrangedSubview(actionButton)
-                    }
                 }
                 
                 headerView.addSubview(holderStackView)

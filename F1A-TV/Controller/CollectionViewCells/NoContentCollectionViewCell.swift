@@ -23,17 +23,20 @@ class NoContentCollectionViewCell: BaseCollectionViewCell {
     }
 
     @objc func userInterfaceStyleChanged() {
-        if(ConstantsUtil.darkStyle) {
-            if(self.isFocused) {
-                self.containerView.backgroundColor = .white
-                self.centerLabel.textColor = .black
-            }else{
-                self.containerView.backgroundColor = ConstantsUtil.brandingBackgroundColor
-                self.centerLabel.textColor = .white
-            }
-        }else{
+        if(self.isFocused) {
             self.containerView.backgroundColor = .white
             self.centerLabel.textColor = .black
+            UIView.animate(withDuration: 0.2) {
+                self.tableItemShadow()
+                self.containerView.transform = CGAffineTransform(scaleX: 1.05, y: 1.05)
+            }
+        }else{
+            self.containerView.backgroundColor = ConstantsUtil.brandingItemColor
+            self.centerLabel.textColor = .white
+            UIView.animate(withDuration: 0.2) {
+                self.removeShadow()
+                self.containerView.transform = .identity
+            }
         }
     }
     

@@ -103,20 +103,6 @@ struct EmfAttributesDto: Codable {
         self.globalMeetingName = globalMeetingName
     }
     
-    /*func getSessionStartDate() -> Int64 {
-        if let dataString = String(data: self.sessionStartDate ?? Data(), encoding: .utf8) {
-            return Int64(dataString) ?? 0
-        }
-        return 0
-    }
-    
-    func getSessionEndDate() -> Int64 {
-        if let dataString = String(data: self.sessionEndDate ?? Data(), encoding: .utf8) {
-            return Int64(dataString) ?? 0
-        }
-        return 0
-    }*/
-    
     enum CodingKeys: String, CodingKey {
         case videoType = "VideoType"
         case meetingKey = "MeetingKey"
