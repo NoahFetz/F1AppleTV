@@ -26,9 +26,16 @@ class PlayerController: NSObject, AVPlayerViewControllerDelegate, StreamEntitlem
     }
     
     func openPlayer(url: URL) {
-        let player = AVPlayer(url: url)
+        let playerAsset = AVAsset(url: url)
+        let playerItem = AVPlayerItem(asset: playerAsset)
+        let player = AVPlayer(playerItem: playerItem)
         let playerViewController = AVPlayerViewController()
+        
+//        let playerFrame = CGRect(x: 0, y: 0, width: UserInteractionHelper.instance.getPresentingViewController().view.bounds.width/2, height: UserInteractionHelper.instance.getPresentingViewController().view.bounds.height/2)
+        
         playerViewController.player = player
+        
+//        playerViewController.view.frame = playerFrame
         
         do {
             try AVAudioSession.sharedInstance().setCategory(.playback, mode: .moviePlayback)
@@ -44,7 +51,11 @@ class PlayerController: NSObject, AVPlayerViewControllerDelegate, StreamEntitlem
         }
         
         //Maybe need this in the future to make a multiview player thingy :)
-        /*var counter = 0
+        /*UserInteractionHelper.instance.getPresentingViewController().addChild(playerViewController)
+        UserInteractionHelper.instance.getPresentingViewController().view.addSubview(playerViewController.view)
+        playerViewController.didMove(toParent: UserInteractionHelper.instance.getPresentingViewController())
+        
+        var counter = 0
         for entitlement in self.entitlements {
             if let entitlementUrl = URL(string: entitlement.url) {
                 let layerPlayer = AVPlayer(url: entitlementUrl)
@@ -78,9 +89,9 @@ class PlayerController: NSObject, AVPlayerViewControllerDelegate, StreamEntitlem
         playerLayer.frame = CGRect(x: 150, y: 200, width: 1920, height: 1080)
         playerLayer.videoGravity = .resizeAspect
         UserInteractionHelper.instance.getPresentingViewController().view.layer.addSublayer(playerLayer)
-        playerLayer.masksToBounds = true*/
+        playerLayer.masksToBounds = true
         
-        player.play()
+        player.play()*/
     }
     
     public func playerViewController(_ playerViewController: AVPlayerViewController, restoreUserInterfaceForPictureInPictureStopWithCompletionHandler completionHandler: @escaping (Bool) -> Void) {
