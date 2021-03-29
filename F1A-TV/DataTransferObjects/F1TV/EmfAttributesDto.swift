@@ -20,7 +20,7 @@ struct EmfAttributesDto: Codable {
     var meetingLocation: String?
     var series: String?
     var obc: Bool
-    var state: String
+    var state: String?
     var timetableKey: String?
     var sessionKey: String?
     var sessionPeriod: String?
@@ -57,11 +57,10 @@ struct EmfAttributesDto: Codable {
         self.circuitShortName = ""
         self.circuitKey = ""
         self.obc = false
-        self.state = ""
         self.trackLength = ""
     }
     
-    init(videoType: String, meetingKey: String, meetingSessionKey: String, meetingName: String, meetingNumber: String?, circuitShortName: String, meetingCode: String?, meetingCountryKey: String?, circuitKey: String, meetingLocation: String?, series: String?, obc: Bool, state: String, timetableKey: String?, sessionKey: String?, sessionPeriod: String?, circuitOfficialName: String?, activityDescription: String?, seriesMeetingSessionIdentifier: String?, sessionEndTime: String?, meetingStartDate: String?, meetingEndDate: String?, trackLength: String, scheduledLapCount: String?, scheduledDistance: String?, circuitLocation: String?, meetingSponsor: String?, isTestEvent: String?, championshipMeetingOrdinal: String?, meetingOfficialName: String?, meetingDisplayDate: String?, pageId: Int?, meetingCountryName: String?, sessionStartDate: F1TVsImSometimesAnIntAndSometimesAStringDto?, sessionEndDate: F1TVsImSometimesAnIntAndSometimesAStringDto?, globalTitle: String?, globalMeetingCountryName: String?, globalMeetingName: String?) {
+    init(videoType: String, meetingKey: String, meetingSessionKey: String, meetingName: String, meetingNumber: String?, circuitShortName: String, meetingCode: String?, meetingCountryKey: String?, circuitKey: String, meetingLocation: String?, series: String?, obc: Bool, state: String?, timetableKey: String?, sessionKey: String?, sessionPeriod: String?, circuitOfficialName: String?, activityDescription: String?, seriesMeetingSessionIdentifier: String?, sessionEndTime: String?, meetingStartDate: String?, meetingEndDate: String?, trackLength: String, scheduledLapCount: String?, scheduledDistance: String?, circuitLocation: String?, meetingSponsor: String?, isTestEvent: String?, championshipMeetingOrdinal: String?, meetingOfficialName: String?, meetingDisplayDate: String?, pageId: Int?, meetingCountryName: String?, sessionStartDate: F1TVsImSometimesAnIntAndSometimesAStringDto?, sessionEndDate: F1TVsImSometimesAnIntAndSometimesAStringDto?, globalTitle: String?, globalMeetingCountryName: String?, globalMeetingName: String?) {
         self.videoType = videoType
         self.meetingKey = meetingKey
         self.meetingSessionKey = meetingSessionKey
