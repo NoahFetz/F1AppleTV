@@ -22,6 +22,7 @@ class ControlStripOverlayViewController: BaseViewController {
     var playPauseButton: UIButton?
     var forwardButton: UIButton?
     var languageSelectorButton: UIButton?
+    var captionSelectorButton: UIButton?
     
     override func viewDidLoad() {
         super.viewDidLoad()
@@ -85,6 +86,7 @@ class ControlStripOverlayViewController: BaseViewController {
         self.setupMuteButton()
         self.setupVolumeSlider()
         self.setupLanguageSelectorButton()
+//        self.setupCaptionSelectorButton()
         
         self.setupSpacerView()
         
@@ -213,8 +215,8 @@ class ControlStripOverlayViewController: BaseViewController {
     
     func setupLanguageSelectorButton() {
         self.languageSelectorButton = UIButton(type: .custom)
-        self.languageSelectorButton?.setBackgroundImage(UIImage(systemName: "captions.bubble.fill")?.withTintColor(.white, renderingMode: .alwaysOriginal), for: .focused)
-        self.languageSelectorButton?.setBackgroundImage(UIImage(systemName: "captions.bubble")?.withTintColor(.systemGray, renderingMode: .alwaysOriginal), for: .normal)
+        self.languageSelectorButton?.setBackgroundImage(UIImage(systemName: "ear.fill")?.withTintColor(.white, renderingMode: .alwaysOriginal), for: .focused)
+        self.languageSelectorButton?.setBackgroundImage(UIImage(systemName: "ear")?.withTintColor(.systemGray, renderingMode: .alwaysOriginal), for: .normal)
         
         let iconScaleMultiplier = (self.languageSelectorButton?.backgroundImage(for: .normal)?.size.height ?? 1)/(self.languageSelectorButton?.backgroundImage(for: .normal)?.size.width ?? 1)
         
@@ -224,6 +226,21 @@ class ControlStripOverlayViewController: BaseViewController {
         
         self.languageSelectorButton?.addTarget(self, action: #selector(self.languageSelectPressed), for: .primaryActionTriggered)
         self.controlsBarView?.addArrangedSubview(self.languageSelectorButton ?? UIView())
+    }
+    
+    func setupCaptionSelectorButton() {
+        self.captionSelectorButton = UIButton(type: .custom)
+        self.captionSelectorButton?.setBackgroundImage(UIImage(systemName: "captions.bubble.fill")?.withTintColor(.white, renderingMode: .alwaysOriginal), for: .focused)
+        self.captionSelectorButton?.setBackgroundImage(UIImage(systemName: "captions.bubble")?.withTintColor(.systemGray, renderingMode: .alwaysOriginal), for: .normal)
+        
+        let iconScaleMultiplier = (self.captionSelectorButton?.backgroundImage(for: .normal)?.size.height ?? 1)/(self.captionSelectorButton?.backgroundImage(for: .normal)?.size.width ?? 1)
+        
+        NSLayoutConstraint.activate([
+            NSLayoutConstraint(item: self.captionSelectorButton ?? UIView(), attribute: .height, relatedBy: .equal, toItem: self.captionSelectorButton ?? UIView(), attribute: .width, multiplier: iconScaleMultiplier, constant: 0)
+        ])
+        
+        self.captionSelectorButton?.addTarget(self, action: #selector(self.captionSelectPressed), for: .primaryActionTriggered)
+        self.controlsBarView?.addArrangedSubview(self.captionSelectorButton ?? UIView())
     }
     
     func setupFullScreenButton() {
@@ -300,6 +317,32 @@ class ControlStripOverlayViewController: BaseViewController {
                 let _ = self.playerItem?.playerItem?.select(type: .audio, name: language)
                 var playerSettings = CredentialHelper.getPlayerSettings()
                 playerSettings.setPreferredLanugage(for: self.playerItem?.contentItem.container.metadata?.channelType ?? ChannelType(), language: language)
+                CredentialHelper.setPlayerSettings(playerSettings: playerSettings)
+            }))
+        }
+        
+        alertController.addAction(UIAlertAction(title: NSLocalizedString("cancel", comment: ""), style: .cancel, handler: { (UIAlertAction) in
+            print("Cancelled")
+        }))
+        
+        UserInteractionHelper.instance.getPresentingViewController().present(alertController, animated: true)
+    }
+    
+    @objc func captionSelectPressed() {
+        print(self.playerItem?.playerItem?.tracks(type: .audio) ?? [String]())
+        print(self.playerItem?.playerItem?.tracks(type: .subtitle) ?? [String]())
+        
+        self.showCaptionSelectMenu()
+    }
+    
+    func showCaptionSelectMenu() {
+        let alertController = UIAlertController(title: NSLocalizedString("select", comment: ""), message: nil, preferredStyle: .alert)
+        
+        for captions in self.playerItem?.playerItem?.tracks(type: .subtitle) ?? [String]() {
+            alertController.addAction(UIAlertAction(title: captions, style: .default, handler: { (UIAlertAction) in
+                let _ = self.playerItem?.playerItem?.select(type: .subtitle, name: captions)
+                var playerSettings = CredentialHelper.getPlayerSettings()
+                playerSettings.setPreferredCaptions(for: self.playerItem?.contentItem.container.metadata?.channelType ?? ChannelType(), captions: captions)
                 CredentialHelper.setPlayerSettings(playerSettings: playerSettings)
             }))
         }

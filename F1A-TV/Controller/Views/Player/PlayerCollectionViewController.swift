@@ -112,6 +112,7 @@ class PlayerCollectionViewController: BaseCollectionViewController, UICollection
                 playerItem.playerAsset = AVAsset(url: url)
                 playerItem.playerItem = AVPlayerItem(asset: playerItem.playerAsset ?? AVAsset())
                 playerItem.player = AVPlayer(playerItem: playerItem.playerItem)
+                playerItem.player?.appliesMediaSelectionCriteriaAutomatically = false
             }
             
             self.playerItems[index] = playerItem
@@ -264,6 +265,11 @@ class PlayerCollectionViewController: BaseCollectionViewController, UICollection
         if let preferredLanguage = playerSettings.getPreferredLanguage(for: channelType) {
             let setLanguageResult = playerItem.playerItem?.select(type: .audio, name: preferredLanguage)
             print("Setting preferred language: " + String(setLanguageResult ?? false))
+        }
+        
+        if let preferredCaptions = playerSettings.getPreferredCaptions(for: channelType) {
+            let setCaptionResult = playerItem.playerItem?.select(type: .subtitle, name: preferredCaptions)
+            print("Setting preferred caption: " + String(setCaptionResult ?? false))
         }
         
         playerItem.player?.volume = playerSettings.getPreferredVolume(for: channelType)
