@@ -7,7 +7,7 @@
 
 import UIKit
 
-class AccountOverviewViewController: UIViewController {
+class AccountOverviewViewController: BaseViewController {
     @IBOutlet weak var accountTitleLabel: UILabel!
     @IBOutlet weak var idTitleLabel: UILabel!
     @IBOutlet weak var idValueLabel: UILabel!
@@ -40,11 +40,11 @@ class AccountOverviewViewController: UIViewController {
         
         self.logoutButton.removeTarget(nil, action: nil, for: .allEvents)
         
-        if(CredentialHelper.isLoginInformationCached()) {
+        if(CredentialHelper.instance.isLoginInformationCached()) {
             self.logoutButton.setTitle(NSLocalizedString("logout_button_title", comment: ""), for: .normal)
             self.logoutButton.addTarget(self, action: #selector(self.logoutPressed), for: .primaryActionTriggered)
             
-            let userInfo = CredentialHelper.getUserInfo()
+            let userInfo = CredentialHelper.instance.getUserInfo()
             self.idValueLabel.text = String(userInfo.subscriber.id)
             self.nameValueLabel.text = userInfo.subscriber.firstName + " " + userInfo.subscriber.lastName
             self.emailValueLabel.text = userInfo.subscriber.email
@@ -62,9 +62,9 @@ class AccountOverviewViewController: UIViewController {
     }
     
     @objc func logoutPressed() {
-        CredentialHelper.setUserInfo(userInfo: AuthResultDto())
-        CredentialHelper.setJWTToken(jwtToken: "")
-        CredentialHelper.setPassword(password: "")
+        CredentialHelper.instance.setUserInfo(userInfo: AuthResultDto())
+        CredentialHelper.instance.setJWTToken(jwtToken: "")
+        CredentialHelper.instance.setPassword(password: "")
         
         self.setupView()
     }

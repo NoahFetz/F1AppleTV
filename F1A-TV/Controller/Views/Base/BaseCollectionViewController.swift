@@ -16,6 +16,7 @@ class BaseCollectionViewController: UICollectionViewController {
         self.collectionView.register(UICollectionViewCell.self, forCellWithReuseIdentifier: ConstantsUtil.basicCollectionViewCell)
         self.collectionView.register(UINib(nibName: ConstantsUtil.thumbnailTitleSubtitleCollectionViewCell, bundle: nil), forCellWithReuseIdentifier: ConstantsUtil.thumbnailTitleSubtitleCollectionViewCell)
         self.collectionView.register(UINib(nibName: ConstantsUtil.noContentCollectionViewCell, bundle: nil), forCellWithReuseIdentifier: ConstantsUtil.noContentCollectionViewCell)
+        self.collectionView.register(UINib(nibName: ConstantsUtil.channelPlayerCollectionViewCell, bundle: nil), forCellWithReuseIdentifier: ConstantsUtil.channelPlayerCollectionViewCell)
         
 //        self.collectionView.backgroundColor = ConstantsUtil.brandingBackgroundColor
     }

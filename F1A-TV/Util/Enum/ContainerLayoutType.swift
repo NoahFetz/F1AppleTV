@@ -11,6 +11,8 @@ enum ContainerLayoutType: CaseIterable {
     case Unknown
     case Hero
     case Title
+    case Subtitle
+    case GpBanner
     case VerticalThumbnail
     case HorizontalThumbnail
     case ContentItem
@@ -39,6 +41,12 @@ enum ContainerLayoutType: CaseIterable {
             
         case .Title:
             return "title"
+            
+        case .Subtitle:
+            return "subtitle"
+            
+        case .GpBanner:
+            return "gp_banner"
             
         case .VerticalThumbnail:
             return "vertical_thumbnail"

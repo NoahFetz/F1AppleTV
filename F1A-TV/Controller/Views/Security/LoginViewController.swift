@@ -7,7 +7,7 @@
 
 import UIKit
 
-class LoginViewController: UIViewController {
+class LoginViewController: BaseViewController, AuthDataLoadedProtocol {
     @IBOutlet weak var loginTitleLabel: UILabel!
     @IBOutlet weak var emailTitleLabel: UILabel!
     @IBOutlet weak var emailTextField: UITextField!
@@ -33,47 +33,27 @@ class LoginViewController: UIViewController {
         self.loginButton.setTitle(NSLocalizedString("login_button_title", comment: ""), for: .normal)
         self.loginButton.addTarget(self, action: #selector(self.loginButtonPressed), for: .primaryActionTriggered)
         
-        self.emailTextField.text = CredentialHelper.getUserInfo().subscriber.email
-        self.passwordTextField.text = CredentialHelper.getPassword()
+        self.emailTextField.text = CredentialHelper.instance.getUserInfo().subscriber.email
+        self.passwordTextField.text = CredentialHelper.instance.getPassword()
     }
     
     @objc func loginButtonPressed() {
         let authObject = AuthRequestDto(login: self.emailTextField.text ?? "", password: self.passwordTextField.text ?? "")
         print("Login pressed with: " + authObject.login + " and " + authObject.password)
         
-        self.performAuthRequest(authRequest: authObject)
+        DataManager.instance.loadAuthData(authRequest: authObject, authDataLoadedProtocol: self)
     }
     
-    func performAuthRequest(authRequest: AuthRequestDto) {
-        NetworkRouter.instance.authRequest(authRequest: authRequest, completion: { result in
-            DispatchQueue.main.async {
-                switch result {
-                case .failure(let error):
-                    print("Error occured: \(error.localizedDescription)")
-                    UserInteractionHelper.instance.showAlert(title: NSLocalizedString("error", comment: ""), message: NSLocalizedString("login_failed", comment: ""))
-                case .success(let requestResult):
-                    let tokenRequest = TokenRequestDto(accessToken: requestResult.authData.subscriptionToken, identityProviderUrl: ConstantsUtil.identityProvider)
-                    CredentialHelper.setUserInfo(userInfo: requestResult)
-                    CredentialHelper.setPassword(password: authRequest.password)
-                    self.performTokenRequest(tokenRequest: tokenRequest)
-                }
-            }
-        })
+    func didLoadAuthData(authResult: AuthResultDto) {
+        let tokenRequest = TokenRequestDto(accessToken: authResult.authData.subscriptionToken, identityProviderUrl: ConstantsUtil.identityProvider)
+        CredentialHelper.instance.setUserInfo(userInfo: authResult)
+        CredentialHelper.instance.setPassword(password: self.passwordTextField.text ?? "")
+        
+        DataManager.instance.loadTokenRequest(tokenRequest: tokenRequest, authDataLoadedProtocol: self)
     }
     
-    func performTokenRequest(tokenRequest: TokenRequestDto) {
-        NetworkRouter.instance.tokenRequest(tokenRequest: tokenRequest, completion: { result in
-            DispatchQueue.main.async {
-                switch result {
-                case .failure(let error):
-                    print("Error occured: \(error.localizedDescription)")
-                    UserInteractionHelper.instance.showAlert(title: NSLocalizedString("error", comment: ""), message: NSLocalizedString("login_failed", comment: ""))
-                case .success(let requestResult):
-                    print(requestResult.token)
-                    CredentialHelper.setJWTToken(jwtToken: requestResult.token)
-                    self.dismiss(animated: true)
-                }
-            }
-        })
+    func didLoadToken(tokenResult: TokenResultDto) {
+        CredentialHelper.instance.setJWTToken(jwtToken: tokenResult.token)
+        self.dismiss(animated: true)
     }
 }

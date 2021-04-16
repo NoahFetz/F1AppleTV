@@ -12,6 +12,8 @@
 "error" = "Error";
 "delete" = "Borrar";
 "close" = "Cerrar";
+"select" = "Seleccionar";
+"cancel" = "Cancelar";
 
 //Login
 "login_title" = "Iniciar sesión";
@@ -44,3 +46,7 @@
 "pit_lane_feed_title" = "Pit Lane";
 "tracker_feed_title" = "Tracker Feed";
 "data_feed_title" = "Data Feed";
+
+//Player
+"multiplayer_no_channels_add_first" = "No se seleccionó ningún canal\nSeleccionar un canal";
+"multiplayer_channel_selector_add_channel_title" = "Agregar canal";

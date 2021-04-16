@@ -20,6 +20,14 @@ class UserInteractionHelper {
         return UIApplication.shared.connectedScenes.filter({$0.activationState == .foregroundActive}).map({$0 as? UIWindowScene}).compactMap({$0}).first?.windows.filter({$0.isKeyWindow}).first?.rootViewController ?? UIViewController()
     }
     
+    func showSuccess(title: String, message: String) {
+        SPAlert.present(title: title, message: message, preset: .done)
+    }
+    
+    func showError(title: String, message: String) {
+        SPAlert.present(title: title, message: message, preset: .error)
+    }
+    
     func showAlert(title: String, message: String) {
         let alertController = UIAlertController(title: title, message: message, preferredStyle: .alert)
         

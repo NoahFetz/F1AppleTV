@@ -1,5 +1,5 @@
 PODS:
-  - SkeletonView (1.13.0)
+  - SkeletonView (1.15.0)
 
 DEPENDENCIES:
   - SkeletonView
@@ -9,7 +9,7 @@ SPEC REPOS:
     - SkeletonView
 
 SPEC CHECKSUMS:
-  SkeletonView: 2b14cb767a7da384d17d5d7e1db0d55a6cf9566a
+  SkeletonView: cac18a3ac4f893b09d99e65072d806ef08377aae
 
 PODFILE CHECKSUM: 31e1243568d22c6f04b1a78bf6a9164b2c991a22
 

@@ -28,6 +28,7 @@ struct ConstantsUtil {
     static let jwtTokenKeyValueStorageKey = "F1ATV_JWTTokenKVSKey"
     static let userInfoKeyValueStorageKey = "F1ATV_UserInfoKVSKey"
     static let passwordKeyValueStorageKey = "F1ATV_PasswordKVSKey"
+    static let playerSettingsKeyValueStorageKey = "F1ATV_PlayerSettingsKVSKey"
 
     
     //Controller
@@ -35,13 +36,20 @@ struct ConstantsUtil {
     static let loginViewController = "LoginViewController"
     static let pageOverviewCollectionViewController = "PageOverviewCollectionViewController"
     static let sideBarInfoViewController = "SideBarInfoViewController"
+    static let playerCollectionViewController = "PlayerCollectionViewController"
+    static let playerInfoOverlayViewController = "PlayerInfoOverlayViewController"
+    static let channelSelectorOverlayViewController = "ChannelSelectorOverlayViewController"
+    static let controlStripOverlayViewController = "ControlStripOverlayViewController"
     
     //TableViewCells
     static let rightDetailTableViewCell = "RightDetailTableViewCell"
+    static let noContentTableViewCell = "NoContentTableViewCell"
+    static let templateTableViewCell = "TemplateTableViewCell"
     
     //CollectionViewCells
     static let basicCollectionViewCell = "BasicCollectionViewCell"
     static let customHeaderCollectionReusableView = "CustomHeaderCollectionReusableView"
     static let thumbnailTitleSubtitleCollectionViewCell = "ThumbnailTitleSubtitleCollectionViewCell"
     static let noContentCollectionViewCell = "NoContentCollectionViewCell"
+    static let channelPlayerCollectionViewCell = "ChannelPlayerCollectionViewCell"
 }

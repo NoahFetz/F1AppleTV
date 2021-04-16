@@ -92,7 +92,7 @@ class PageOverviewCollectionViewController: BaseCollectionViewController, UIColl
             
             return thumbnailSection
             
-        case .Title:
+        case .Title, .Subtitle:
             if let title = contentContainer.metadata?.label {
                 if(!title.isEmpty){
                     var titleSection = ContentSection()
@@ -114,6 +114,10 @@ class PageOverviewCollectionViewController: BaseCollectionViewController, UIColl
             
             return nil
             
+        case .GpBanner:
+            //TODO: Do something interesting with this layout in the future...
+            return nil
+            
         default:
             print("Not recognizing this layout")
             return nil
@@ -122,32 +126,14 @@ class PageOverviewCollectionViewController: BaseCollectionViewController, UIColl
     
     func getContentItem(itemContainer: ContainerDto) -> ContentItem {
         return ContentItem(objectType: ContentObjectType.fromIdentifier(identifier: itemContainer.metadata?.contentType ?? ContentObjectType().getIdentifier()), container: itemContainer)
-        /*switch ContentObjectType.fromIdentifier(identifier: itemContainer.metadata.contentType ?? ContentObjectType().getIdentifier()) {
-        case .Video:
-            var videoContentItem = ContentItem()
-            
-            videoContentItem.objectType = ContentObjectType.fromIdentifier(identifier: itemContainer.metadata.contentType ?? ContentObjectType().getIdentifier())
-            videoContentItem.container = itemContainer
-            
-            return videoContentItem
-            
-        case .Bundle:
-            var bundleContentItem = ContentItem()
-            
-            
-            
-        case .Unknown, .Launcher:
-            print("Not recognizing this object type")
-            return ContentItem()
-        }*/
     }
-
+    
     // MARK: UICollectionViewDataSource
-
+    
     override func numberOfSections(in collectionView: UICollectionView) -> Int {
         return self.contentSections?.count ?? 1
     }
-
+    
     override func collectionView(_ collectionView: UICollectionView, numberOfItemsInSection section: Int) -> Int {
         var additionalItems = 0
         
@@ -157,9 +143,9 @@ class PageOverviewCollectionViewController: BaseCollectionViewController, UIColl
             }
         }
         
-        return (self.contentSections?[section].items.count ?? 3) + additionalItems
+        return (self.contentSections?[section].items.count ?? 12) + additionalItems
     }
-
+    
     override func collectionView(_ collectionView: UICollectionView, cellForItemAt indexPath: IndexPath) -> UICollectionViewCell {
         if let actionUrl = self.contentSections?[indexPath.section].container.actions?.first?.uri {
             if(!actionUrl.isEmpty && indexPath.row >= (self.contentSections?[indexPath.section].items.count ?? Int.max)) {
@@ -172,7 +158,7 @@ class PageOverviewCollectionViewController: BaseCollectionViewController, UIColl
         }
         
         let cell = collectionView.dequeueReusableCell(withReuseIdentifier: ConstantsUtil.thumbnailTitleSubtitleCollectionViewCell, for: indexPath) as! ThumbnailTitleSubtitleCollectionViewCell
-       
+        
         cell.setDefaultConfig()
         cell.disableSkeleton()
         
@@ -185,37 +171,23 @@ class PageOverviewCollectionViewController: BaseCollectionViewController, UIColl
             case .Video:
                 cell.titleLabel.text = currentItem.container.metadata?.title
                 cell.titleLabel.font = UIFont(name: "Formula1-Display-Bold", size: 20)
+                var subtitleString = currentItem.container.metadata?.uiDuration
+                subtitleString?.append(" | ")
+                subtitleString?.append(currentItem.container.metadata?.contentSubtype ?? "")
+                cell.subtitleLabel.text = subtitleString
+                cell.subtitleLabel.font = UIFont(name: "Titillium-Regular", size: 20)
                 
-                if(currentItem.container.metadata?.emfAttributes?.videoType != "meetingSession" && !(currentItem.container.metadata?.additionalStreams?.isEmpty ?? true)){
-                    if let additionalStream = currentItem.container.metadata?.additionalStreams?.first {
-                        if(additionalStream.type == "obc") {
-                            cell.thumbnailImageView.backgroundColor = UIColor(rgb: additionalStream.hex ?? "#00000000")
-                            cell.subtitleLabel.text = String(additionalStream.racingNumber) + " | " + additionalStream.title
-                            cell.accessoryFooterLabel.text = additionalStream.teamName
-                            cell.accessoryFooterLabel.textColor = UIColor(rgb: additionalStream.hex ?? "#00000000")
-                        }else{
-                            cell.thumbnailImageView.image = UIImage(named: "thumb_placeholder")
-                        }
-                    }
+                cell.accessoryFooterLabel.text = ""
+                if let property = currentItem.container.properties?.first {
+                    let series = SeriesType.fromCapitalDisplayName(capitalDisplayName: property.series)
+                    cell.accessoryFooterLabel.text = series.getShortDisplayName()
+                    cell.accessoryFooterLabel.textColor = series.getColor()
+                }
+                
+                if((currentItem.container.metadata?.pictureUrl?.isEmpty) ?? true) {
+                    cell.thumbnailImageView.image = UIImage(named: "thumb_placeholder")
                 }else{
-                    var subtitleString = currentItem.container.metadata?.uiDuration
-                    subtitleString?.append(" | ")
-                    subtitleString?.append(currentItem.container.metadata?.contentSubtype ?? "")
-                    cell.subtitleLabel.text = subtitleString
-                    cell.subtitleLabel.font = UIFont(name: "Titillium-Regular", size: 20)
-                    
-                    cell.accessoryFooterLabel.text = ""
-                    if let property = currentItem.container.properties?.first {
-                        let series = SeriesType.fromCapitalDisplayName(capitalDisplayName: property.series)
-                        cell.accessoryFooterLabel.text = series.getShortDisplayName()
-                        cell.accessoryFooterLabel.textColor = series.getColor()
-                    }
-                    
-                    if((currentItem.container.metadata?.pictureUrl?.isEmpty) ?? true) {
-                        cell.thumbnailImageView.image = UIImage(named: "thumb_placeholder")
-                    }else{
-                        cell.applyImage(pictureId: currentItem.container.metadata?.pictureUrl ?? "", imageView: cell.thumbnailImageView)
-                    }
+                    cell.applyImage(pictureId: currentItem.container.metadata?.pictureUrl ?? "", imageView: cell.thumbnailImageView)
                 }
                 
             case .Bundle:
@@ -264,21 +236,27 @@ class PageOverviewCollectionViewController: BaseCollectionViewController, UIColl
             return
         }
         
+        //Open view all
         if var currentSection = self.contentSections?[indexPath.section] {
             if let actionUrl = currentSection.container.actions?.first?.uri {
                 if(!actionUrl.isEmpty && indexPath.row >= currentSection.items.count) {
                     if let actionUrl = currentSection.container.actions?.first?.uri {
+                        let detailContentItem = ContentItem(objectType: .Bundle, container: currentSection.container)
+                        
                         let sideInfoVc = self.getViewControllerWith(viewIdentifier: ConstantsUtil.sideBarInfoViewController) as! SideBarInfoViewController
                         currentSection.container.metadata?.title = currentSection.title
-                        sideInfoVc.initialize(contentItem: ContentItem(objectType: .Bundle, container: currentSection.container))
+                        sideInfoVc.initialize(contentItem: detailContentItem)
                         
                         let subPageVc = self.getViewControllerWith(viewIdentifier: ConstantsUtil.pageOverviewCollectionViewController) as! PageOverviewCollectionViewController
                         subPageVc.initialize(pageUri: actionUrl)
                         
-                        let splitVc = UISplitViewController()
+                        let splitVc = BaseSplitViewController()
+                        if(!((detailContentItem.container.metadata?.pictureUrl?.isEmpty) ?? true)) {
+                            splitVc.initialize(backgroundPictureId: detailContentItem.container.metadata?.pictureUrl ?? "")
+                        }
                         splitVc.viewControllers = [sideInfoVc, subPageVc]
                         
-                        self.presentFullscreenInNavigationController(viewController: splitVc)
+                        self.presentFullscreen(viewController: splitVc)
                         
                         return
                     }
@@ -297,8 +275,8 @@ class PageOverviewCollectionViewController: BaseCollectionViewController, UIColl
             }
             
             //Play the video
-            if(!CredentialHelper.isLoginInformationCached() || CredentialHelper.getUserInfo().authData.subscriptionStatus != "active"){
-                UserInteractionHelper.instance.showAlert(title: NSLocalizedString("account_no_subscription_title", comment: ""), message: NSLocalizedString("account_no_subscription_message", comment: ""))
+            if(!CredentialHelper.instance.isLoginInformationCached() || CredentialHelper.instance.getUserInfo().authData.subscriptionStatus != "active"){
+                UserInteractionHelper.instance.showError(title: NSLocalizedString("account_no_subscription_title", comment: ""), message: NSLocalizedString("account_no_subscription_message", comment: ""))
                 return
             }
             
@@ -310,7 +288,7 @@ class PageOverviewCollectionViewController: BaseCollectionViewController, UIColl
                 
                 PlayerController.instance.playStream(contentId: String(id))
             }
-        
+            
             
         case .Launcher, .Bundle:
             //Open sub-page
@@ -321,10 +299,13 @@ class PageOverviewCollectionViewController: BaseCollectionViewController, UIColl
                 let subPageVc = self.getViewControllerWith(viewIdentifier: ConstantsUtil.pageOverviewCollectionViewController) as! PageOverviewCollectionViewController
                 subPageVc.initialize(pageUri: action.uri)
                 
-                let splitVc = UISplitViewController()
+                let splitVc = BaseSplitViewController()
+                if(!((currentItem.container.metadata?.pictureUrl?.isEmpty) ?? true)) {
+                    splitVc.initialize(backgroundPictureId: currentItem.container.metadata?.pictureUrl ?? "")
+                }
                 splitVc.viewControllers = [sideInfoVc, subPageVc]
                 
-                self.presentFullscreenInNavigationController(viewController: splitVc)
+                self.presentFullscreen(viewController: splitVc)
             }
             
         default:
@@ -333,6 +314,11 @@ class PageOverviewCollectionViewController: BaseCollectionViewController, UIColl
     }
     
     func didLoadVideo(contentVideo: ResultObjectDto) {
+        if(!CredentialHelper.instance.isLoginInformationCached() || CredentialHelper.instance.getUserInfo().authData.subscriptionStatus != "active"){
+            UserInteractionHelper.instance.showError(title: NSLocalizedString("account_no_subscription_title", comment: ""), message: NSLocalizedString("account_no_subscription_message", comment: ""))
+            return
+        }
+        
         if let container = contentVideo.containers?.first {
             if(container.metadata?.additionalStreams?.isEmpty ?? true) {
                 if let id = container.metadata?.contentId {
@@ -347,16 +333,16 @@ class PageOverviewCollectionViewController: BaseCollectionViewController, UIColl
             var driverChannelsSection = ContentSection()
             driverChannelsSection.title = NSLocalizedString("driver_channels_title", comment: "")
             
-            var mainItems = [ContentItem]()
-            var driverItems = [ContentItem]()
+            var channelItems = [ContentItem]()
             
             //Add the main feed manually
             var mainFeedMetadata = container.metadata
             mainFeedMetadata?.title = NSLocalizedString("main_feed_title", comment: "")
             mainFeedMetadata?.emfAttributes?.videoType = ""
             mainFeedMetadata?.additionalStreams = nil
+            mainFeedMetadata?.channelType = .MainFeed
             let mainFeedChannel = ContentItem(objectType: .Video, container: ContainerDto(layout: "CONTENT_ITEM", actions: nil, properties: container.properties, metadata: mainFeedMetadata, bundles: nil, categories: nil, platformVariants: container.platformVariants, retrieveItems: nil, contentId: container.metadata?.contentId ?? 0, suggest: container.suggest, platformName: container.platformName, eventName: nil, events: nil))
-            mainItems.append(mainFeedChannel)
+            channelItems.append(mainFeedChannel)
             
             for additionalChannel in container.metadata?.additionalStreams ?? [AdditionalStreamDto]() {
                 var additionalChannelMetadata = container.metadata
@@ -364,6 +350,7 @@ class PageOverviewCollectionViewController: BaseCollectionViewController, UIColl
                 additionalChannelMetadata?.pictureUrl = nil
                 additionalChannelMetadata?.additionalStreams = [additionalChannel]
                 
+                //Extract the other main channels and give them a better name and prepare the driver channels
                 switch additionalChannel.type {
                 case "additional":
                     switch additionalChannel.title {
@@ -380,33 +367,32 @@ class PageOverviewCollectionViewController: BaseCollectionViewController, UIColl
                         additionalChannelMetadata?.title = additionalChannel.title
                     }
                     
+                    additionalChannelMetadata?.channelType = .AdditionalFeed
+                    
                     let additionalFeedChannel = ContentItem(objectType: .Video, container: ContainerDto(layout: "CONTENT_ITEM", actions: nil, properties: container.properties, metadata: additionalChannelMetadata, bundles: nil, categories: nil, platformVariants: container.platformVariants, retrieveItems: nil, contentId: container.metadata?.contentId ?? 0, suggest: container.suggest, platformName: container.platformName, eventName: nil, events: nil))
-                    mainItems.append(additionalFeedChannel)
+                    channelItems.append(additionalFeedChannel)
                     
                 case "obc":
-                    additionalChannelMetadata?.title = (additionalChannel.driverFirstName ?? "") + " " + (additionalChannel.driverLastName ?? "")
+                    var driverName = (additionalChannel.driverFirstName ?? "") + " " + (additionalChannel.driverLastName ?? "")
+                    if(driverName == "Nikita Mazepin") {
+                        driverName = "Nikita Mazes🅱️in"
+                    }
+                    additionalChannelMetadata?.title = driverName
+                    
+                    additionalChannelMetadata?.channelType = .OnBoardCamera
                     
                     let additionalFeedChannel = ContentItem(objectType: .Video, container: ContainerDto(layout: "CONTENT_ITEM", actions: nil, properties: container.properties, metadata: additionalChannelMetadata, bundles: nil, categories: nil, platformVariants: container.platformVariants, retrieveItems: nil, contentId: container.metadata?.contentId ?? 0, suggest: container.suggest, platformName: container.platformName, eventName: nil, events: nil))
-                    driverItems.append(additionalFeedChannel)
+                    channelItems.append(additionalFeedChannel)
                     
                 default:
                     print("What even is this?")
                 }
             }
             
-            mainChannelsSection.items = mainItems
-            driverChannelsSection.items = driverItems
+            let playerVc = self.getViewControllerWith(viewIdentifier: ConstantsUtil.playerCollectionViewController) as! PlayerCollectionViewController
+            playerVc.initialize(channelItems: channelItems.sorted(by: {($0.container.metadata?.channelType ?? ChannelType()).getIdentifier() < ($1.container.metadata?.channelType ?? ChannelType()).getIdentifier()}).sorted(by: {($0.container.metadata?.additionalStreams?.first?.racingNumber ?? 0) < ($1.container.metadata?.additionalStreams?.first?.racingNumber ?? 0)}))
             
-            let sideInfoVc = self.getViewControllerWith(viewIdentifier: ConstantsUtil.sideBarInfoViewController) as! SideBarInfoViewController
-            sideInfoVc.initialize(contentItem: ContentItem(objectType: ContentObjectType.fromIdentifier(identifier: container.metadata?.objectType ?? ContentObjectType().getIdentifier()), container: container))
-            
-            let subPageVc = self.getViewControllerWith(viewIdentifier: ConstantsUtil.pageOverviewCollectionViewController) as! PageOverviewCollectionViewController
-            subPageVc.initialize(contentSections: [mainChannelsSection, driverChannelsSection])
-            
-            let splitVc = UISplitViewController()
-            splitVc.viewControllers = [sideInfoVc, subPageVc]
-            
-            self.presentFullscreenInNavigationController(viewController: splitVc)
+            self.presentFullscreen(viewController: playerVc)
         }
     }
     
@@ -414,32 +400,46 @@ class PageOverviewCollectionViewController: BaseCollectionViewController, UIColl
         var currentItem = self.contentSections?[button.tag] ?? ContentSection()
         
         if let actionUrl = currentItem.container.actions?.first?.uri {
+            let detailContentItem = ContentItem(objectType: .Bundle, container: currentItem.container)
+            
             let sideInfoVc = self.getViewControllerWith(viewIdentifier: ConstantsUtil.sideBarInfoViewController) as! SideBarInfoViewController
             currentItem.container.metadata?.title = currentItem.title
-            sideInfoVc.initialize(contentItem: ContentItem(objectType: .Bundle, container: currentItem.container))
+            sideInfoVc.initialize(contentItem: detailContentItem)
             
             let subPageVc = self.getViewControllerWith(viewIdentifier: ConstantsUtil.pageOverviewCollectionViewController) as! PageOverviewCollectionViewController
             subPageVc.initialize(pageUri: actionUrl)
             
-            let splitVc = UISplitViewController()
+            let splitVc = BaseSplitViewController()
+            if(!((detailContentItem.container.metadata?.pictureUrl?.isEmpty) ?? true)) {
+                splitVc.initialize(backgroundPictureId: detailContentItem.container.metadata?.pictureUrl ?? "")
+            }
             splitVc.viewControllers = [sideInfoVc, subPageVc]
             
-            self.presentFullscreenInNavigationController(viewController: splitVc)
+            self.presentFullscreen(viewController: splitVc)
         }
     }
     
     func collectionView(_ collectionView: UICollectionView, layout collectionViewLayout: UICollectionViewLayout, sizeForItemAt indexPath: IndexPath) -> CGSize {
-        /*let currentItem = self.contentSections?[indexPath.section]
-        
-        if(currentItem?.layoutType == .Hero) {
-            //2*24 between cells + 2*24 for left and right
-            let width = (collectionView.frame.width-48)
-            return CGSize(width: width, height: width*ConstantsUtil.thumnailCardHeightMultiplier/3)
-        }*/
-        
         //2*24 between cells + 2*24 for left and right
         let width = (collectionView.frame.width-96)/3
         return CGSize(width: width, height: width*ConstantsUtil.thumnailCardHeightMultiplier)
+        
+        //TODO: Maybe use this in the future
+        /*let currentSection = self.contentSections?[indexPath.section]
+        
+        var itemsPerRow: CGFloat = 3
+        if((currentSection?.items.count ?? 3) < 3) {
+            itemsPerRow = CGFloat(currentSection?.items.count ?? 3)
+        }
+        
+        var spacingSubtraction: CGFloat = 48
+        if(itemsPerRow > 1) {
+            spacingSubtraction += CGFloat((itemsPerRow-1) * 24)
+        }
+        
+        //2*24 between cells + 2*24 for left and right
+        let width = (collectionView.frame.width-spacingSubtraction)/itemsPerRow
+        return CGSize(width: width, height: width*ConstantsUtil.thumnailCardHeightMultiplier)*/
     }
     
     override func collectionView(_ collectionView: UICollectionView, viewForSupplementaryElementOfKind kind: String, at indexPath: IndexPath) -> UICollectionReusableView {
@@ -464,16 +464,29 @@ class PageOverviewCollectionViewController: BaseCollectionViewController, UIColl
                     let titleLabel = FontAdjustedUILabel()
                     titleLabel.font = UIFont(name: "Formula1-Display-Bold", size: 60)
                     titleLabel.text = currentItem?.title
+                    titleLabel.textColor = .white
                     
                     titleLabel.setContentHuggingPriority(UILayoutPriority(rawValue: 250), for: .horizontal)
                     titleLabel.setContentCompressionResistancePriority(UILayoutPriority(rawValue: 750), for: .horizontal)
                     
                     holderStackView.addArrangedSubview(titleLabel)
                     
+                case .Subtitle:
+                    let subtitleLabel = FontAdjustedUILabel()
+                    subtitleLabel.font = UIFont(name: "Formula1-Display-Bold", size: 25)
+                    subtitleLabel.text = currentItem?.title
+                    subtitleLabel.textColor = .white
+                    
+                    subtitleLabel.setContentHuggingPriority(UILayoutPriority(rawValue: 250), for: .horizontal)
+                    subtitleLabel.setContentCompressionResistancePriority(UILayoutPriority(rawValue: 750), for: .horizontal)
+                    
+                    holderStackView.addArrangedSubview(subtitleLabel)
+                    
                 default:
                     let titleLabel = FontAdjustedUILabel()
                     titleLabel.font = UIFont(name: "Formula1-Display-Bold", size: 34)
                     titleLabel.text = currentItem?.title
+                    titleLabel.textColor = .white
                     
                     holderStackView.addArrangedSubview(titleLabel)
                 }
@@ -497,24 +510,27 @@ class PageOverviewCollectionViewController: BaseCollectionViewController, UIColl
     }
     
     func getSupplementaryHeight(section: Int, contentSection: ContentSection) -> CGFloat {
-        var heigt: CGFloat = 120
+        var height: CGFloat = 120
         
         if(section == 0) {
-            heigt = 80
+            height = 80
         }
         
         switch contentSection.layoutType {
         case .Title:
-            heigt+=100
+            height+=60
+            
+        case .Subtitle:
+            height -= 40
             
         default:
-            print("It's fine like that")
+            break
         }
         
         if(contentSection.title.isEmpty) {
-            heigt = 50
+            height = 50
         }
         
-        return heigt
+        return height
     }
 }

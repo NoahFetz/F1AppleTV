@@ -8,5 +8,5 @@
 import Foundation
 
 protocol StreamEntitlementLoadedProtocol {
-    func didLoadStreamEntitlement(streamEntitlement: StreamEntitlementDto)
+    func didLoadStreamEntitlement(playerId: String, streamEntitlement: StreamEntitlementDto)
 }

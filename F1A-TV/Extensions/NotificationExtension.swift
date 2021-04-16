@@ -12,4 +12,5 @@ extension Notification.Name {
     static let seasonsChanged = Notification.Name("seasonsChanged")
     static let eventChanged = Notification.Name("eventChanged")
     static let imageChanged = Notification.Name("imageChanged")
+    static let avPlayerDidDismiss = Notification.Name("avPlayerDidDismiss")
 }

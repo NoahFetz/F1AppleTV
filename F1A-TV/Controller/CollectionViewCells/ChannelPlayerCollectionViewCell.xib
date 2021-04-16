@@ -1,0 +1,66 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<document type="com.apple.InterfaceBuilder.AppleTV.XIB" version="3.0" toolsVersion="18122" targetRuntime="AppleTV" propertyAccessControl="none" useAutolayout="YES" useTraitCollections="YES" useSafeAreas="YES" colorMatched="YES">
+    <device id="appleTV" appearance="light"/>
+    <dependencies>
+        <plugIn identifier="com.apple.InterfaceBuilder.IBCocoaTouchPlugin" version="18092"/>
+        <capability name="Safe area layout guides" minToolsVersion="9.0"/>
+        <capability name="documents saved in the Xcode 8 format" minToolsVersion="8.0"/>
+    </dependencies>
+    <objects>
+        <placeholder placeholderIdentifier="IBFilesOwner" id="-1" userLabel="File's Owner"/>
+        <placeholder placeholderIdentifier="IBFirstResponder" id="-2" customClass="UIResponder"/>
+        <collectionViewCell opaque="NO" multipleTouchEnabled="YES" contentMode="center" id="Rz2-K0-ksD" customClass="ChannelPlayerCollectionViewCell" customModule="F1A_TV" customModuleProvider="target">
+            <rect key="frame" x="0.0" y="0.0" width="960" height="540"/>
+            <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
+            <view key="contentView" opaque="NO" clipsSubviews="YES" multipleTouchEnabled="YES" contentMode="center">
+                <rect key="frame" x="0.0" y="0.0" width="960" height="540"/>
+                <autoresizingMask key="autoresizingMask"/>
+                <subviews>
+                    <view contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="HPg-8U-UZJ">
+                        <rect key="frame" x="4" y="2.5" width="952" height="535.5"/>
+                        <subviews>
+                            <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="title" textAlignment="natural" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" minimumFontSize="8" adjustsLetterSpacingToFitWidth="YES" translatesAutoresizingMaskIntoConstraints="NO" id="S6q-Wi-foJ">
+                                <rect key="frame" x="16" y="425.5" width="920" height="46"/>
+                                <fontDescription key="fontDescription" type="system" pointSize="38"/>
+                                <color key="textColor" white="1" alpha="1" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
+                                <nil key="highlightedColor"/>
+                            </label>
+                            <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="subtitle" textAlignment="natural" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" minimumFontSize="8" adjustsLetterSpacingToFitWidth="YES" translatesAutoresizingMaskIntoConstraints="NO" id="UTA-v6-cIc">
+                                <rect key="frame" x="16" y="473.5" width="920" height="46"/>
+                                <fontDescription key="fontDescription" type="system" pointSize="38"/>
+                                <color key="textColor" white="1" alpha="1" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
+                                <nil key="highlightedColor"/>
+                            </label>
+                        </subviews>
+                        <color key="backgroundColor" white="0.0" alpha="0.0" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
+                        <constraints>
+                            <constraint firstAttribute="bottom" secondItem="UTA-v6-cIc" secondAttribute="bottom" constant="16" id="3j9-ms-yZJ"/>
+                            <constraint firstItem="UTA-v6-cIc" firstAttribute="top" secondItem="S6q-Wi-foJ" secondAttribute="bottom" constant="2" id="6Az-gz-jYu"/>
+                            <constraint firstItem="S6q-Wi-foJ" firstAttribute="leading" secondItem="HPg-8U-UZJ" secondAttribute="leading" constant="16" id="6cN-z3-I66"/>
+                            <constraint firstItem="UTA-v6-cIc" firstAttribute="leading" secondItem="HPg-8U-UZJ" secondAttribute="leading" constant="16" id="FVh-Xm-DMZ"/>
+                            <constraint firstAttribute="trailing" secondItem="S6q-Wi-foJ" secondAttribute="trailing" constant="16" id="Skt-cB-mTk"/>
+                            <constraint firstAttribute="width" secondItem="HPg-8U-UZJ" secondAttribute="height" multiplier="16:9" id="Wgf-OX-ctq"/>
+                            <constraint firstAttribute="trailing" secondItem="UTA-v6-cIc" secondAttribute="trailing" constant="16" id="hl1-6M-cTu"/>
+                            <constraint firstItem="S6q-Wi-foJ" firstAttribute="top" relation="greaterThanOrEqual" secondItem="HPg-8U-UZJ" secondAttribute="top" constant="16" id="uAA-dV-cdV"/>
+                            <constraint firstItem="UTA-v6-cIc" firstAttribute="top" secondItem="S6q-Wi-foJ" secondAttribute="bottom" constant="2" id="vrr-uq-mEO"/>
+                        </constraints>
+                    </view>
+                </subviews>
+            </view>
+            <viewLayoutGuide key="safeArea" id="7PP-Ag-gPX"/>
+            <constraints>
+                <constraint firstAttribute="bottom" secondItem="HPg-8U-UZJ" secondAttribute="bottom" constant="2.25" id="HYg-RT-0BZ"/>
+                <constraint firstAttribute="trailing" secondItem="HPg-8U-UZJ" secondAttribute="trailing" constant="4" id="PYa-Va-HXj"/>
+                <constraint firstItem="HPg-8U-UZJ" firstAttribute="leading" secondItem="Rz2-K0-ksD" secondAttribute="leading" constant="4" id="aJB-S5-KYW"/>
+                <constraint firstItem="HPg-8U-UZJ" firstAttribute="top" secondItem="Rz2-K0-ksD" secondAttribute="top" constant="2.25" id="y0m-Ka-irE"/>
+            </constraints>
+            <size key="customSize" width="629" height="312"/>
+            <connections>
+                <outlet property="playerContainerView" destination="HPg-8U-UZJ" id="tjx-dX-nOv"/>
+                <outlet property="subtitleLabel" destination="UTA-v6-cIc" id="x8M-gb-DJq"/>
+                <outlet property="titleLabel" destination="S6q-Wi-foJ" id="qiJ-3R-hhk"/>
+            </connections>
+            <point key="canvasLocation" x="258" y="135"/>
+        </collectionViewCell>
+    </objects>
+</document>

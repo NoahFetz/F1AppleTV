@@ -98,33 +98,41 @@ class MenuSelectorTableViewController: BaseTableViewController {
     }
 
     override func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
-        let cell = tableView.dequeueReusableCell(withIdentifier: ConstantsUtil.rightDetailTableViewCell, for: indexPath)
+        let cell = tableView.dequeueReusableCell(withIdentifier: ConstantsUtil.templateTableViewCell, for: indexPath) as! TemplateTableViewCell
+        
+        cell.contentStackView.arrangedSubviews.forEach({$0.removeFromSuperview()})
+        
+        cell.unselectedBackgroundColor = .clear
+        cell.userInterfaceStyleChanged()
+        
+        let menuTitleLabel = UILabel()
+        menuTitleLabel.font = UIFont(name: "Formula1-Display-Bold", size: 38)
+        menuTitleLabel.textColor = .white
         
         switch indexPath.row {
         case 0:
-            cell.textLabel?.text = NSLocalizedString("featured_title", comment: "")
+            menuTitleLabel.text = NSLocalizedString("featured_title", comment: "")
             
         case 1:
-            cell.textLabel?.text = Date().getYear() + " " + NSLocalizedString("race_seasons_header", comment: "")
+            menuTitleLabel.text = Date().getYear() + " " + NSLocalizedString("race_seasons_header", comment: "")
             
         case 2:
-            cell.textLabel?.text = NSLocalizedString("archive_title", comment: "")
+            menuTitleLabel.text = NSLocalizedString("archive_title", comment: "")
             
         case 3:
-            cell.textLabel?.text = NSLocalizedString("shows_title", comment: "")
+            menuTitleLabel.text = NSLocalizedString("shows_title", comment: "")
             
         case 4:
-            cell.textLabel?.text = NSLocalizedString("docs_title", comment: "")
+            menuTitleLabel.text = NSLocalizedString("docs_title", comment: "")
             
         case 5:
-            cell.textLabel?.text = NSLocalizedString("account_title", comment: "")
+            menuTitleLabel.text = NSLocalizedString("account_title", comment: "")
             
         default:
-            cell.textLabel?.text = ""
+            menuTitleLabel.text = ""
         }
         
-        cell.textLabel?.font = UIFont(name: "Formula1-Display-Bold", size: 38)
-        cell.detailTextLabel?.text = ""
+        cell.addViewsToStackView(views: [menuTitleLabel])
         
         cell.selectionStyle = .default
         

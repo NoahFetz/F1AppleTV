@@ -33,11 +33,12 @@ struct MetadataDto: Codable {
     var availableLanguages: [AvailableLanguageDto]?
     var additionalStreams: [AdditionalStreamDto]?
     var label: String?
+    var channelType: ChannelType?
     
     init() {
     }
     
-    init(emfAttributes: EmfAttributesDto?, longDescription: String?, year: String?, directors: [String]?, isAdvAllowed: Bool?, contractStartDate: Int?, contractEndDate: Int?, externalId: String?, availableAlso: [String]?, title: String?, titleBrief: String?, objectType: String?, duration: Int?, genres: [String]?, contentSubtype: String?, pcLevel: Int?, contentId: Int?, starRating: Int?, pictureUrl: String?, contentType: String?, language: String?, uiDuration: String?, availableLanguages: [AvailableLanguageDto]?, additionalStreams: [AdditionalStreamDto]?, label: String?) {
+    init(emfAttributes: EmfAttributesDto?, longDescription: String?, year: String?, directors: [String]?, isAdvAllowed: Bool?, contractStartDate: Int?, contractEndDate: Int?, externalId: String?, availableAlso: [String]?, title: String?, titleBrief: String?, objectType: String?, duration: Int?, genres: [String]?, contentSubtype: String?, pcLevel: Int?, contentId: Int?, starRating: Int?, pictureUrl: String?, contentType: String?, language: String?, uiDuration: String?, availableLanguages: [AvailableLanguageDto]?, additionalStreams: [AdditionalStreamDto]?, label: String?, channelType: ChannelType?) {
         self.emfAttributes = emfAttributes
         self.longDescription = longDescription
         self.year = year
@@ -63,6 +64,7 @@ struct MetadataDto: Codable {
         self.availableLanguages = availableLanguages
         self.additionalStreams = additionalStreams
         self.label = label
+        self.channelType = channelType
     }
     
     enum CodingKeys: String, CodingKey {

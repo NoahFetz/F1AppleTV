@@ -17,10 +17,10 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
         /**
          Only for debug - Prints all font names
          */
-        for family in UIFont.familyNames.sorted() {
+        /*for family in UIFont.familyNames.sorted() {
             let names = UIFont.fontNames(forFamilyName: family)
             print("Family: \(family) Font names: \(names)")
-        }
+        }*/
         
         return true
     }
@@ -40,7 +40,7 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
 
     func applicationDidBecomeActive(_ application: UIApplication) {
         print("Did become active")
-        CredentialHelper.performLoginRefresh()
+        CredentialHelper.instance.performLoginRefresh()
     }
 
     // MARK: - Core Data stack

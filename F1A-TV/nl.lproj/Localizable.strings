@@ -13,6 +13,8 @@
 "error" = "Fout";
 "delete" = "Verwijderen";
 "close" = "Sluiten";
+"select" = "Selecteer";
+"cancel" = "Annuleren";
 
 //Login
 "login_title" = "Inloggen";
@@ -45,3 +47,7 @@
 "pit_lane_feed_title" = "Pit Lane";
 "tracker_feed_title" = "Tracker uitzending";
 "data_feed_title" = "Data uitzending";
+
+//Player
+"multiplayer_no_channels_add_first" = "Geen kanaal geselecteerd\nSelecteer een kanaal";
+"multiplayer_channel_selector_add_channel_title" = "Kanaal toevoegen";

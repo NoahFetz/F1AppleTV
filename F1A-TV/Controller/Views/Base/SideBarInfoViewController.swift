@@ -8,7 +8,7 @@
 import UIKit
 import Kingfisher
 
-class SideBarInfoViewController: UIViewController {
+class SideBarInfoViewController: BaseViewController {
     @IBOutlet weak var thumbnailImageView: UIImageView!
     @IBOutlet weak var titleLabel: FontAdjustedUILabel!
     @IBOutlet weak var subtitleLabel: FontAdjustedUILabel!
@@ -24,10 +24,8 @@ class SideBarInfoViewController: UIViewController {
     }
     
     func setupViewController() {
-//        self.view.backgroundColor = ConstantsUtil.brandingBackgroundColor
-        
         let maskLayer = CAGradientLayer()
-        let thumbnailFrame = CGRect(x: 0, y: 0, width: self.thumbnailImageView.bounds.width/3, height: self.thumbnailImageView.bounds.height)
+        let thumbnailFrame = CGRect(x: 0, y: 0, width: self.thumbnailImageView.bounds.width*0.33, height: self.thumbnailImageView.bounds.height)
         maskLayer.frame = thumbnailFrame
         maskLayer.shadowRadius = 40
         maskLayer.shadowPath = CGPath(roundedRect: thumbnailFrame.insetBy(dx: 100, dy: 100), cornerWidth: 50, cornerHeight: 50, transform: nil)
@@ -136,41 +134,55 @@ class SideBarInfoViewController: UIViewController {
     }
     
     func applyImage(pictureId: String, imageView: UIImageView) {
+        let width = UIScreen.main.nativeBounds.width
+        let height = UIScreen.main.nativeBounds.height
+        
         var newApiUrlString = "https://ott.formula1.com/image-resizer/image/"
         newApiUrlString.append(pictureId)
-        newApiUrlString.append("?w=3840&h=2160&q=HI&o=L")
+        newApiUrlString.append("?w=\(width)&h=\(height)&q=HI&o=L")
         
-        self.applyImage(imageUrl: newApiUrlString, imageView: imageView)
+        self.applyImage(imageUrl: newApiUrlString, imageView: imageView, crop: true)
     }
     
     func applyImage(countryId: String, imageView: UIImageView) {
         let countryUrlString = "https://ott-img.formula1.com/countries/" + countryId + ".png"
         
         imageView.layer.cornerRadius = 5
-        self.applyImage(imageUrl: countryUrlString, imageView: imageView)
+        self.applyImage(imageUrl: countryUrlString, imageView: imageView, crop: false)
     }
     
-    func applyImage(imageUrl: String, imageView: UIImageView) {
+    func applyImage(imageUrl: String, imageView: UIImageView, crop: Bool) {
         if let url = URL(string: imageUrl) {
-            let processor = DownsamplingImageProcessor(size: imageView.bounds.size)
-            imageView.kf.indicatorType = .activity
-            imageView.kf.setImage(
-                with: url,
-                options: [
-                    .processor(processor),
-                    .scaleFactor(UIScreen.main.scale),
-                    .transition(.fade(0.2)),
-                    .cacheOriginalImage
-                ], completionHandler:
-                    {
-                        result in
-                        switch result {
-                        case .success(let value):
-                            print("Task done for: \(value.source.url?.absoluteString ?? "")")
-                        case .failure(let error):
-                            print("Job failed: \(error.localizedDescription)")
-                        }
-                    })
+            
+            var imageProcessor: ImageProcessor?
+            if(crop){
+                imageProcessor = CroppingImageProcessor(size: CGSize(width: imageView.bounds.size.width*0.33, height: imageView.bounds.size.height), anchor: CGPoint(x: 0, y: 0))
+            }else{
+                imageProcessor = DownsamplingImageProcessor(size: imageView.bounds.size)
+            }
+            
+            if let processor = imageProcessor {
+                imageView.kf.indicatorType = .activity
+                imageView.kf.setImage(
+                    with: url,
+                    options: [
+                        .processor(processor),
+                        .scaleFactor(UIScreen.main.scale),
+                        .transition(.fade(0.2)),
+                        .cacheOriginalImage
+                    ], completionHandler:
+                        {
+                            result in
+                            switch result {
+                            case .success(_):
+                                break
+    //                            print("Task done for: \(value.source.url?.absoluteString ?? "")")
+                                
+                            case .failure(let error):
+                                print("Job failed: \(error.localizedDescription)")
+                            }
+                        })
+            }
         }
     }
 }

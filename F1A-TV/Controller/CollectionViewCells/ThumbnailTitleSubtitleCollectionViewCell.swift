@@ -31,6 +31,10 @@ class ThumbnailTitleSubtitleCollectionViewCell: BaseCollectionViewCell {
         NotificationCenter.default.addObserver(self, selector: #selector(self.userInterfaceStyleChanged), name: .userInterfaceStyleChanged, object: nil)
     }
     
+    override func layoutSubviews() {
+        self.thumbnailImageView.layoutSkeletonIfNeeded()
+    }
+    
     func setDefaultConfig() {
         self.subtitleLabel.font = UIFont(name: "Formula1-Display-Bold", size: 20)
         self.titleLabel.font = UIFont(name: "Titillium-Regular", size: 22)
@@ -52,28 +56,25 @@ class ThumbnailTitleSubtitleCollectionViewCell: BaseCollectionViewCell {
         self.titleLabel.hideSkeletonAnimation()
         self.subtitleLabel.hideSkeletonAnimation()
         self.footerLabel.hideSkeletonAnimation()
-        self.accessoryFooterLabel.hideSkeletonAnimation()
         self.thumbnailImageView.hideSkeletonAnimation()
     }
     
     func configureSkeleton() {
-        self.titleLabel.text = ""
+        self.titleLabel.text = " "
         self.titleLabel.linesCornerRadius = 5
         self.titleLabel.showSkeletonAnimation()
         
-        self.subtitleLabel.text = ""
+        self.subtitleLabel.text = " "
         self.subtitleLabel.linesCornerRadius = 5
         self.subtitleLabel.showSkeletonAnimation()
         
-        self.footerLabel.text = ""
+        self.footerLabel.text = " "
         self.footerLabel.linesCornerRadius = 5
         self.footerLabel.showSkeletonAnimation()
         
-        self.accessoryFooterLabel.text = ""
-        self.accessoryFooterLabel.linesCornerRadius = 5
-        self.accessoryFooterLabel.showSkeletonAnimation()
-        
         self.thumbnailImageView.showSkeletonAnimation()
+        
+//        self.layoutSkeletonIfNeeded()
     }
     
     @objc func userInterfaceStyleChanged() {
@@ -133,8 +134,9 @@ class ThumbnailTitleSubtitleCollectionViewCell: BaseCollectionViewCell {
                     {
                         result in
                         switch result {
-                        case .success(let value):
-                            print("Task done for: \(value.source.url?.absoluteString ?? "")")
+                        case .success(_):
+                            break
+//                            print("Task done for: \(value.source.url?.absoluteString ?? "")")
                         case .failure(let error):
                             print("Job failed: \(error.localizedDescription)")
                         }

@@ -20,6 +20,8 @@ class BaseTableViewController: UITableViewController {
     }
     
     func registerTableViewCells() {
+        self.tableView.register(UINib(nibName: ConstantsUtil.templateTableViewCell, bundle: nil), forCellReuseIdentifier: ConstantsUtil.templateTableViewCell)
+        self.tableView.register(UINib(nibName: ConstantsUtil.noContentTableViewCell, bundle: nil), forCellReuseIdentifier: ConstantsUtil.noContentTableViewCell)
     }
     
     func setTitle(title: String) {

@@ -2,11 +2,29 @@
   "object": {
     "pins": [
       {
+        "package": "Alamofire",
+        "repositoryURL": "https://github.com/Alamofire/Alamofire.git",
+        "state": {
+          "branch": "master",
+          "revision": "56ce89783d7ebd67444d09d7a0aa20ffa7aa55af",
+          "version": null
+        }
+      },
+      {
         "package": "Kingfisher",
         "repositoryURL": "https://github.com/onevcat/Kingfisher.git",
         "state": {
           "branch": "master",
           "revision": "bbc4bc4def7eb05a7ba8e1219f80ee9be327334e",
+          "version": null
+        }
+      },
+      {
+        "package": "Swinflate",
+        "repositoryURL": "https://github.com/VladIacobIonut/Swinflate.git",
+        "state": {
+          "branch": "master",
+          "revision": "a1ddd81eaf3d7c99d32c08883606aedd3b4b1b03",
           "version": null
         }
       }

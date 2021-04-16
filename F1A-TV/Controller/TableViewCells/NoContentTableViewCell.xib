@@ -1,0 +1,54 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<document type="com.apple.InterfaceBuilder.AppleTV.XIB" version="3.0" toolsVersion="18122" targetRuntime="AppleTV" propertyAccessControl="none" useAutolayout="YES" useTraitCollections="YES" useSafeAreas="YES" colorMatched="YES">
+    <device id="appleTV" appearance="light"/>
+    <dependencies>
+        <plugIn identifier="com.apple.InterfaceBuilder.IBCocoaTouchPlugin" version="18092"/>
+        <capability name="Safe area layout guides" minToolsVersion="9.0"/>
+        <capability name="documents saved in the Xcode 8 format" minToolsVersion="8.0"/>
+    </dependencies>
+    <objects>
+        <placeholder placeholderIdentifier="IBFilesOwner" id="-1" userLabel="File's Owner"/>
+        <placeholder placeholderIdentifier="IBFirstResponder" id="-2" customClass="UIResponder"/>
+        <tableViewCell contentMode="scaleToFill" selectionStyle="default" indentationWidth="10" rowHeight="166" id="fBs-An-CcD" customClass="NoContentTableViewCell" customModule="F1A_TV" customModuleProvider="target">
+            <rect key="frame" x="0.0" y="0.0" width="1920" height="166"/>
+            <autoresizingMask key="autoresizingMask"/>
+            <tableViewCellContentView key="contentView" opaque="NO" clipsSubviews="YES" multipleTouchEnabled="YES" contentMode="center" tableViewCell="fBs-An-CcD" id="S0Q-fX-qc8">
+                <rect key="frame" x="0.0" y="0.0" width="1920" height="166"/>
+                <autoresizingMask key="autoresizingMask"/>
+                <subviews>
+                    <view contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="AQ3-2Z-21B">
+                        <rect key="frame" x="0.0" y="0.0" width="1920" height="166"/>
+                        <subviews>
+                            <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="no_content" textAlignment="center" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="nOW-YV-CO0">
+                                <rect key="frame" x="16" y="60" width="1888" height="46"/>
+                                <fontDescription key="fontDescription" style="UICTFontTextStyleHeadline"/>
+                                <color key="textColor" white="1" alpha="1" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
+                                <nil key="highlightedColor"/>
+                            </label>
+                        </subviews>
+                        <color key="backgroundColor" white="1" alpha="1" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
+                        <constraints>
+                            <constraint firstItem="nOW-YV-CO0" firstAttribute="centerY" secondItem="AQ3-2Z-21B" secondAttribute="centerY" id="UaZ-RF-29k"/>
+                            <constraint firstAttribute="bottom" relation="greaterThanOrEqual" secondItem="nOW-YV-CO0" secondAttribute="bottom" constant="16" id="Z4G-rj-jqJ"/>
+                            <constraint firstItem="nOW-YV-CO0" firstAttribute="leading" secondItem="AQ3-2Z-21B" secondAttribute="leading" constant="16" id="fFz-dl-ACO"/>
+                            <constraint firstAttribute="trailing" secondItem="nOW-YV-CO0" secondAttribute="trailing" constant="16" id="h74-T0-WVV"/>
+                            <constraint firstItem="nOW-YV-CO0" firstAttribute="top" relation="greaterThanOrEqual" secondItem="AQ3-2Z-21B" secondAttribute="top" constant="16" id="psy-ly-lJ1"/>
+                        </constraints>
+                    </view>
+                </subviews>
+                <constraints>
+                    <constraint firstAttribute="trailing" secondItem="AQ3-2Z-21B" secondAttribute="trailing" id="1g9-Jz-35j"/>
+                    <constraint firstItem="AQ3-2Z-21B" firstAttribute="leading" secondItem="S0Q-fX-qc8" secondAttribute="leading" id="GPi-xt-Ysx"/>
+                    <constraint firstItem="AQ3-2Z-21B" firstAttribute="top" secondItem="S0Q-fX-qc8" secondAttribute="top" id="l9P-CM-Gat"/>
+                    <constraint firstAttribute="bottom" secondItem="AQ3-2Z-21B" secondAttribute="bottom" id="xHe-FW-DqR"/>
+                </constraints>
+            </tableViewCellContentView>
+            <viewLayoutGuide key="safeArea" id="1ks-Xo-ai1"/>
+            <connections>
+                <outlet property="centerLabel" destination="nOW-YV-CO0" id="y3C-GM-hmG"/>
+                <outlet property="containerView" destination="AQ3-2Z-21B" id="TkX-jh-egO"/>
+            </connections>
+            <point key="canvasLocation" x="-32" y="65"/>
+        </tableViewCell>
+    </objects>
+</document>

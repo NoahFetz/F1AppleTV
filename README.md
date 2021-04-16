@@ -22,10 +22,15 @@
 * [RaceControl](https://github.com/robvdpol/RaceControl)  for deciphering the new API
 * [SkeletonView](https://github.com/Juanpe/SkeletonView)
 * [Kingfisher](https://github.com/onevcat/Kingfisher)
+* [SPAlert](https://github.com/ivanvorobei/SPAlert)
+* [TvOSSlider](https://github.com/zattoo/TvOSSlider)
 * [F1TV](https://f1tv.formula1.com)
 
 ### If you like my work and feel the need to give something back, my programmer brain can always use some caffeine :)
 [BuyMeACoffee](https://www.buymeacoffee.com/NoahFetz)
+
+## Multi-Feed Player Tutorial
+[![](http://img.youtube.com/vi/hd6dtUYyWo4/0.jpg)](http://www.youtube.com/watch?v=hd6dtUYyWo4 "")
 
 ## Screenshots
 
