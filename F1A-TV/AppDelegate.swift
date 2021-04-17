@@ -40,7 +40,6 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
 
     func applicationDidBecomeActive(_ application: UIApplication) {
         print("Did become active")
-        CredentialHelper.instance.performLoginRefresh()
     }
 
     // MARK: - Core Data stack

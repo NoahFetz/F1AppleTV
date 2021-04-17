@@ -6,7 +6,7 @@
         "repositoryURL": "https://github.com/Alamofire/Alamofire.git",
         "state": {
           "branch": "master",
-          "revision": "56ce89783d7ebd67444d09d7a0aa20ffa7aa55af",
+          "revision": "3fbfb080397813e1a9b70c8a67d0a6e0617c0ce8",
           "version": null
         }
       },
@@ -15,7 +15,7 @@
         "repositoryURL": "https://github.com/onevcat/Kingfisher.git",
         "state": {
           "branch": "master",
-          "revision": "bbc4bc4def7eb05a7ba8e1219f80ee9be327334e",
+          "revision": "a18a65e35d2131fdcb9d53bca4e4d7a2195f0f4b",
           "version": null
         }
       },

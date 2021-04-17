@@ -9,5 +9,4 @@ import Foundation
 
 protocol AuthDataLoadedProtocol {
     func didLoadAuthData(authResult: AuthResultDto)
-    func didLoadToken(tokenResult: TokenResultDto)
 }

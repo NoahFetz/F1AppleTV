@@ -20,19 +20,6 @@ class CredentialHelper: AuthDataLoadedProtocol {
         return !self.getUserInfo().sessionId.isEmpty
     }
     
-    func setJWTToken(jwtToken: String) {
-        DataSource.instance.addKeyValue(keyValuePair: KeyValueStoreObject(id: UUID().uuidString.lowercased(), key: ConstantsUtil.jwtTokenKeyValueStorageKey, value: jwtToken))
-    }
-    
-    func getJWTToken() -> String {
-        let object = DataSource.instance.getKeyValuePair(keyString: ConstantsUtil.jwtTokenKeyValueStorageKey)
-        if(object.key != ConstantsUtil.jwtTokenKeyValueStorageKey){
-            self.setJWTToken(jwtToken: "")
-            return self.getJWTToken()
-        }
-        return object.value
-    }
-    
     func setPassword(password: String) {
         DataSource.instance.addKeyValue(keyValuePair: KeyValueStoreObject(id: UUID().uuidString.lowercased(), key: ConstantsUtil.passwordKeyValueStorageKey, value: password))
     }
@@ -109,13 +96,6 @@ class CredentialHelper: AuthDataLoadedProtocol {
     }
     
     func didLoadAuthData(authResult: AuthResultDto) {
-        let tokenRequest = TokenRequestDto(accessToken: authResult.authData.subscriptionToken, identityProviderUrl: ConstantsUtil.identityProvider)
         CredentialHelper.instance.setUserInfo(userInfo: authResult)
-        
-        DataManager.instance.loadTokenRequest(tokenRequest: tokenRequest, authDataLoadedProtocol: self)
-    }
-    
-    func didLoadToken(tokenResult: TokenResultDto) {
-        CredentialHelper.instance.setJWTToken(jwtToken: tokenResult.token)
     }
 }

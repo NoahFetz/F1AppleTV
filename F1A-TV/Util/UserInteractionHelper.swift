@@ -10,14 +10,18 @@ import UIKit
 class UserInteractionHelper {
     static let instance = UserInteractionHelper()
     
+    func getKeyWindow() -> UIWindow {
+        return UIApplication.shared.connectedScenes.filter({$0.activationState == .foregroundActive}).map({$0 as? UIWindowScene}).compactMap({$0}).first?.windows.filter({$0.isKeyWindow}).first ?? UIWindow()
+    }
+    
     func getPresentingViewController() -> UIViewController {
-        if var topController = UIApplication.shared.connectedScenes.filter({$0.activationState == .foregroundActive}).map({$0 as? UIWindowScene}).compactMap({$0}).first?.windows.filter({$0.isKeyWindow}).first?.rootViewController {
+        if var topController = self.getKeyWindow().rootViewController {
             while let presentedViewController = topController.presentedViewController {
                 topController = presentedViewController
             }
             return topController
         }
-        return UIApplication.shared.connectedScenes.filter({$0.activationState == .foregroundActive}).map({$0 as? UIWindowScene}).compactMap({$0}).first?.windows.filter({$0.isKeyWindow}).first?.rootViewController ?? UIViewController()
+        return self.getKeyWindow().rootViewController ?? UIViewController()
     }
     
     func showSuccess(title: String, message: String) {

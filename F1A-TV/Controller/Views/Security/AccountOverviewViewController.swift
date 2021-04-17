@@ -63,7 +63,6 @@ class AccountOverviewViewController: BaseViewController {
     
     @objc func logoutPressed() {
         CredentialHelper.instance.setUserInfo(userInfo: AuthResultDto())
-        CredentialHelper.instance.setJWTToken(jwtToken: "")
         CredentialHelper.instance.setPassword(password: "")
         
         self.setupView()

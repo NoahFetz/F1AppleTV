@@ -113,6 +113,8 @@ class PlayerCollectionViewController: BaseCollectionViewController, UICollection
                 playerItem.playerItem = AVPlayerItem(asset: playerItem.playerAsset ?? AVAsset())
                 playerItem.player = AVPlayer(playerItem: playerItem.playerItem)
                 playerItem.player?.appliesMediaSelectionCriteriaAutomatically = false
+                
+                self.setPreferredDisplayCriteria(displayCriteria: playerItem.playerAsset?.preferredDisplayCriteria)
             }
             
             self.playerItems[index] = playerItem
@@ -426,6 +428,7 @@ class PlayerCollectionViewController: BaseCollectionViewController, UICollection
     
     @objc func menuPressed() {
         self.pauseAll()
+        self.setPreferredDisplayCriteria(displayCriteria: nil)
         self.dismiss(animated: true)
     }
     
@@ -526,5 +529,10 @@ class PlayerCollectionViewController: BaseCollectionViewController, UICollection
         for positionIndex in 0...self.playerItems.count-1 {
             self.playerItems[positionIndex].position = positionIndex
         }
+    }
+    
+    func setPreferredDisplayCriteria(displayCriteria: AVDisplayCriteria?) {
+        let displayNamager = UserInteractionHelper.instance.getKeyWindow().avDisplayManager
+        displayNamager.preferredDisplayCriteria = displayCriteria
     }
 }

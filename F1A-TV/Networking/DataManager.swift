@@ -8,7 +8,7 @@
 import Foundation
 import Alamofire
 
-class DataManager {
+class DataManager: RequestInterceptor {
     static let instance = DataManager()
     var alamofireSession = Session.default
     
@@ -31,26 +31,6 @@ class DataManager {
             case .success(let apiResponse):
                 DispatchQueue.main.async {
                     authDataLoadedProtocol.didLoadAuthData(authResult: apiResponse)
-                }
-                
-            case .failure(let afError):
-                self.handleAFError(afError: afError)
-            }
-        }
-    }
-    
-    func loadTokenRequest(tokenRequest: TokenRequestDto, authDataLoadedProtocol: AuthDataLoadedProtocol) {
-        self.alamofireSession.request(ConstantsUtil.tokenUrl,
-                                      method: .post,
-                                      parameters: tokenRequest,
-                                      encoder: JSONParameterEncoder.default)
-            .validate()
-            .responseDecodable(of: TokenResultDto.self) { response in
-                
-            switch response.result {
-            case .success(let apiResponse):
-                DispatchQueue.main.async {
-                    authDataLoadedProtocol.didLoadToken(tokenResult: apiResponse)
                 }
                 
             case .failure(let afError):
@@ -100,7 +80,8 @@ class DataManager {
     func loadStreamEntitlement(contentId: String, playerId: String = "", streamEntitlementLoadedProtocol: StreamEntitlementLoadedProtocol) {
         self.alamofireSession.request("\(ConstantsUtil.apiUrl)/1.0/R/\(NSLocalizedString("api_endpoing_language_id", comment: ""))/BIG_SCREEN_HLS/ALL/\(contentId)",
                                       method: .get,
-                                      headers: [HTTPHeader(name: "ascendontoken", value: CredentialHelper.instance.getUserInfo().authData.subscriptionToken)])
+                                      headers: [HTTPHeader(name: "ascendontoken", value: CredentialHelper.instance.getUserInfo().authData.subscriptionToken)],
+                                      interceptor: self)
             .validate()
             .responseDecodable(of: StreamEntitlementResultDto.self) { response in
                 
@@ -116,6 +97,52 @@ class DataManager {
                 self.handleAFError(afError: afError)
             }
         }
+    }
+    
+    func adapt(_ urlRequest: URLRequest, for session: Session, completion: @escaping (Result<URLRequest, Error>) -> Void) {
+        var request = urlRequest
+        if(CredentialHelper.instance.getUserInfo().authData.subscriptionToken == urlRequest.headers.first(where: {$0.name == "ascendontoken"})?.value) {
+            completion(.success(urlRequest))
+            return
+        }
+        
+        request.headers = [HTTPHeader(name: "ascendontoken", value: CredentialHelper.instance.getUserInfo().authData.subscriptionToken)]
+        print("Adapted - Token set to the header field is: \(CredentialHelper.instance.getUserInfo().authData.subscriptionToken)")
+        completion(.success(request))
+    }
+    
+    func retry(_ request: Request, for session: Session, dueTo error: Error, completion: @escaping (RetryResult) -> Void) {
+        guard request.retryCount <= 3 else {
+            completion(.doNotRetry)
+            return
+        }
+        
+        print("Retried - Retry count: \(request.retryCount)")
+        self.refreshToken { isSuccess in
+            isSuccess ? completion(.retry) : completion(.doNotRetry)
+        }
+    }
+    
+    func refreshToken(completion: @escaping (_ isSuccess: Bool) -> Void) {
+        let authRequest = AuthRequestDto(login: CredentialHelper.instance.getUserInfo().subscriber.email, password: CredentialHelper.instance.getPassword())
+        self.alamofireSession.request(ConstantsUtil.authenticateUrl,
+                                      method: .post,
+                                      parameters: authRequest,
+                                      encoder: JSONParameterEncoder.default,
+                                      headers: [HTTPHeader(name: "apikey", value: ConstantsUtil.apiKey)])
+            .validate()
+            .responseDecodable(of: AuthResultDto.self) { response in
+                
+                switch response.result {
+                case .success(let apiResponse):
+                    CredentialHelper.instance.setUserInfo(userInfo: apiResponse)
+                    completion(true)
+                    
+                case .failure(let afError):
+                    self.handleAFError(afError: afError)
+                    completion(false)
+                }
+            }
     }
     
     func handleAFError(afError: AFError) {
@@ -155,8 +182,9 @@ class DataManager {
             outputErrorMessage.append("Full error: \(afError)")
         }
         
+        outputErrorMessage.append("\nUnderlying error: \(String(describing: afError.underlyingError))")
+        
         print(outputErrorMessage)
-        print("Underlying error: \(String(describing: afError.underlyingError))")
         SPAlert.present(title: NSLocalizedString("error", comment: ""), message: outputErrorMessage, preset: .error)
     }
 }

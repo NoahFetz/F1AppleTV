@@ -25,7 +25,6 @@ struct ConstantsUtil {
     static let thumnailCardHeightMultiplier: CGFloat = 0.90
     
     //KeyValueStoreKeys
-    static let jwtTokenKeyValueStorageKey = "F1ATV_JWTTokenKVSKey"
     static let userInfoKeyValueStorageKey = "F1ATV_UserInfoKVSKey"
     static let passwordKeyValueStorageKey = "F1ATV_PasswordKVSKey"
     static let playerSettingsKeyValueStorageKey = "F1ATV_PlayerSettingsKVSKey"

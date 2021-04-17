@@ -45,15 +45,8 @@ class LoginViewController: BaseViewController, AuthDataLoadedProtocol {
     }
     
     func didLoadAuthData(authResult: AuthResultDto) {
-        let tokenRequest = TokenRequestDto(accessToken: authResult.authData.subscriptionToken, identityProviderUrl: ConstantsUtil.identityProvider)
         CredentialHelper.instance.setUserInfo(userInfo: authResult)
         CredentialHelper.instance.setPassword(password: self.passwordTextField.text ?? "")
-        
-        DataManager.instance.loadTokenRequest(tokenRequest: tokenRequest, authDataLoadedProtocol: self)
-    }
-    
-    func didLoadToken(tokenResult: TokenResultDto) {
-        CredentialHelper.instance.setJWTToken(jwtToken: tokenResult.token)
         self.dismiss(animated: true)
     }
 }
