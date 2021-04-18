@@ -182,9 +182,9 @@ class DataManager: RequestInterceptor {
             outputErrorMessage.append("Full error: \(afError)")
         }
         
-        outputErrorMessage.append("\nUnderlying error: \(String(describing: afError.underlyingError))")
-        
         print(outputErrorMessage)
+        print("Underlying error: \(String(describing: afError.underlyingError))")
+        
         SPAlert.present(title: NSLocalizedString("error", comment: ""), message: outputErrorMessage, preset: .error)
     }
 }

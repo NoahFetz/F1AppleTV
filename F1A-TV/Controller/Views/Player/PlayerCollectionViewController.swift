@@ -125,8 +125,9 @@ class PlayerCollectionViewController: BaseCollectionViewController, UICollection
     
     @objc func avPlayerDidDismiss(_ notification: Notification) {
         DispatchQueue.main.asyncAfter(deadline: DispatchTime.now() + 0.5) {
-            if let syncPlayerId = self.fullscreenPlayerId {
-                self.syncAllPlayers(with: syncPlayerId)
+            if let syncPlayerItem = self.playerItems.first(where: {$0.id == self.fullscreenPlayerId}) {
+                self.syncAllPlayers(with: syncPlayerItem)
+                self.setPreferredDisplayCriteria(displayCriteria: syncPlayerItem.playerAsset?.preferredDisplayCriteria)
             }
             
             self.playAll()
@@ -255,7 +256,7 @@ class PlayerCollectionViewController: BaseCollectionViewController, UICollection
                 usleep(500000)
                 
                 self.setPreferredChannelSettings(playerItem: playerItem)
-                self.syncAllPlayers(with: self.playerItems.first?.id ?? "")
+                self.syncAllPlayers(with: self.playerItems.first ?? PlayerItem())
             }
         }
     }
@@ -416,7 +417,7 @@ class PlayerCollectionViewController: BaseCollectionViewController, UICollection
             if(firstPlayer.player?.timeControlStatus == .paused){
                 print("Resuming playback after syncing all channels")
                 
-                self.syncAllPlayers(with: firstPlayer.id)
+                self.syncAllPlayers(with: firstPlayer)
                 self.playAll()
             }else{
                 print("Pausing playback")
@@ -432,16 +433,15 @@ class PlayerCollectionViewController: BaseCollectionViewController, UICollection
         self.dismiss(animated: true)
     }
     
-    func syncAllPlayers(with playerId: String) {
+    func syncAllPlayers(with syncPlayerItem: PlayerItem) {
         DispatchQueue.main.async {
             print("Syncing all channels")
-            let syncPlayerItem = self.playerItems.first(where: {$0.id == playerId})
             
-            if let currentTime = syncPlayerItem?.player?.currentTime() {
+            if let currentTime = syncPlayerItem.player?.currentTime() {
                 var syncTime = CMTimeGetSeconds(currentTime)
                 
                 for playerItem in self.playerItems {
-                    if(playerItem.id == playerId){
+                    if(playerItem.id == syncPlayerItem.id){
                         continue
                     }
                     

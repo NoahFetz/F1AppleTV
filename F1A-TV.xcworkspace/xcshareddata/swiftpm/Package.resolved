@@ -18,15 +18,6 @@
           "revision": "a18a65e35d2131fdcb9d53bca4e4d7a2195f0f4b",
           "version": null
         }
-      },
-      {
-        "package": "Swinflate",
-        "repositoryURL": "https://github.com/VladIacobIonut/Swinflate.git",
-        "state": {
-          "branch": "master",
-          "revision": "a1ddd81eaf3d7c99d32c08883606aedd3b4b1b03",
-          "version": null
-        }
       }
     ]
   },

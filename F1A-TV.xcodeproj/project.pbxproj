@@ -130,7 +130,6 @@
 		1BDAED3A261212C0003361F8 /* PlayerCollectionViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1BDAED39261212C0003361F8 /* PlayerCollectionViewController.swift */; };
 		1BDAED3D26122D66003361F8 /* ChannelPlayerCollectionViewCell.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1BDAED3B26122D66003361F8 /* ChannelPlayerCollectionViewCell.swift */; };
 		1BDAED3E26122D66003361F8 /* ChannelPlayerCollectionViewCell.xib in Resources */ = {isa = PBXBuildFile; fileRef = 1BDAED3C26122D66003361F8 /* ChannelPlayerCollectionViewCell.xib */; };
-		1BE7F4392625C3EA005A440C /* Swinflate in Frameworks */ = {isa = PBXBuildFile; productRef = 1BE7F4382625C3EA005A440C /* Swinflate */; };
 		1BEC362B26263805002F7504 /* BaseViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1BEC362A26263805002F7504 /* BaseViewController.swift */; };
 		1BEC362D262638B2002F7504 /* BaseSplitViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1BEC362C262638B2002F7504 /* BaseSplitViewController.swift */; };
 		1BF18CD825FCE53D00BF3854 /* ContentSection.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1BF18CD725FCE53D00BF3854 /* ContentSection.swift */; };
@@ -320,7 +319,6 @@
 				1B3493242626E2A300AB2C3F /* Alamofire in Frameworks */,
 				1BB23CFF2544E8D200D0CC71 /* Kingfisher in Frameworks */,
 				1BA077492545FA4E00C4C426 /* TVServices.framework in Frameworks */,
-				1BE7F4392625C3EA005A440C /* Swinflate in Frameworks */,
 				9F72A2126BD10FF274A685E2 /* Pods_F1A_TV.framework in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -758,7 +756,6 @@
 			name = "F1A-TV";
 			packageProductDependencies = (
 				1BB23CFE2544E8D200D0CC71 /* Kingfisher */,
-				1BE7F4382625C3EA005A440C /* Swinflate */,
 				1B3493232626E2A300AB2C3F /* Alamofire */,
 			);
 			productName = "F1TV";
@@ -796,7 +793,6 @@
 			mainGroup = 1BB29B8525445D6C00ECC074;
 			packageReferences = (
 				1BB23CFD2544E8D200D0CC71 /* XCRemoteSwiftPackageReference "Kingfisher" */,
-				1BE7F4372625C3EA005A440C /* XCRemoteSwiftPackageReference "Swinflate" */,
 				1B3493222626E2A300AB2C3F /* XCRemoteSwiftPackageReference "Alamofire" */,
 			);
 			productRefGroup = 1BB29B8F25445D6C00ECC074 /* Products */;
@@ -1161,7 +1157,7 @@
 				CODE_SIGN_ENTITLEMENTS = "F1A-TV/F1A-TV.entitlements";
 				CODE_SIGN_IDENTITY = "Apple Development";
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 21.0417.1;
+				CURRENT_PROJECT_VERSION = 21.0418.1;
 				DEVELOPMENT_TEAM = 8SW735FL99;
 				INFOPLIST_FILE = "$(SRCROOT)/F1A-TV/Info.plist";
 				LD_RUNPATH_SEARCH_PATHS = (
@@ -1189,7 +1185,7 @@
 				CODE_SIGN_ENTITLEMENTS = "F1A-TV/F1A-TV.entitlements";
 				CODE_SIGN_IDENTITY = "Apple Development";
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 21.0417.1;
+				CURRENT_PROJECT_VERSION = 21.0418.1;
 				DEVELOPMENT_TEAM = 8SW735FL99;
 				INFOPLIST_FILE = "$(SRCROOT)/F1A-TV/Info.plist";
 				LD_RUNPATH_SEARCH_PATHS = (
@@ -1246,14 +1242,6 @@
 				kind = branch;
 			};
 		};
-		1BE7F4372625C3EA005A440C /* XCRemoteSwiftPackageReference "Swinflate" */ = {
-			isa = XCRemoteSwiftPackageReference;
-			repositoryURL = "https://github.com/VladIacobIonut/Swinflate.git";
-			requirement = {
-				branch = master;
-				kind = branch;
-			};
-		};
 /* End XCRemoteSwiftPackageReference section */
 
 /* Begin XCSwiftPackageProductDependency section */
@@ -1266,11 +1254,6 @@
 			isa = XCSwiftPackageProductDependency;
 			package = 1BB23CFD2544E8D200D0CC71 /* XCRemoteSwiftPackageReference "Kingfisher" */;
 			productName = Kingfisher;
-		};
-		1BE7F4382625C3EA005A440C /* Swinflate */ = {
-			isa = XCSwiftPackageProductDependency;
-			package = 1BE7F4372625C3EA005A440C /* XCRemoteSwiftPackageReference "Swinflate" */;
-			productName = Swinflate;
 		};
 /* End XCSwiftPackageProductDependency section */
 
