@@ -39,7 +39,7 @@ class LoginViewController: BaseViewController, AuthDataLoadedProtocol {
     
     @objc func loginButtonPressed() {
         let authObject = AuthRequestDto(login: self.emailTextField.text ?? "", password: self.passwordTextField.text ?? "")
-        print("Login pressed with: " + authObject.login + " and " + authObject.password)
+        //print("Login pressed with: " + authObject.login + " and " + authObject.password)
         
         DataManager.instance.loadAuthData(authRequest: authObject, authDataLoadedProtocol: self)
     }
