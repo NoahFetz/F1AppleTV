@@ -11,6 +11,26 @@ import AVKit
 class PlayerController: NSObject, AVPlayerViewControllerDelegate, StreamEntitlementLoadedProtocol {
     static let instance = PlayerController()
     
+    var fullscreenPlayerDismissedProtocol: FullscreenPlayerDismissedProtocol?
+    
+    override init() {
+        super.init()
+        
+        NotificationCenter.default.addObserver(self, selector: #selector(self.avPlayerDidDismiss), name: .avPlayerDidDismiss, object: nil)
+    }
+    
+    deinit {
+        NotificationCenter.default.removeObserver(self)
+    }
+    
+    @objc func avPlayerDidDismiss(_ notification: Notification) {
+        DispatchQueue.main.asyncAfter(deadline: DispatchTime.now() + 0.5) {
+            if let dismissedProtocol = self.fullscreenPlayerDismissedProtocol {
+                dismissedProtocol.fullscreenPlayerDidDismiss()
+            }
+        }
+    }
+    
     func playStream(contentId: String) {
         var contentUrl = contentId
         if(!contentUrl.starts(with: "CONTENT")){
@@ -33,7 +53,9 @@ class PlayerController: NSObject, AVPlayerViewControllerDelegate, StreamEntitlem
         self.openPlayer(player: player)
     }
     
-    func openPlayer(player: AVPlayer) {
+    func openPlayer(player: AVPlayer, fullscreenPlayerDismissedProtocol: FullscreenPlayerDismissedProtocol? = nil) {
+        self.fullscreenPlayerDismissedProtocol = fullscreenPlayerDismissedProtocol
+        
         let playerViewController = AVPlayerViewController()
         
         playerViewController.player = player

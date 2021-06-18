@@ -56,18 +56,23 @@ class ControlStripOverlayViewController: BaseViewController {
         spaceTakingView.backgroundColor = .clear
         self.contentStackView.addArrangedSubview(spaceTakingView)
         
+        let blurBackgroundView = UIVisualEffectView(effect: UIBlurEffect(style: .regular))
+        blurBackgroundView.layer.cornerRadius = 20
+        blurBackgroundView.clipsToBounds = true
+        NSLayoutConstraint.activate([
+            blurBackgroundView.heightAnchor.constraint(equalToConstant: 150)
+        ])
+        
         self.controlsBarView = UIStackView()
         self.controlsBarView?.axis = .horizontal
         self.controlsBarView?.distribution = .equalSpacing
-        self.controlsBarView?.backgroundColor = ConstantsUtil.brandingBackgroundColor
-        self.controlsBarView?.layer.cornerRadius = 20
-        NSLayoutConstraint.activate([
-            (self.controlsBarView ?? UIView()).heightAnchor.constraint(equalToConstant: 150)
-        ])
+        self.controlsBarView?.autoresizingMask = [.flexibleWidth, .flexibleHeight]
         self.controlsBarView?.layoutMargins = UIEdgeInsets(top: 32, left: 32, bottom: 32, right: 32)
         self.controlsBarView?.isLayoutMarginsRelativeArrangement = true
         self.controlsBarView?.backgroundShadow()
-        self.contentStackView.addArrangedSubview(self.controlsBarView ?? UIView())
+        
+        blurBackgroundView.contentView.addSubview(self.controlsBarView ?? UIView())
+        self.contentStackView.addArrangedSubview(blurBackgroundView)
     }
     
     func addContentToControlsBar() {
@@ -105,7 +110,7 @@ class ControlStripOverlayViewController: BaseViewController {
     func setupRewindButton() {
         self.rewindButton = UIButton(type: .custom)
         self.rewindButton?.setBackgroundImage(UIImage(systemName: "backward.fill")?.withTintColor(.white, renderingMode: .alwaysOriginal), for: .focused)
-        self.rewindButton?.setBackgroundImage(UIImage(systemName: "backward")?.withTintColor(.systemGray, renderingMode: .alwaysOriginal), for: .normal)
+        self.rewindButton?.setBackgroundImage(UIImage(systemName: "backward")?.withTintColor(.white, renderingMode: .alwaysOriginal), for: .normal)
         
         let iconScaleMultiplier = (self.rewindButton?.backgroundImage(for: .normal)?.size.height ?? 1)/(self.rewindButton?.backgroundImage(for: .normal)?.size.width ?? 1)
         
@@ -134,10 +139,10 @@ class ControlStripOverlayViewController: BaseViewController {
     func updatePlayPauseButtonStatus(paused: Bool) {
         if(paused) {
             self.playPauseButton?.setBackgroundImage(UIImage(systemName: "play.circle.fill")?.withTintColor(.white, renderingMode: .alwaysOriginal), for: .focused)
-            self.playPauseButton?.setBackgroundImage(UIImage(systemName: "play.circle")?.withTintColor(.systemGray, renderingMode: .alwaysOriginal), for: .normal)
+            self.playPauseButton?.setBackgroundImage(UIImage(systemName: "play.circle")?.withTintColor(.white, renderingMode: .alwaysOriginal), for: .normal)
         }else{
             self.playPauseButton?.setBackgroundImage(UIImage(systemName: "pause.circle.fill")?.withTintColor(.white, renderingMode: .alwaysOriginal), for: .focused)
-            self.playPauseButton?.setBackgroundImage(UIImage(systemName: "pause.circle")?.withTintColor(.systemGray, renderingMode: .alwaysOriginal), for: .normal)
+            self.playPauseButton?.setBackgroundImage(UIImage(systemName: "pause.circle")?.withTintColor(.white, renderingMode: .alwaysOriginal), for: .normal)
             
         }
         self.playPauseButton?.layoutIfNeeded()
@@ -147,7 +152,7 @@ class ControlStripOverlayViewController: BaseViewController {
     func setupForwardButton() {
         self.forwardButton = UIButton(type: .custom)
         self.forwardButton?.setBackgroundImage(UIImage(systemName: "forward.fill")?.withTintColor(.white, renderingMode: .alwaysOriginal), for: .focused)
-        self.forwardButton?.setBackgroundImage(UIImage(systemName: "forward")?.withTintColor(.systemGray, renderingMode: .alwaysOriginal), for: .normal)
+        self.forwardButton?.setBackgroundImage(UIImage(systemName: "forward")?.withTintColor(.white, renderingMode: .alwaysOriginal), for: .normal)
         
         let iconScaleMultiplier = (self.forwardButton?.backgroundImage(for: .normal)?.size.height ?? 1)/(self.forwardButton?.backgroundImage(for: .normal)?.size.width ?? 1)
         
@@ -162,7 +167,7 @@ class ControlStripOverlayViewController: BaseViewController {
     func setupRemoveChannelButton() {
         self.removeChannelButton = UIButton(type: .custom)
         self.removeChannelButton?.setBackgroundImage(UIImage(systemName: "x.circle.fill")?.withTintColor(.white, renderingMode: .alwaysOriginal), for: .focused)
-        self.removeChannelButton?.setBackgroundImage(UIImage(systemName: "x.circle")?.withTintColor(.systemGray, renderingMode: .alwaysOriginal), for: .normal)
+        self.removeChannelButton?.setBackgroundImage(UIImage(systemName: "x.circle")?.withTintColor(.white, renderingMode: .alwaysOriginal), for: .normal)
         
         let iconScaleMultiplier = (self.removeChannelButton?.backgroundImage(for: .normal)?.size.height ?? 1)/(self.removeChannelButton?.backgroundImage(for: .normal)?.size.width ?? 1)
         
@@ -206,17 +211,17 @@ class ControlStripOverlayViewController: BaseViewController {
     func updateMuteButtonStatus() {
         if(self.playerItem?.player?.isMuted ?? true) {
             self.muteChannelButton?.setBackgroundImage(UIImage(systemName: "speaker.slash.circle.fill")?.withTintColor(.white, renderingMode: .alwaysOriginal), for: .focused)
-            self.muteChannelButton?.setBackgroundImage(UIImage(systemName: "speaker.slash.circle")?.withTintColor(.systemGray, renderingMode: .alwaysOriginal), for: .normal)
+            self.muteChannelButton?.setBackgroundImage(UIImage(systemName: "speaker.slash.circle")?.withTintColor(.white, renderingMode: .alwaysOriginal), for: .normal)
         }else{
             self.muteChannelButton?.setBackgroundImage(UIImage(systemName: "speaker.wave.2.circle.fill")?.withTintColor(.white, renderingMode: .alwaysOriginal), for: .focused)
-            self.muteChannelButton?.setBackgroundImage(UIImage(systemName: "speaker.wave.2.circle")?.withTintColor(.systemGray, renderingMode: .alwaysOriginal), for: .normal)
+            self.muteChannelButton?.setBackgroundImage(UIImage(systemName: "speaker.wave.2.circle")?.withTintColor(.white, renderingMode: .alwaysOriginal), for: .normal)
         }
     }
     
     func setupLanguageSelectorButton() {
         self.languageSelectorButton = UIButton(type: .custom)
         self.languageSelectorButton?.setBackgroundImage(UIImage(systemName: "ear.fill")?.withTintColor(.white, renderingMode: .alwaysOriginal), for: .focused)
-        self.languageSelectorButton?.setBackgroundImage(UIImage(systemName: "ear")?.withTintColor(.systemGray, renderingMode: .alwaysOriginal), for: .normal)
+        self.languageSelectorButton?.setBackgroundImage(UIImage(systemName: "ear")?.withTintColor(.white, renderingMode: .alwaysOriginal), for: .normal)
         
         let iconScaleMultiplier = (self.languageSelectorButton?.backgroundImage(for: .normal)?.size.height ?? 1)/(self.languageSelectorButton?.backgroundImage(for: .normal)?.size.width ?? 1)
         
@@ -231,7 +236,7 @@ class ControlStripOverlayViewController: BaseViewController {
     func setupCaptionSelectorButton() {
         self.captionSelectorButton = UIButton(type: .custom)
         self.captionSelectorButton?.setBackgroundImage(UIImage(systemName: "captions.bubble.fill")?.withTintColor(.white, renderingMode: .alwaysOriginal), for: .focused)
-        self.captionSelectorButton?.setBackgroundImage(UIImage(systemName: "captions.bubble")?.withTintColor(.systemGray, renderingMode: .alwaysOriginal), for: .normal)
+        self.captionSelectorButton?.setBackgroundImage(UIImage(systemName: "captions.bubble")?.withTintColor(.white, renderingMode: .alwaysOriginal), for: .normal)
         
         let iconScaleMultiplier = (self.captionSelectorButton?.backgroundImage(for: .normal)?.size.height ?? 1)/(self.captionSelectorButton?.backgroundImage(for: .normal)?.size.width ?? 1)
         
@@ -246,7 +251,7 @@ class ControlStripOverlayViewController: BaseViewController {
     func setupFullScreenButton() {
         self.enterFullScreenButton = UIButton(type: .custom)
         self.enterFullScreenButton?.setBackgroundImage(UIImage(systemName: "arrow.up.left.and.arrow.down.right.circle.fill")?.withTintColor(.white, renderingMode: .alwaysOriginal), for: .focused)
-        self.enterFullScreenButton?.setBackgroundImage(UIImage(systemName: "arrow.up.left.and.arrow.down.right.circle")?.withTintColor(.systemGray, renderingMode: .alwaysOriginal), for: .normal)
+        self.enterFullScreenButton?.setBackgroundImage(UIImage(systemName: "arrow.up.left.and.arrow.down.right.circle")?.withTintColor(.white, renderingMode: .alwaysOriginal), for: .normal)
         
         let iconScaleMultiplier = (self.enterFullScreenButton?.backgroundImage(for: .normal)?.size.height ?? 1)/(self.enterFullScreenButton?.backgroundImage(for: .normal)?.size.width ?? 1)
         

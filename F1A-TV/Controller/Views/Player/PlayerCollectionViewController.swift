@@ -8,7 +8,7 @@
 import UIKit
 import AVKit
 
-class PlayerCollectionViewController: BaseCollectionViewController, UICollectionViewDelegateFlowLayout, StreamEntitlementLoadedProtocol, ChannelSelectionProtocol, ControlStripActionProtocol {
+class PlayerCollectionViewController: BaseCollectionViewController, UICollectionViewDelegateFlowLayout, StreamEntitlementLoadedProtocol, ChannelSelectionProtocol, ControlStripActionProtocol, FullscreenPlayerDismissedProtocol {
     var channelItems = [ContentItem]()
     var playerItems = [PlayerItem]()
     var lastFocusedPlayer: IndexPath?
@@ -22,11 +22,6 @@ class PlayerCollectionViewController: BaseCollectionViewController, UICollection
     override func viewDidLoad() {
         super.viewDidLoad()
         self.setupCollectionView()
-    }
-    
-    deinit {
-        NotificationCenter.default.removeObserver(self)
-//        player?.removeObserver(self, forKeyPath: “timeControlStatus”)
     }
     
     func setupCollectionView() {
@@ -58,8 +53,6 @@ class PlayerCollectionViewController: BaseCollectionViewController, UICollection
         let swipeLeftRecognizer = UISwipeGestureRecognizer(target: self, action: #selector(self.swipeLeftRegognized))
         swipeLeftRecognizer.direction = .left
         self.collectionView.addGestureRecognizer(swipeLeftRecognizer)
-        
-        NotificationCenter.default.addObserver(self, selector: #selector(self.avPlayerDidDismiss), name: .avPlayerDidDismiss, object: nil)
     }
     
     func initialize(channelItems: [ContentItem]) {
@@ -123,13 +116,11 @@ class PlayerCollectionViewController: BaseCollectionViewController, UICollection
         }
     }
     
-    @objc func avPlayerDidDismiss(_ notification: Notification) {
-        DispatchQueue.main.asyncAfter(deadline: DispatchTime.now() + 0.5) {
-            if let syncPlayerItem = self.playerItems.first(where: {$0.id == self.fullscreenPlayerId}) {
-                self.syncAllPlayers(with: syncPlayerItem)
-                self.setPreferredDisplayCriteria(displayCriteria: syncPlayerItem.playerAsset?.preferredDisplayCriteria)
-            }
-            
+    func fullscreenPlayerDidDismiss() {
+        if let syncPlayerItem = self.playerItems.first(where: {$0.id == self.fullscreenPlayerId}) {
+            self.syncAllPlayers(with: syncPlayerItem)
+            self.setPreferredDisplayCriteria(displayCriteria: syncPlayerItem.playerAsset?.preferredDisplayCriteria)
+        }else{
             self.playAll()
         }
     }
@@ -395,7 +386,7 @@ class PlayerCollectionViewController: BaseCollectionViewController, UICollection
             self.pauseAll(excludeIds: [playerItem.id])
             
             DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
-                PlayerController.instance.openPlayer(player: player)
+                PlayerController.instance.openPlayer(player: player, fullscreenPlayerDismissedProtocol: self)
             }
         }
     }
@@ -456,6 +447,10 @@ class PlayerCollectionViewController: BaseCollectionViewController, UICollection
                         }
                     }
                 }
+            }
+            
+            if(syncPlayerItem.player?.timeControlStatus == .paused) {
+                syncPlayerItem.player?.play()
             }
         }
     }

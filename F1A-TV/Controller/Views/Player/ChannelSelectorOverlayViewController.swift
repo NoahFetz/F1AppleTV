@@ -43,18 +43,23 @@ class ChannelSelectorOverlayViewController: BaseViewController {
         spaceTakingView.backgroundColor = .clear
         self.contentStackView.addArrangedSubview(spaceTakingView)
         
+        let blurBackgroundView = UIVisualEffectView(effect: UIBlurEffect(style: .regular))
+        blurBackgroundView.layer.cornerRadius = 20
+        blurBackgroundView.clipsToBounds = true
+        NSLayoutConstraint.activate([
+            blurBackgroundView.widthAnchor.constraint(equalToConstant: 500)
+        ])
+        
         self.sideBarView = UIStackView()
         self.sideBarView?.axis = .vertical
         self.sideBarView?.spacing = 8
-        self.sideBarView?.backgroundColor = ConstantsUtil.brandingBackgroundColor
-        self.sideBarView?.layer.cornerRadius = 20
-        NSLayoutConstraint.activate([
-            (self.sideBarView ?? UIView()).widthAnchor.constraint(equalToConstant: 500)
-        ])
+        self.sideBarView?.autoresizingMask = [.flexibleWidth, .flexibleHeight]
         self.sideBarView?.layoutMargins = UIEdgeInsets(top: 16, left: 16, bottom: 16, right: 16)
         self.sideBarView?.isLayoutMarginsRelativeArrangement = true
         self.sideBarView?.backgroundShadow()
-        self.contentStackView.addArrangedSubview(self.sideBarView ?? UIView())
+        
+        blurBackgroundView.contentView.addSubview(self.sideBarView ?? UIView())
+        self.contentStackView.addArrangedSubview(blurBackgroundView)
     }
     
     func addContentToSideBar() {
@@ -93,6 +98,9 @@ extension ChannelSelectorOverlayViewController: UITableViewDelegate, UITableView
         let cell = tableView.dequeueReusableCell(withIdentifier: ConstantsUtil.templateTableViewCell, for: indexPath) as! TemplateTableViewCell
         
         cell.contentStackView.arrangedSubviews.forEach({$0.removeFromSuperview()})
+        
+        cell.unselectedBackgroundColor = .clear
+        cell.userInterfaceStyleChanged()
         
         let currentItem = self.channelItems[indexPath.row]
         
