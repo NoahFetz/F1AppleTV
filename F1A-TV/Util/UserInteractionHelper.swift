@@ -6,6 +6,7 @@
 //
 
 import UIKit
+import SPAlert
 
 class UserInteractionHelper {
     static let instance = UserInteractionHelper()

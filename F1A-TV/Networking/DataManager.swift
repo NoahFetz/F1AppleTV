@@ -7,6 +7,7 @@
 
 import Foundation
 import Alamofire
+import SPAlert
 
 class DataManager: RequestInterceptor {
     static let instance = DataManager()
@@ -40,7 +41,7 @@ class DataManager: RequestInterceptor {
     }
     
     func loadContentPage(pageUri: String, contentPageProtocol: ContentPageLoadedProtocol) {
-        self.alamofireSession.request(ConstantsUtil.apiUrl + pageUri, method: .get)
+        self.alamofireSession.request("\(ConstantsUtil.apiUrl)\(pageUri)", method: .get)
             .validate()
             .responseDecodable(of: ApiResponseDto.self) { response in
                 

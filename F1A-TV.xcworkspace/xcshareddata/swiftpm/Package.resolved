@@ -18,6 +18,24 @@
           "revision": "a18a65e35d2131fdcb9d53bca4e4d7a2195f0f4b",
           "version": null
         }
+      },
+      {
+        "package": "SkeletonView",
+        "repositoryURL": "https://github.com/Juanpe/SkeletonView.git",
+        "state": {
+          "branch": "main",
+          "revision": "e12e4a0fd14d20d7a3f24b0ca0bb00c882cde893",
+          "version": null
+        }
+      },
+      {
+        "package": "SPAlert",
+        "repositoryURL": "https://github.com/NoahFetz/SPAlert.git",
+        "state": {
+          "branch": "tvOS",
+          "revision": "eef782026d5b515f33aae79c2b50977c0c03bad1",
+          "version": null
+        }
       }
     ]
   },

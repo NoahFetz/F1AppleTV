@@ -15,6 +15,8 @@
 		1B3493242626E2A300AB2C3F /* Alamofire in Frameworks */ = {isa = PBXBuildFile; productRef = 1B3493232626E2A300AB2C3F /* Alamofire */; };
 		1B34C5F32545F614008325CC /* F1ATV.xcdatamodeld in Sources */ = {isa = PBXBuildFile; fileRef = 1B34C5F12545F614008325CC /* F1ATV.xcdatamodeld */; };
 		1B36C7B025F781E6005533F9 /* SideBarInfoViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1B36C7AF25F781E6005533F9 /* SideBarInfoViewController.swift */; };
+		1B3A52D4267E9CDE007199E3 /* SkeletonView in Frameworks */ = {isa = PBXBuildFile; productRef = 1B3A52D3267E9CDE007199E3 /* SkeletonView */; };
+		1B3A52D7267E9D91007199E3 /* SPAlert in Frameworks */ = {isa = PBXBuildFile; productRef = 1B3A52D6267E9D91007199E3 /* SPAlert */; };
 		1B43FB09267CDA8C00F22345 /* FullscreenPlayerDismissedProtocol.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1B43FB08267CDA8C00F22345 /* FullscreenPlayerDismissedProtocol.swift */; };
 		1B4F98D52618A927008FCE4A /* PlayerItem.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1B4F98D42618A927008FCE4A /* PlayerItem.swift */; };
 		1B4F98D7261B40A4008FCE4A /* AVPlayerViewControllerExtension.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1B4F98D6261B40A4008FCE4A /* AVPlayerViewControllerExtension.swift */; };
@@ -65,15 +67,6 @@
 		1B9F8B7A261D0B810020AC55 /* TemplateTableViewCell.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1B9F8B78261D0B810020AC55 /* TemplateTableViewCell.swift */; };
 		1B9F8B7B261D0B810020AC55 /* TemplateTableViewCell.xib in Resources */ = {isa = PBXBuildFile; fileRef = 1B9F8B79261D0B810020AC55 /* TemplateTableViewCell.xib */; };
 		1BA077492545FA4E00C4C426 /* TVServices.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 1BA077482545FA4E00C4C426 /* TVServices.framework */; };
-		1BAF9B9E2627010200321D95 /* SPAlertView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1BAF9B922627010200321D95 /* SPAlertView.swift */; };
-		1BAF9B9F2627010200321D95 /* SPAlertIconAnimatable.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1BAF9B942627010200321D95 /* SPAlertIconAnimatable.swift */; };
-		1BAF9BA02627010200321D95 /* SPAlertLayout.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1BAF9B952627010200321D95 /* SPAlertLayout.swift */; };
-		1BAF9BA12627010200321D95 /* SPAlertIconHeartView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1BAF9B972627010200321D95 /* SPAlertIconHeartView.swift */; };
-		1BAF9BA22627010200321D95 /* SPAlertIconErrorView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1BAF9B982627010200321D95 /* SPAlertIconErrorView.swift */; };
-		1BAF9BA32627010200321D95 /* SPAlertIconDoneView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1BAF9B992627010200321D95 /* SPAlertIconDoneView.swift */; };
-		1BAF9BA42627010200321D95 /* SPAlertIconPreset.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1BAF9B9A2627010200321D95 /* SPAlertIconPreset.swift */; };
-		1BAF9BA52627010200321D95 /* SPAlertHaptic.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1BAF9B9C2627010200321D95 /* SPAlertHaptic.swift */; };
-		1BAF9BA62627010200321D95 /* SPAlert.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1BAF9B9D2627010200321D95 /* SPAlert.swift */; };
 		1BAF9BA826271BF000321D95 /* AuthDataLoadedProtocol.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1BAF9BA726271BF000321D95 /* AuthDataLoadedProtocol.swift */; };
 		1BB23CF42544E3C800D0CC71 /* DateExtension.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1BB23CF32544E3C800D0CC71 /* DateExtension.swift */; };
 		1BB23CFF2544E8D200D0CC71 /* Kingfisher in Frameworks */ = {isa = PBXBuildFile; productRef = 1BB23CFE2544E8D200D0CC71 /* Kingfisher */; };
@@ -221,15 +214,6 @@
 		1B9F8B79261D0B810020AC55 /* TemplateTableViewCell.xib */ = {isa = PBXFileReference; lastKnownFileType = file.xib; path = TemplateTableViewCell.xib; sourceTree = "<group>"; };
 		1BA077472545FA4E00C4C426 /* F1A-TV.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = "F1A-TV.entitlements"; sourceTree = "<group>"; };
 		1BA077482545FA4E00C4C426 /* TVServices.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = TVServices.framework; path = System/Library/Frameworks/TVServices.framework; sourceTree = SDKROOT; };
-		1BAF9B922627010200321D95 /* SPAlertView.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = SPAlertView.swift; sourceTree = "<group>"; };
-		1BAF9B942627010200321D95 /* SPAlertIconAnimatable.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = SPAlertIconAnimatable.swift; sourceTree = "<group>"; };
-		1BAF9B952627010200321D95 /* SPAlertLayout.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = SPAlertLayout.swift; sourceTree = "<group>"; };
-		1BAF9B972627010200321D95 /* SPAlertIconHeartView.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = SPAlertIconHeartView.swift; sourceTree = "<group>"; };
-		1BAF9B982627010200321D95 /* SPAlertIconErrorView.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = SPAlertIconErrorView.swift; sourceTree = "<group>"; };
-		1BAF9B992627010200321D95 /* SPAlertIconDoneView.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = SPAlertIconDoneView.swift; sourceTree = "<group>"; };
-		1BAF9B9A2627010200321D95 /* SPAlertIconPreset.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = SPAlertIconPreset.swift; sourceTree = "<group>"; };
-		1BAF9B9C2627010200321D95 /* SPAlertHaptic.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = SPAlertHaptic.swift; sourceTree = "<group>"; };
-		1BAF9B9D2627010200321D95 /* SPAlert.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = SPAlert.swift; sourceTree = "<group>"; };
 		1BAF9BA726271BF000321D95 /* AuthDataLoadedProtocol.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AuthDataLoadedProtocol.swift; sourceTree = "<group>"; };
 		1BB23CF32544E3C800D0CC71 /* DateExtension.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DateExtension.swift; sourceTree = "<group>"; };
 		1BB23D0E2544F38A00D0CC71 /* AccessoryIconType.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AccessoryIconType.swift; sourceTree = "<group>"; };
@@ -318,10 +302,12 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				1B3A52D7267E9D91007199E3 /* SPAlert in Frameworks */,
 				1B3493242626E2A300AB2C3F /* Alamofire in Frameworks */,
 				1BB23CFF2544E8D200D0CC71 /* Kingfisher in Frameworks */,
 				1BA077492545FA4E00C4C426 /* TVServices.framework in Frameworks */,
 				9F72A2126BD10FF274A685E2 /* Pods_F1A_TV.framework in Frameworks */,
+				1B3A52D4267E9CDE007199E3 /* SkeletonView in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -385,46 +371,6 @@
 				1B9F8B79261D0B810020AC55 /* TemplateTableViewCell.xib */,
 			);
 			path = TableViewCells;
-			sourceTree = "<group>";
-		};
-		1BAF9B912627010200321D95 /* SPAlert */ = {
-			isa = PBXGroup;
-			children = (
-				1BAF9B922627010200321D95 /* SPAlertView.swift */,
-				1BAF9B932627010200321D95 /* Models */,
-				1BAF9B962627010200321D95 /* Icons */,
-				1BAF9B9A2627010200321D95 /* SPAlertIconPreset.swift */,
-				1BAF9B9B2627010200321D95 /* Services */,
-				1BAF9B9D2627010200321D95 /* SPAlert.swift */,
-			);
-			path = SPAlert;
-			sourceTree = "<group>";
-		};
-		1BAF9B932627010200321D95 /* Models */ = {
-			isa = PBXGroup;
-			children = (
-				1BAF9B942627010200321D95 /* SPAlertIconAnimatable.swift */,
-				1BAF9B952627010200321D95 /* SPAlertLayout.swift */,
-			);
-			path = Models;
-			sourceTree = "<group>";
-		};
-		1BAF9B962627010200321D95 /* Icons */ = {
-			isa = PBXGroup;
-			children = (
-				1BAF9B972627010200321D95 /* SPAlertIconHeartView.swift */,
-				1BAF9B982627010200321D95 /* SPAlertIconErrorView.swift */,
-				1BAF9B992627010200321D95 /* SPAlertIconDoneView.swift */,
-			);
-			path = Icons;
-			sourceTree = "<group>";
-		};
-		1BAF9B9B2627010200321D95 /* Services */ = {
-			isa = PBXGroup;
-			children = (
-				1BAF9B9C2627010200321D95 /* SPAlertHaptic.swift */,
-			);
-			path = Services;
 			sourceTree = "<group>";
 		};
 		1BB23D022544EB0A00D0CC71 /* Protocols */ = {
@@ -676,7 +622,6 @@
 			isa = PBXGroup;
 			children = (
 				1BBE401A2615FE9A00FD552E /* CollectionViewLayout */,
-				1BAF9B912627010200321D95 /* SPAlert */,
 				1BF4773E261F42190079F90B /* TvOSSlider */,
 			);
 			path = CustomUIElements;
@@ -750,7 +695,6 @@
 				1BB29B8B25445D6C00ECC074 /* Frameworks */,
 				1BB29B8C25445D6C00ECC074 /* Resources */,
 				1BB23CF02544E3A100D0CC71 /* Embed Frameworks */,
-				9861356D428A62047D498ABE /* [CP] Embed Pods Frameworks */,
 			);
 			buildRules = (
 			);
@@ -760,6 +704,8 @@
 			packageProductDependencies = (
 				1BB23CFE2544E8D200D0CC71 /* Kingfisher */,
 				1B3493232626E2A300AB2C3F /* Alamofire */,
+				1B3A52D3267E9CDE007199E3 /* SkeletonView */,
+				1B3A52D6267E9D91007199E3 /* SPAlert */,
 			);
 			productName = "F1TV";
 			productReference = 1BB29B8E25445D6C00ECC074 /* F1A-TV.app */;
@@ -797,6 +743,8 @@
 			packageReferences = (
 				1BB23CFD2544E8D200D0CC71 /* XCRemoteSwiftPackageReference "Kingfisher" */,
 				1B3493222626E2A300AB2C3F /* XCRemoteSwiftPackageReference "Alamofire" */,
+				1B3A52D2267E9CDE007199E3 /* XCRemoteSwiftPackageReference "SkeletonView" */,
+				1B3A52D5267E9D91007199E3 /* XCRemoteSwiftPackageReference "SPAlert" */,
 			);
 			productRefGroup = 1BB29B8F25445D6C00ECC074 /* Products */;
 			projectDirPath = "";
@@ -848,23 +796,6 @@
 /* End PBXResourcesBuildPhase section */
 
 /* Begin PBXShellScriptBuildPhase section */
-		9861356D428A62047D498ABE /* [CP] Embed Pods Frameworks */ = {
-			isa = PBXShellScriptBuildPhase;
-			buildActionMask = 2147483647;
-			files = (
-			);
-			inputFileListPaths = (
-				"${PODS_ROOT}/Target Support Files/Pods-F1A-TV/Pods-F1A-TV-frameworks-${CONFIGURATION}-input-files.xcfilelist",
-			);
-			name = "[CP] Embed Pods Frameworks";
-			outputFileListPaths = (
-				"${PODS_ROOT}/Target Support Files/Pods-F1A-TV/Pods-F1A-TV-frameworks-${CONFIGURATION}-output-files.xcfilelist",
-			);
-			runOnlyForDeploymentPostprocessing = 0;
-			shellPath = /bin/sh;
-			shellScript = "\"${PODS_ROOT}/Target Support Files/Pods-F1A-TV/Pods-F1A-TV-frameworks.sh\"\n";
-			showEnvVarsInLog = 0;
-		};
 		A339D1CEBC1CA8576C463756 /* [CP] Check Pods Manifest.lock */ = {
 			isa = PBXShellScriptBuildPhase;
 			buildActionMask = 2147483647;
@@ -902,9 +833,6 @@
 				1B8DEF0825FC1F43004780B9 /* ResultObjectDto.swift in Sources */,
 				1BB29C282544790D00ECC074 /* TokenRequestDto.swift in Sources */,
 				1BB29C3325449A8800ECC074 /* UIViewControllerExtension.swift in Sources */,
-				1BAF9BA12627010200321D95 /* SPAlertIconHeartView.swift in Sources */,
-				1BAF9BA22627010200321D95 /* SPAlertIconErrorView.swift in Sources */,
-				1BAF9BA52627010200321D95 /* SPAlertHaptic.swift in Sources */,
 				1BC656AC25F6B0FC0025CA1D /* ThumbnailTitleSubtitleCollectionViewCell.swift in Sources */,
 				1BC3458C25FC058E00496671 /* CategoryDto.swift in Sources */,
 				1BF18CDE25FCED0B00BF3854 /* ContentObjectType.swift in Sources */,
@@ -918,18 +846,14 @@
 				1BFFAB7825F901C600EADC99 /* SeriesType.swift in Sources */,
 				1BB23D0F2544F38A00D0CC71 /* AccessoryIconType.swift in Sources */,
 				1BB29C1E2544773300ECC074 /* SubscriberDto.swift in Sources */,
-				1BAF9B9E2627010200321D95 /* SPAlertView.swift in Sources */,
 				1BB29C842544B8BA00ECC074 /* NotificationExtension.swift in Sources */,
 				1B34C5F32545F614008325CC /* F1ATV.xcdatamodeld in Sources */,
-				1BAF9BA62627010200321D95 /* SPAlert.swift in Sources */,
 				1B8DEF0C25FC2209004780B9 /* SuggestDto.swift in Sources */,
 				1B85210E25F7CCC400B3356B /* IsoCountryCodes.swift in Sources */,
 				1BC656A925F6A08D0025CA1D /* MenuSelectorTableViewController.swift in Sources */,
 				1B43FB09267CDA8C00F22345 /* FullscreenPlayerDismissedProtocol.swift in Sources */,
 				1BEC362B26263805002F7504 /* BaseViewController.swift in Sources */,
 				1B8DEEF825FC074C004780B9 /* ContainerDto.swift in Sources */,
-				1BAF9BA32627010200321D95 /* SPAlertIconDoneView.swift in Sources */,
-				1BAF9BA02627010200321D95 /* SPAlertLayout.swift in Sources */,
 				1BB29BDE2544655B00ECC074 /* DataSource.swift in Sources */,
 				1BBE40202615FEFE00FD552E /* MosaicProtocols.swift in Sources */,
 				1BB29BD92544652D00ECC074 /* DatabaseController.swift in Sources */,
@@ -944,7 +868,6 @@
 				1BB29C192544770700ECC074 /* AuthResultDto.swift in Sources */,
 				1B78A79E2586440A007CF57C /* PlayerController.swift in Sources */,
 				1BC3458625FC040B00496671 /* AvailableLanguageDto.swift in Sources */,
-				1BAF9BA42627010200321D95 /* SPAlertIconPreset.swift in Sources */,
 				1BBE401C2615FEBA00FD552E /* MosaicLayout.swift in Sources */,
 				1BB29C232544777300ECC074 /* AuthDataDto.swift in Sources */,
 				1BB29C3B25449E7F00ECC074 /* PageOverviewCollectionViewController.swift in Sources */,
@@ -961,7 +884,6 @@
 				1B20CB2A25FB5649002F39D8 /* StreamEntitlementDto.swift in Sources */,
 				1B7CCA5B261E0AB600FB25C2 /* ControlStripOverlayViewController.swift in Sources */,
 				1B8DEEFC25FC0EDA004780B9 /* NewEpisodeDto.swift in Sources */,
-				1BAF9B9F2627010200321D95 /* SPAlertIconAnimatable.swift in Sources */,
 				1BAF9BA826271BF000321D95 /* AuthDataLoadedProtocol.swift in Sources */,
 				1B36C7B025F781E6005533F9 /* SideBarInfoViewController.swift in Sources */,
 				1BFED8F5262443FA00540511 /* PlayerSettings.swift in Sources */,
@@ -1238,6 +1160,22 @@
 				kind = branch;
 			};
 		};
+		1B3A52D2267E9CDE007199E3 /* XCRemoteSwiftPackageReference "SkeletonView" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/Juanpe/SkeletonView.git";
+			requirement = {
+				branch = main;
+				kind = branch;
+			};
+		};
+		1B3A52D5267E9D91007199E3 /* XCRemoteSwiftPackageReference "SPAlert" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/NoahFetz/SPAlert.git";
+			requirement = {
+				branch = tvOS;
+				kind = branch;
+			};
+		};
 		1BB23CFD2544E8D200D0CC71 /* XCRemoteSwiftPackageReference "Kingfisher" */ = {
 			isa = XCRemoteSwiftPackageReference;
 			repositoryURL = "https://github.com/onevcat/Kingfisher.git";
@@ -1253,6 +1191,16 @@
 			isa = XCSwiftPackageProductDependency;
 			package = 1B3493222626E2A300AB2C3F /* XCRemoteSwiftPackageReference "Alamofire" */;
 			productName = Alamofire;
+		};
+		1B3A52D3267E9CDE007199E3 /* SkeletonView */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 1B3A52D2267E9CDE007199E3 /* XCRemoteSwiftPackageReference "SkeletonView" */;
+			productName = SkeletonView;
+		};
+		1B3A52D6267E9D91007199E3 /* SPAlert */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 1B3A52D5267E9D91007199E3 /* XCRemoteSwiftPackageReference "SPAlert" */;
+			productName = SPAlert;
 		};
 		1BB23CFE2544E8D200D0CC71 /* Kingfisher */ = {
 			isa = XCSwiftPackageProductDependency;
