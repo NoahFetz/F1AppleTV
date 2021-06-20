@@ -257,12 +257,12 @@ class PlayerCollectionViewController: BaseCollectionViewController, UICollection
         let channelType = playerItem.contentItem.container.metadata?.channelType ?? ChannelType()
         
         if let preferredLanguage = playerSettings.getPreferredLanguage(for: channelType) {
-            let setLanguageResult = playerItem.playerItem?.select(type: .audio, name: preferredLanguage)
+            let setLanguageResult = playerItem.playerItem?.select(type: .audio, languageDisplayName: preferredLanguage)
             print("Setting preferred language: " + String(setLanguageResult ?? false))
         }
-        
+
         if let preferredCaptions = playerSettings.getPreferredCaptions(for: channelType) {
-            let setCaptionResult = playerItem.playerItem?.select(type: .subtitle, name: preferredCaptions)
+            let setCaptionResult = playerItem.playerItem?.select(type: .subtitle, languageDisplayName: preferredCaptions)
             print("Setting preferred caption: " + String(setCaptionResult ?? false))
         }
         
