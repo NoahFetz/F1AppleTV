@@ -317,11 +317,11 @@ class ControlStripOverlayViewController: BaseViewController {
     func showLanguageSelectMenu() {
         let alertController = UIAlertController(title: NSLocalizedString("select", comment: ""), message: nil, preferredStyle: .alert)
         
-        for language in self.playerItem?.playerItem?.tracks(type: .audio) ?? [String]() {
-            alertController.addAction(UIAlertAction(title: language, style: .default, handler: { (UIAlertAction) in
-                let _ = self.playerItem?.playerItem?.select(type: .audio, name: language)
+        for language in self.playerItem?.playerItem?.tracks(type: .audio) ?? [MediaTrackDto]() {
+            alertController.addAction(UIAlertAction(title: language.displayName, style: .default, handler: { (UIAlertAction) in
+                let _ = self.playerItem?.playerItem?.select(type: .audio, item: language)
                 var playerSettings = CredentialHelper.getPlayerSettings()
-                playerSettings.setPreferredLanugage(for: self.playerItem?.contentItem.container.metadata?.channelType ?? ChannelType(), language: language)
+                playerSettings.setPreferredLanugage(for: self.playerItem?.contentItem.container.metadata?.channelType ?? ChannelType(), language: language.displayName)
                 CredentialHelper.setPlayerSettings(playerSettings: playerSettings)
             }))
         }
@@ -343,11 +343,11 @@ class ControlStripOverlayViewController: BaseViewController {
     func showCaptionSelectMenu() {
         let alertController = UIAlertController(title: NSLocalizedString("select", comment: ""), message: nil, preferredStyle: .alert)
         
-        for captions in self.playerItem?.playerItem?.tracks(type: .subtitle) ?? [String]() {
-            alertController.addAction(UIAlertAction(title: captions, style: .default, handler: { (UIAlertAction) in
-                let _ = self.playerItem?.playerItem?.select(type: .subtitle, name: captions)
+        for captions in self.playerItem?.playerItem?.tracks(type: .subtitle) ?? [MediaTrackDto]() {
+            alertController.addAction(UIAlertAction(title: captions.displayName, style: .default, handler: { (UIAlertAction) in
+                let _ = self.playerItem?.playerItem?.select(type: .subtitle, item: captions)
                 var playerSettings = CredentialHelper.getPlayerSettings()
-                playerSettings.setPreferredCaptions(for: self.playerItem?.contentItem.container.metadata?.channelType ?? ChannelType(), captions: captions)
+                playerSettings.setPreferredCaptions(for: self.playerItem?.contentItem.container.metadata?.channelType ?? ChannelType(), captions: captions.displayName)
                 CredentialHelper.setPlayerSettings(playerSettings: playerSettings)
             }))
         }
