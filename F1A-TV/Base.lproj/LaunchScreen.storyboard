@@ -1,8 +1,10 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<document type="com.apple.InterfaceBuilder.AppleTV.Storyboard" version="3.0" toolsVersion="18122" targetRuntime="AppleTV" propertyAccessControl="none" useAutolayout="YES" launchScreen="YES" useTraitCollections="YES" useSafeAreas="YES" colorMatched="YES" initialViewController="BYZ-38-t0r">
+<document type="com.apple.InterfaceBuilder.AppleTV.Storyboard" version="3.0" toolsVersion="19115.3" targetRuntime="AppleTV" propertyAccessControl="none" useAutolayout="YES" launchScreen="YES" useTraitCollections="YES" useSafeAreas="YES" colorMatched="YES" initialViewController="BYZ-38-t0r">
     <device id="appleTV" appearance="light"/>
     <dependencies>
-        <plugIn identifier="com.apple.InterfaceBuilder.IBCocoaTouchPlugin" version="18092"/>
+        <deployment identifier="tvOS"/>
+        <plugIn identifier="com.apple.InterfaceBuilder.IBCocoaTouchPlugin" version="19107.5"/>
+        <capability name="Image references" minToolsVersion="12.0"/>
         <capability name="Named colors" minToolsVersion="9.0"/>
         <capability name="Safe area layout guides" minToolsVersion="9.0"/>
         <capability name="documents saved in the Xcode 8 format" minToolsVersion="8.0"/>
@@ -20,13 +22,33 @@
                         <rect key="frame" x="0.0" y="0.0" width="1920" height="1080"/>
                         <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
                         <subviews>
-                            <imageView clipsSubviews="YES" userInteractionEnabled="NO" contentMode="scaleAspectFit" horizontalHuggingPriority="251" verticalHuggingPriority="251" fixedFrame="YES" image="app_icon_rounded" translatesAutoresizingMaskIntoConstraints="NO" id="0F9-JO-wLW">
-                                <rect key="frame" x="560" y="140" width="800" height="800"/>
-                                <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
+                            <imageView clipsSubviews="YES" userInteractionEnabled="NO" contentMode="scaleAspectFit" horizontalHuggingPriority="251" verticalHuggingPriority="251" translatesAutoresizingMaskIntoConstraints="NO" id="0F9-JO-wLW">
+                                <rect key="frame" x="112" y="92" width="1696" height="650"/>
+                                <constraints>
+                                    <constraint firstAttribute="height" constant="650" id="bIw-5T-vbF"/>
+                                </constraints>
+                                <imageReference key="image" image="app_icon_rounded"/>
                             </imageView>
+                            <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" textAlignment="center" lineBreakMode="tailTruncation" numberOfLines="0" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="fJz-Q7-lvY">
+                                <rect key="frame" x="112" y="975" width="1696" height="77"/>
+                                <string key="text">This app is unofficial and is not associated in any way with the Formula 1 companies. F1, FORMULA ONE, FORMULA 1, FIA FORMULA ONE WORLD CHAMPIONSHIP, GRAND PRIX and related marks are trade marks of Formula One Licensing B.V.</string>
+                                <fontDescription key="fontDescription" type="system" pointSize="32"/>
+                                <color key="textColor" white="1" alpha="1" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
+                                <nil key="highlightedColor"/>
+                            </label>
                         </subviews>
                         <viewLayoutGuide key="safeArea" id="wu6-TO-1qx"/>
                         <color key="backgroundColor" name="AccentColor"/>
+                        <constraints>
+                            <constraint firstItem="fJz-Q7-lvY" firstAttribute="leading" secondItem="wu6-TO-1qx" secondAttribute="leading" constant="32" id="0Qk-V1-pgv"/>
+                            <constraint firstItem="fJz-Q7-lvY" firstAttribute="top" relation="greaterThanOrEqual" secondItem="0F9-JO-wLW" secondAttribute="bottom" constant="32" id="3jU-sg-4C3"/>
+                            <constraint firstItem="0F9-JO-wLW" firstAttribute="leading" secondItem="wu6-TO-1qx" secondAttribute="leading" constant="32" id="7S3-tB-Z0M"/>
+                            <constraint firstItem="wu6-TO-1qx" firstAttribute="trailing" secondItem="fJz-Q7-lvY" secondAttribute="trailing" constant="32" id="E9x-1R-zAg"/>
+                            <constraint firstItem="wu6-TO-1qx" firstAttribute="trailing" secondItem="0F9-JO-wLW" secondAttribute="trailing" constant="32" id="V5e-G1-uPB"/>
+                            <constraint firstItem="0F9-JO-wLW" firstAttribute="top" secondItem="wu6-TO-1qx" secondAttribute="top" constant="32" id="YJh-8t-tNv"/>
+                            <constraint firstItem="fJz-Q7-lvY" firstAttribute="top" relation="greaterThanOrEqual" secondItem="0F9-JO-wLW" secondAttribute="bottom" constant="32" id="ac0-DP-Mxc"/>
+                            <constraint firstItem="fJz-Q7-lvY" firstAttribute="bottom" secondItem="wu6-TO-1qx" secondAttribute="bottom" constant="32" id="vcG-Hl-bpG"/>
+                        </constraints>
                     </view>
                 </viewController>
                 <placeholder placeholderIdentifier="IBFirstResponder" id="dkx-z0-nzr" sceneMemberID="firstResponder"/>

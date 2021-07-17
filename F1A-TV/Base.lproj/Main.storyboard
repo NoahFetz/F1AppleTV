@@ -1,9 +1,9 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<document type="com.apple.InterfaceBuilder.AppleTV.Storyboard" version="3.0" toolsVersion="19115.2" targetRuntime="AppleTV" propertyAccessControl="none" useAutolayout="YES" useTraitCollections="YES" useSafeAreas="YES" colorMatched="YES" initialViewController="zrc-Yr-C9P">
+<document type="com.apple.InterfaceBuilder.AppleTV.Storyboard" version="3.0" toolsVersion="19115.3" targetRuntime="AppleTV" propertyAccessControl="none" useAutolayout="YES" useTraitCollections="YES" useSafeAreas="YES" colorMatched="YES" initialViewController="zrc-Yr-C9P">
     <device id="appleTV" appearance="dark"/>
     <dependencies>
         <deployment identifier="tvOS"/>
-        <plugIn identifier="com.apple.InterfaceBuilder.IBCocoaTouchPlugin" version="19107.4"/>
+        <plugIn identifier="com.apple.InterfaceBuilder.IBCocoaTouchPlugin" version="19107.5"/>
         <capability name="Safe area layout guides" minToolsVersion="9.0"/>
         <capability name="collection view cell content view" minToolsVersion="11.0"/>
         <capability name="documents saved in the Xcode 8 format" minToolsVersion="8.0"/>
@@ -247,8 +247,14 @@
                                 </subviews>
                             </stackView>
                             <stackView opaque="NO" contentMode="scaleToFill" axis="vertical" spacing="8" translatesAutoresizingMaskIntoConstraints="NO" id="Ult-Qf-nyJ">
-                                <rect key="frame" x="32" y="346" width="1856" height="658"/>
+                                <rect key="frame" x="32" y="346" width="1856" height="671"/>
                             </stackView>
+                            <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="disclaimer" textAlignment="center" lineBreakMode="tailTruncation" numberOfLines="0" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="e9U-b6-eok" customClass="FontAdjustedUILabel" customModule="F1A_TV" customModuleProvider="target">
+                                <rect key="frame" x="32" y="1033" width="58" height="15"/>
+                                <fontDescription key="fontDescription" type="system" pointSize="12"/>
+                                <color key="textColor" white="1" alpha="1" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
+                                <nil key="highlightedColor"/>
+                            </label>
                         </subviews>
                         <viewLayoutGuide key="safeArea" id="Yz0-ng-Ss3"/>
                         <constraints>
@@ -257,6 +263,8 @@
                             <constraint firstAttribute="trailing" secondItem="h6C-xQ-mcH" secondAttribute="trailing" id="614-KX-Nlb"/>
                             <constraint firstItem="lvy-i7-Mmm" firstAttribute="top" secondItem="Bnh-4r-p0O" secondAttribute="bottom" constant="16" id="79z-Ci-ezQ"/>
                             <constraint firstItem="Bnh-4r-p0O" firstAttribute="top" secondItem="Yz0-ng-Ss3" secondAttribute="top" constant="16" id="BcH-kq-Aex"/>
+                            <constraint firstItem="Yz0-ng-Ss3" firstAttribute="trailing" relation="greaterThanOrEqual" secondItem="e9U-b6-eok" secondAttribute="trailing" constant="32" id="KDY-OG-pE3"/>
+                            <constraint firstItem="e9U-b6-eok" firstAttribute="leading" secondItem="FF9-Q0-AwE" secondAttribute="leading" constant="32" id="On6-a9-qKo"/>
                             <constraint firstItem="lvy-i7-Mmm" firstAttribute="leading" secondItem="FF9-Q0-AwE" secondAttribute="leading" constant="32" id="S6n-FY-QJf"/>
                             <constraint firstAttribute="trailing" secondItem="Ult-Qf-nyJ" secondAttribute="trailing" constant="32" id="SzC-WY-BSR"/>
                             <constraint firstItem="lvy-i7-Mmm" firstAttribute="top" secondItem="Bnh-4r-p0O" secondAttribute="bottom" constant="16" id="UFX-yg-rgE"/>
@@ -270,12 +278,14 @@
                             <constraint firstItem="HTh-04-Rdr" firstAttribute="top" secondItem="lvy-i7-Mmm" secondAttribute="bottom" constant="16" id="gox-At-DN4"/>
                             <constraint firstItem="HTh-04-Rdr" firstAttribute="top" secondItem="lvy-i7-Mmm" secondAttribute="bottom" constant="16" id="iQi-go-GLx"/>
                             <constraint firstItem="Ult-Qf-nyJ" firstAttribute="top" secondItem="HTh-04-Rdr" secondAttribute="bottom" constant="16" id="ng0-zN-YJG"/>
-                            <constraint firstItem="Yz0-ng-Ss3" firstAttribute="bottom" secondItem="Ult-Qf-nyJ" secondAttribute="bottom" constant="16" id="wES-Nh-ExW"/>
+                            <constraint firstAttribute="bottom" secondItem="e9U-b6-eok" secondAttribute="bottom" constant="32" id="qwc-WX-h2W"/>
                             <constraint firstAttribute="trailing" relation="greaterThanOrEqual" secondItem="HTh-04-Rdr" secondAttribute="trailing" constant="20" symbolic="YES" id="yEf-4V-VO4"/>
+                            <constraint firstItem="e9U-b6-eok" firstAttribute="top" secondItem="Ult-Qf-nyJ" secondAttribute="bottom" constant="16" id="zh8-ud-Ro7"/>
                         </constraints>
                     </view>
                     <connections>
                         <outlet property="bottomContentStackView" destination="Ult-Qf-nyJ" id="Fu3-LZ-bvG"/>
+                        <outlet property="disclaimerLabel" destination="e9U-b6-eok" id="qir-SU-59Z"/>
                         <outlet property="headerLabel" destination="JZc-Ls-JIz" id="66o-OR-Nzi"/>
                         <outlet property="subtitleLabel" destination="HTh-04-Rdr" id="sPC-jN-mlF"/>
                         <outlet property="thumbnailImageView" destination="h6C-xQ-mcH" id="oW3-SS-ibN"/>

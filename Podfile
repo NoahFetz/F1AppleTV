@@ -6,6 +6,6 @@ target 'F1A-TV' do
   use_frameworks!
 
   # Pods for F1A-TV
-  #pod 'SkeletonView'
+  #pod 'TVVLCKit'
 
 end

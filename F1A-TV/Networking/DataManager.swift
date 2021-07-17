@@ -100,6 +100,22 @@ class DataManager: RequestInterceptor {
         }
     }
     
+    func loadM3U8Data(url: String, completion: @escaping (_ m3u8Data: String) -> Void) {
+        self.alamofireSession.request(url, method: .get)
+            .validate()
+            .responseString() { response in
+                switch response.result {
+                case .success(let apiResponse):
+                    DispatchQueue.main.async {
+                        completion(apiResponse)
+                    }
+                    
+                case .failure(let afError):
+                    self.handleAFError(afError: afError)
+                }
+            }
+    }
+    
     func adapt(_ urlRequest: URLRequest, for session: Session, completion: @escaping (Result<URLRequest, Error>) -> Void) {
         var request = urlRequest
         if(CredentialHelper.instance.getUserInfo().authData.subscriptionToken == urlRequest.headers.first(where: {$0.name == "ascendontoken"})?.value) {

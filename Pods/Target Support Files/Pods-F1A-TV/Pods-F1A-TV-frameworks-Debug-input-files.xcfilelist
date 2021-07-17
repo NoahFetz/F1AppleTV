@@ -1,2 +1,2 @@
 ${PODS_ROOT}/Target Support Files/Pods-F1A-TV/Pods-F1A-TV-frameworks.sh
-${BUILT_PRODUCTS_DIR}/SkeletonView/SkeletonView.framework
+${PODS_XCFRAMEWORKS_BUILD_DIR}/TVVLCKit/TVVLCKit.framework/TVVLCKit

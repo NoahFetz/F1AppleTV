@@ -178,4 +178,19 @@ class MenuSelectorTableViewController: BaseTableViewController {
             }
         })
     }
+    
+    override func tableView(_ tableView: UITableView, viewForFooterInSection section: Int) -> UIView? {
+        let disclaimerLabel = FontAdjustedUILabel()
+        disclaimerLabel.font = UIFont(name: "Formula1-Display-Regular", size: 12)
+        disclaimerLabel.text = NSLocalizedString("disclaimer", comment: "")
+        disclaimerLabel.numberOfLines = 0
+        disclaimerLabel.textAlignment = .center
+        disclaimerLabel.backgroundShadow()
+        
+        return disclaimerLabel
+    }
+    
+    override func tableView(_ tableView: UITableView, heightForFooterInSection section: Int) -> CGFloat {
+        return 600
+    }
 }

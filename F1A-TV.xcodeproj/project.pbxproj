@@ -8,15 +8,26 @@
 
 /* Begin PBXBuildFile section */
 		1B1734F725FAAD4C00ACAB0E /* FontAdjustedUILabel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1B1734F625FAAD4C00ACAB0E /* FontAdjustedUILabel.swift */; };
+		1B19AE97269119B40008049C /* M3U8Manager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1B19AE7F269119B40008049C /* M3U8Manager.swift */; };
+		1B19AE98269119B40008049C /* MasterPlaylist.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1B19AE82269119B40008049C /* MasterPlaylist.swift */; };
+		1B19AE99269119B40008049C /* Playlist.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1B19AE83269119B40008049C /* Playlist.swift */; };
+		1B19AE9A269119B40008049C /* MediaPlaylist.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1B19AE84269119B40008049C /* MediaPlaylist.swift */; };
+		1B19AE9B269119B40008049C /* BaseTag.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1B19AE86269119B40008049C /* BaseTag.swift */; };
+		1B19AE9C269119B40008049C /* Tags.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1B19AE87269119B40008049C /* Tags.swift */; };
+		1B19AE9D269119B40008049C /* Tag.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1B19AE88269119B40008049C /* Tag.swift */; };
+		1B19AE9E269119B40008049C /* PlaylistOperation.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1B19AE8A269119B40008049C /* PlaylistOperation.swift */; };
+		1B19AE9F269119B40008049C /* M3U8Parser.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1B19AE8C269119B40008049C /* M3U8Parser.swift */; };
+		1B19AEA0269119B40008049C /* PlaylistFetcher.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1B19AE8E269119B40008049C /* PlaylistFetcher.swift */; };
+		1B19AEA82691BCAD0008049C /* M3u8LoadedProtocol.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1B19AEA72691BCAD0008049C /* M3u8LoadedProtocol.swift */; };
 		1B20CB2A25FB5649002F39D8 /* StreamEntitlementDto.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1B20CB2925FB5649002F39D8 /* StreamEntitlementDto.swift */; };
 		1B20CB2C25FB5691002F39D8 /* StreamEntitlementResultDto.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1B20CB2B25FB5691002F39D8 /* StreamEntitlementResultDto.swift */; };
 		1B20CB3125FB60BD002F39D8 /* ContentPageLoadedProtocol.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1B20CB3025FB60BD002F39D8 /* ContentPageLoadedProtocol.swift */; };
 		1B20CB3325FB7261002F39D8 /* StreamEntitlementLoadedProtocol.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1B20CB3225FB7261002F39D8 /* StreamEntitlementLoadedProtocol.swift */; };
-		1B3493242626E2A300AB2C3F /* Alamofire in Frameworks */ = {isa = PBXBuildFile; productRef = 1B3493232626E2A300AB2C3F /* Alamofire */; };
+		1B3493242626E2A300AB2C3F /* BuildFile in Frameworks */ = {isa = PBXBuildFile; productRef = 1B3493232626E2A300AB2C3F /* SwiftPackageProductDependency */; };
 		1B34C5F32545F614008325CC /* F1ATV.xcdatamodeld in Sources */ = {isa = PBXBuildFile; fileRef = 1B34C5F12545F614008325CC /* F1ATV.xcdatamodeld */; };
 		1B36C7B025F781E6005533F9 /* SideBarInfoViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1B36C7AF25F781E6005533F9 /* SideBarInfoViewController.swift */; };
-		1B3A52D4267E9CDE007199E3 /* SkeletonView in Frameworks */ = {isa = PBXBuildFile; productRef = 1B3A52D3267E9CDE007199E3 /* SkeletonView */; };
-		1B3A52D7267E9D91007199E3 /* SPAlert in Frameworks */ = {isa = PBXBuildFile; productRef = 1B3A52D6267E9D91007199E3 /* SPAlert */; };
+		1B3A52D4267E9CDE007199E3 /* BuildFile in Frameworks */ = {isa = PBXBuildFile; productRef = 1B3A52D3267E9CDE007199E3 /* SwiftPackageProductDependency */; };
+		1B3A52D7267E9D91007199E3 /* BuildFile in Frameworks */ = {isa = PBXBuildFile; productRef = 1B3A52D6267E9D91007199E3 /* SwiftPackageProductDependency */; };
 		1B43FB09267CDA8C00F22345 /* FullscreenPlayerDismissedProtocol.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1B43FB08267CDA8C00F22345 /* FullscreenPlayerDismissedProtocol.swift */; };
 		1B4F98D52618A927008FCE4A /* PlayerItem.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1B4F98D42618A927008FCE4A /* PlayerItem.swift */; };
 		1B4F98D7261B40A4008FCE4A /* AVPlayerViewControllerExtension.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1B4F98D6261B40A4008FCE4A /* AVPlayerViewControllerExtension.swift */; };
@@ -69,7 +80,7 @@
 		1BA077492545FA4E00C4C426 /* TVServices.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 1BA077482545FA4E00C4C426 /* TVServices.framework */; };
 		1BAF9BA826271BF000321D95 /* AuthDataLoadedProtocol.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1BAF9BA726271BF000321D95 /* AuthDataLoadedProtocol.swift */; };
 		1BB23CF42544E3C800D0CC71 /* DateExtension.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1BB23CF32544E3C800D0CC71 /* DateExtension.swift */; };
-		1BB23CFF2544E8D200D0CC71 /* Kingfisher in Frameworks */ = {isa = PBXBuildFile; productRef = 1BB23CFE2544E8D200D0CC71 /* Kingfisher */; };
+		1BB23CFF2544E8D200D0CC71 /* BuildFile in Frameworks */ = {isa = PBXBuildFile; productRef = 1BB23CFE2544E8D200D0CC71 /* SwiftPackageProductDependency */; };
 		1BB23D0F2544F38A00D0CC71 /* AccessoryIconType.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1BB23D0E2544F38A00D0CC71 /* AccessoryIconType.swift */; };
 		1BB29B9225445D6C00ECC074 /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1BB29B9125445D6C00ECC074 /* AppDelegate.swift */; };
 		1BB29B9725445D6C00ECC074 /* Main.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 1BB29B9525445D6C00ECC074 /* Main.storyboard */; };
@@ -153,6 +164,17 @@
 /* Begin PBXFileReference section */
 		04234C9D74E844728C1D0346 /* Pods-F1TVTests.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-F1TVTests.release.xcconfig"; path = "Target Support Files/Pods-F1TVTests/Pods-F1TVTests.release.xcconfig"; sourceTree = "<group>"; };
 		1B1734F625FAAD4C00ACAB0E /* FontAdjustedUILabel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FontAdjustedUILabel.swift; sourceTree = "<group>"; };
+		1B19AE7F269119B40008049C /* M3U8Manager.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = M3U8Manager.swift; sourceTree = "<group>"; };
+		1B19AE82269119B40008049C /* MasterPlaylist.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = MasterPlaylist.swift; sourceTree = "<group>"; };
+		1B19AE83269119B40008049C /* Playlist.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Playlist.swift; sourceTree = "<group>"; };
+		1B19AE84269119B40008049C /* MediaPlaylist.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = MediaPlaylist.swift; sourceTree = "<group>"; };
+		1B19AE86269119B40008049C /* BaseTag.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = BaseTag.swift; sourceTree = "<group>"; };
+		1B19AE87269119B40008049C /* Tags.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Tags.swift; sourceTree = "<group>"; };
+		1B19AE88269119B40008049C /* Tag.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Tag.swift; sourceTree = "<group>"; };
+		1B19AE8A269119B40008049C /* PlaylistOperation.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = PlaylistOperation.swift; sourceTree = "<group>"; };
+		1B19AE8C269119B40008049C /* M3U8Parser.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = M3U8Parser.swift; sourceTree = "<group>"; };
+		1B19AE8E269119B40008049C /* PlaylistFetcher.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = PlaylistFetcher.swift; sourceTree = "<group>"; };
+		1B19AEA72691BCAD0008049C /* M3u8LoadedProtocol.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = M3u8LoadedProtocol.swift; sourceTree = "<group>"; };
 		1B20CB2925FB5649002F39D8 /* StreamEntitlementDto.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StreamEntitlementDto.swift; sourceTree = "<group>"; };
 		1B20CB2B25FB5691002F39D8 /* StreamEntitlementResultDto.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StreamEntitlementResultDto.swift; sourceTree = "<group>"; };
 		1B20CB3025FB60BD002F39D8 /* ContentPageLoadedProtocol.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContentPageLoadedProtocol.swift; sourceTree = "<group>"; };
@@ -302,12 +324,12 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				1B3A52D7267E9D91007199E3 /* SPAlert in Frameworks */,
-				1B3493242626E2A300AB2C3F /* Alamofire in Frameworks */,
-				1BB23CFF2544E8D200D0CC71 /* Kingfisher in Frameworks */,
+				1B3A52D7267E9D91007199E3 /* BuildFile in Frameworks */,
+				1B3493242626E2A300AB2C3F /* BuildFile in Frameworks */,
+				1BB23CFF2544E8D200D0CC71 /* BuildFile in Frameworks */,
 				1BA077492545FA4E00C4C426 /* TVServices.framework in Frameworks */,
 				9F72A2126BD10FF274A685E2 /* Pods_F1A_TV.framework in Frameworks */,
-				1B3A52D4267E9CDE007199E3 /* SkeletonView in Frameworks */,
+				1B3A52D4267E9CDE007199E3 /* BuildFile in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -323,6 +345,79 @@
 				E33C97B28FDF74EFB32E2EF9 /* Pods_F1A_TV.framework */,
 			);
 			name = Frameworks;
+			sourceTree = "<group>";
+		};
+		1B19AE7D269119B40008049C /* M3U8Parser */ = {
+			isa = PBXGroup;
+			children = (
+				1B19AE7E269119B40008049C /* Managers */,
+				1B19AE80269119B40008049C /* Models */,
+				1B19AE8B269119B40008049C /* Parser */,
+				1B19AE8D269119B40008049C /* PlaylistFetcher */,
+			);
+			path = M3U8Parser;
+			sourceTree = "<group>";
+		};
+		1B19AE7E269119B40008049C /* Managers */ = {
+			isa = PBXGroup;
+			children = (
+				1B19AE7F269119B40008049C /* M3U8Manager.swift */,
+			);
+			path = Managers;
+			sourceTree = "<group>";
+		};
+		1B19AE80269119B40008049C /* Models */ = {
+			isa = PBXGroup;
+			children = (
+				1B19AE81269119B40008049C /* Playlist */,
+				1B19AE85269119B40008049C /* Tags */,
+				1B19AE89269119B40008049C /* PlaylistOperation */,
+			);
+			path = Models;
+			sourceTree = "<group>";
+		};
+		1B19AE81269119B40008049C /* Playlist */ = {
+			isa = PBXGroup;
+			children = (
+				1B19AE82269119B40008049C /* MasterPlaylist.swift */,
+				1B19AE83269119B40008049C /* Playlist.swift */,
+				1B19AE84269119B40008049C /* MediaPlaylist.swift */,
+			);
+			path = Playlist;
+			sourceTree = "<group>";
+		};
+		1B19AE85269119B40008049C /* Tags */ = {
+			isa = PBXGroup;
+			children = (
+				1B19AE86269119B40008049C /* BaseTag.swift */,
+				1B19AE87269119B40008049C /* Tags.swift */,
+				1B19AE88269119B40008049C /* Tag.swift */,
+			);
+			path = Tags;
+			sourceTree = "<group>";
+		};
+		1B19AE89269119B40008049C /* PlaylistOperation */ = {
+			isa = PBXGroup;
+			children = (
+				1B19AE8A269119B40008049C /* PlaylistOperation.swift */,
+			);
+			path = PlaylistOperation;
+			sourceTree = "<group>";
+		};
+		1B19AE8B269119B40008049C /* Parser */ = {
+			isa = PBXGroup;
+			children = (
+				1B19AE8C269119B40008049C /* M3U8Parser.swift */,
+			);
+			path = Parser;
+			sourceTree = "<group>";
+		};
+		1B19AE8D269119B40008049C /* PlaylistFetcher */ = {
+			isa = PBXGroup;
+			children = (
+				1B19AE8E269119B40008049C /* PlaylistFetcher.swift */,
+			);
+			path = PlaylistFetcher;
 			sourceTree = "<group>";
 		};
 		1B85210A25F7CC9D00B3356B /* IsoCountries */ = {
@@ -383,6 +478,7 @@
 				1BF4774A2620EB930079F90B /* ControlStripActionProtocol.swift */,
 				1BAF9BA726271BF000321D95 /* AuthDataLoadedProtocol.swift */,
 				1B43FB08267CDA8C00F22345 /* FullscreenPlayerDismissedProtocol.swift */,
+				1B19AEA72691BCAD0008049C /* M3u8LoadedProtocol.swift */,
 			);
 			path = Protocols;
 			sourceTree = "<group>";
@@ -514,11 +610,12 @@
 			isa = PBXGroup;
 			children = (
 				1B85210A25F7CC9D00B3356B /* IsoCountries */,
+				1B19AE7D269119B40008049C /* M3U8Parser */,
+				1BB23D0D2544F37D00D0CC71 /* Enum */,
+				1BB23D022544EB0A00D0CC71 /* Protocols */,
 				1BB29C0B25446DC000ECC074 /* ConstantsUtil.swift */,
 				1B80954425457D3E00889DFE /* CredentialHelper.swift */,
 				1BF95A3E25EFAE3300A7C7C6 /* UserInteractionHelper.swift */,
-				1BB23D0D2544F37D00D0CC71 /* Enum */,
-				1BB23D022544EB0A00D0CC71 /* Protocols */,
 			);
 			path = Util;
 			sourceTree = "<group>";
@@ -702,10 +799,10 @@
 			);
 			name = "F1A-TV";
 			packageProductDependencies = (
-				1BB23CFE2544E8D200D0CC71 /* Kingfisher */,
-				1B3493232626E2A300AB2C3F /* Alamofire */,
-				1B3A52D3267E9CDE007199E3 /* SkeletonView */,
-				1B3A52D6267E9D91007199E3 /* SPAlert */,
+				1BB23CFE2544E8D200D0CC71 /* SwiftPackageProductDependency */,
+				1B3493232626E2A300AB2C3F /* SwiftPackageProductDependency */,
+				1B3A52D3267E9CDE007199E3 /* SwiftPackageProductDependency */,
+				1B3A52D6267E9D91007199E3 /* SwiftPackageProductDependency */,
 			);
 			productName = "F1TV";
 			productReference = 1BB29B8E25445D6C00ECC074 /* F1A-TV.app */;
@@ -741,10 +838,10 @@
 			);
 			mainGroup = 1BB29B8525445D6C00ECC074;
 			packageReferences = (
-				1BB23CFD2544E8D200D0CC71 /* XCRemoteSwiftPackageReference "Kingfisher" */,
-				1B3493222626E2A300AB2C3F /* XCRemoteSwiftPackageReference "Alamofire" */,
-				1B3A52D2267E9CDE007199E3 /* XCRemoteSwiftPackageReference "SkeletonView" */,
-				1B3A52D5267E9D91007199E3 /* XCRemoteSwiftPackageReference "SPAlert" */,
+				1BB23CFD2544E8D200D0CC71 /* RemoteSwiftPackageReference */,
+				1B3493222626E2A300AB2C3F /* RemoteSwiftPackageReference */,
+				1B3A52D2267E9CDE007199E3 /* RemoteSwiftPackageReference */,
+				1B3A52D5267E9D91007199E3 /* RemoteSwiftPackageReference */,
 			);
 			productRefGroup = 1BB29B8F25445D6C00ECC074 /* Products */;
 			projectDirPath = "";
@@ -829,7 +926,9 @@
 				1B85210C25F7CCA800B3356B /* IsoCountries.swift in Sources */,
 				1BB29BF22544690500ECC074 /* LoginViewController.swift in Sources */,
 				1B8DEF0025FC11C1004780B9 /* MetadataDto.swift in Sources */,
+				1B19AE99269119B40008049C /* Playlist.swift in Sources */,
 				1B9F8B75261CEF0B0020AC55 /* ChannelType.swift in Sources */,
+				1B19AE9D269119B40008049C /* Tag.swift in Sources */,
 				1B8DEF0825FC1F43004780B9 /* ResultObjectDto.swift in Sources */,
 				1BB29C282544790D00ECC074 /* TokenRequestDto.swift in Sources */,
 				1BB29C3325449A8800ECC074 /* UIViewControllerExtension.swift in Sources */,
@@ -844,6 +943,8 @@
 				1BC3458825FC045B00496671 /* BackupStreamDto.swift in Sources */,
 				1BB29C5B2544A01E00ECC074 /* CustomHeaderCollectionReusableView.swift in Sources */,
 				1BFFAB7825F901C600EADC99 /* SeriesType.swift in Sources */,
+				1B19AEA0269119B40008049C /* PlaylistFetcher.swift in Sources */,
+				1B19AEA82691BCAD0008049C /* M3u8LoadedProtocol.swift in Sources */,
 				1BB23D0F2544F38A00D0CC71 /* AccessoryIconType.swift in Sources */,
 				1BB29C1E2544773300ECC074 /* SubscriberDto.swift in Sources */,
 				1BB29C842544B8BA00ECC074 /* NotificationExtension.swift in Sources */,
@@ -851,11 +952,14 @@
 				1B8DEF0C25FC2209004780B9 /* SuggestDto.swift in Sources */,
 				1B85210E25F7CCC400B3356B /* IsoCountryCodes.swift in Sources */,
 				1BC656A925F6A08D0025CA1D /* MenuSelectorTableViewController.swift in Sources */,
+				1B19AE9F269119B40008049C /* M3U8Parser.swift in Sources */,
 				1B43FB09267CDA8C00F22345 /* FullscreenPlayerDismissedProtocol.swift in Sources */,
 				1BEC362B26263805002F7504 /* BaseViewController.swift in Sources */,
 				1B8DEEF825FC074C004780B9 /* ContainerDto.swift in Sources */,
+				1B19AE9C269119B40008049C /* Tags.swift in Sources */,
 				1BB29BDE2544655B00ECC074 /* DataSource.swift in Sources */,
 				1BBE40202615FEFE00FD552E /* MosaicProtocols.swift in Sources */,
+				1B19AE9A269119B40008049C /* MediaPlaylist.swift in Sources */,
 				1BB29BD92544652D00ECC074 /* DatabaseController.swift in Sources */,
 				1B1734F725FAAD4C00ACAB0E /* FontAdjustedUILabel.swift in Sources */,
 				1BCDE424261E5A350091C183 /* TvOSSlider.swift in Sources */,
@@ -864,6 +968,7 @@
 				1BBE401E2615FEDE00FD552E /* MosaicObject.swift in Sources */,
 				1BB29C722544AF4600ECC074 /* CustomTabBarController.swift in Sources */,
 				1BB29C5225449FE900ECC074 /* BaseCollectionViewCell.swift in Sources */,
+				1B19AE97269119B40008049C /* M3U8Manager.swift in Sources */,
 				1BB29C8E2544BE6500ECC074 /* DataManager.swift in Sources */,
 				1BB29C192544770700ECC074 /* AuthResultDto.swift in Sources */,
 				1B78A79E2586440A007CF57C /* PlayerController.swift in Sources */,
@@ -881,6 +986,7 @@
 				1BC656AF25F6BD9E0025CA1D /* UIColorExtension.swift in Sources */,
 				1BC0773B25F67F5100D9498A /* AccountOverviewViewController.swift in Sources */,
 				1B4F98D7261B40A4008FCE4A /* AVPlayerViewControllerExtension.swift in Sources */,
+				1B19AE98269119B40008049C /* MasterPlaylist.swift in Sources */,
 				1B20CB2A25FB5649002F39D8 /* StreamEntitlementDto.swift in Sources */,
 				1B7CCA5B261E0AB600FB25C2 /* ControlStripOverlayViewController.swift in Sources */,
 				1B8DEEFC25FC0EDA004780B9 /* NewEpisodeDto.swift in Sources */,
@@ -888,6 +994,7 @@
 				1B36C7B025F781E6005533F9 /* SideBarInfoViewController.swift in Sources */,
 				1BFED8F5262443FA00540511 /* PlayerSettings.swift in Sources */,
 				1BD5FE6E2544CF6900CA03B4 /* UIViewExtension.swift in Sources */,
+				1B19AE9E269119B40008049C /* PlaylistOperation.swift in Sources */,
 				1BB29C6D2544AC7D00ECC074 /* BaseTableViewController.swift in Sources */,
 				1B8DEEFA25FC0C88004780B9 /* EmfAttributesDto.swift in Sources */,
 				1B8DEF0E25FC2257004780B9 /* TechnicalPackageDto.swift in Sources */,
@@ -904,6 +1011,7 @@
 				1B8DEF0425FC1573004780B9 /* PlatformVariantDto.swift in Sources */,
 				1BF18CD825FCE53D00BF3854 /* ContentSection.swift in Sources */,
 				1BEC362D262638B2002F7504 /* BaseSplitViewController.swift in Sources */,
+				1B19AE9B269119B40008049C /* BaseTag.swift in Sources */,
 				1B20CB3125FB60BD002F39D8 /* ContentPageLoadedProtocol.swift in Sources */,
 				1BC3458425FC03AC00496671 /* AudioLanguageDto.swift in Sources */,
 				1BF18CDA25FCE60700BF3854 /* ContentItem.swift in Sources */,
@@ -1083,7 +1191,7 @@
 				CODE_SIGN_ENTITLEMENTS = "F1A-TV/F1A-TV.entitlements";
 				CODE_SIGN_IDENTITY = "Apple Development";
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 21.0618.1;
+				CURRENT_PROJECT_VERSION = 21.0717.1;
 				DEVELOPMENT_TEAM = 8SW735FL99;
 				INFOPLIST_FILE = "$(SRCROOT)/F1A-TV/Info.plist";
 				LD_RUNPATH_SEARCH_PATHS = (
@@ -1111,7 +1219,7 @@
 				CODE_SIGN_ENTITLEMENTS = "F1A-TV/F1A-TV.entitlements";
 				CODE_SIGN_IDENTITY = "Apple Development";
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 21.0618.1;
+				CURRENT_PROJECT_VERSION = 21.0717.1;
 				DEVELOPMENT_TEAM = 8SW735FL99;
 				INFOPLIST_FILE = "$(SRCROOT)/F1A-TV/Info.plist";
 				LD_RUNPATH_SEARCH_PATHS = (
@@ -1152,7 +1260,7 @@
 /* End XCConfigurationList section */
 
 /* Begin XCRemoteSwiftPackageReference section */
-		1B3493222626E2A300AB2C3F /* XCRemoteSwiftPackageReference "Alamofire" */ = {
+		1B3493222626E2A300AB2C3F /* RemoteSwiftPackageReference */ = {
 			isa = XCRemoteSwiftPackageReference;
 			repositoryURL = "https://github.com/Alamofire/Alamofire.git";
 			requirement = {
@@ -1160,7 +1268,7 @@
 				kind = branch;
 			};
 		};
-		1B3A52D2267E9CDE007199E3 /* XCRemoteSwiftPackageReference "SkeletonView" */ = {
+		1B3A52D2267E9CDE007199E3 /* RemoteSwiftPackageReference */ = {
 			isa = XCRemoteSwiftPackageReference;
 			repositoryURL = "https://github.com/Juanpe/SkeletonView.git";
 			requirement = {
@@ -1168,7 +1276,7 @@
 				kind = branch;
 			};
 		};
-		1B3A52D5267E9D91007199E3 /* XCRemoteSwiftPackageReference "SPAlert" */ = {
+		1B3A52D5267E9D91007199E3 /* RemoteSwiftPackageReference */ = {
 			isa = XCRemoteSwiftPackageReference;
 			repositoryURL = "https://github.com/NoahFetz/SPAlert.git";
 			requirement = {
@@ -1176,7 +1284,7 @@
 				kind = branch;
 			};
 		};
-		1BB23CFD2544E8D200D0CC71 /* XCRemoteSwiftPackageReference "Kingfisher" */ = {
+		1BB23CFD2544E8D200D0CC71 /* RemoteSwiftPackageReference */ = {
 			isa = XCRemoteSwiftPackageReference;
 			repositoryURL = "https://github.com/onevcat/Kingfisher.git";
 			requirement = {
@@ -1187,24 +1295,24 @@
 /* End XCRemoteSwiftPackageReference section */
 
 /* Begin XCSwiftPackageProductDependency section */
-		1B3493232626E2A300AB2C3F /* Alamofire */ = {
+		1B3493232626E2A300AB2C3F /* SwiftPackageProductDependency */ = {
 			isa = XCSwiftPackageProductDependency;
-			package = 1B3493222626E2A300AB2C3F /* XCRemoteSwiftPackageReference "Alamofire" */;
+			package = 1B3493222626E2A300AB2C3F /* RemoteSwiftPackageReference */;
 			productName = Alamofire;
 		};
-		1B3A52D3267E9CDE007199E3 /* SkeletonView */ = {
+		1B3A52D3267E9CDE007199E3 /* SwiftPackageProductDependency */ = {
 			isa = XCSwiftPackageProductDependency;
-			package = 1B3A52D2267E9CDE007199E3 /* XCRemoteSwiftPackageReference "SkeletonView" */;
+			package = 1B3A52D2267E9CDE007199E3 /* RemoteSwiftPackageReference */;
 			productName = SkeletonView;
 		};
-		1B3A52D6267E9D91007199E3 /* SPAlert */ = {
+		1B3A52D6267E9D91007199E3 /* SwiftPackageProductDependency */ = {
 			isa = XCSwiftPackageProductDependency;
-			package = 1B3A52D5267E9D91007199E3 /* XCRemoteSwiftPackageReference "SPAlert" */;
+			package = 1B3A52D5267E9D91007199E3 /* RemoteSwiftPackageReference */;
 			productName = SPAlert;
 		};
-		1BB23CFE2544E8D200D0CC71 /* Kingfisher */ = {
+		1BB23CFE2544E8D200D0CC71 /* SwiftPackageProductDependency */ = {
 			isa = XCSwiftPackageProductDependency;
-			package = 1BB23CFD2544E8D200D0CC71 /* XCRemoteSwiftPackageReference "Kingfisher" */;
+			package = 1BB23CFD2544E8D200D0CC71 /* RemoteSwiftPackageReference */;
 			productName = Kingfisher;
 		};
 /* End XCSwiftPackageProductDependency section */

@@ -16,11 +16,25 @@ extension AVPlayerItem {
     enum TrackType {
         case subtitle
         case audio
+        case video
         /**
          Return valid AVMediaSelectionGroup is item is available.
          */
         fileprivate func characteristic(item:AVPlayerItem) -> AVMediaSelectionGroup?  {
-            let str = self == .subtitle ? AVMediaCharacteristic.legible : AVMediaCharacteristic.audible
+            var str = AVMediaCharacteristic.audible
+            
+            switch self {
+            case .subtitle:
+                str = AVMediaCharacteristic.legible
+                
+            case .audio:
+                str = AVMediaCharacteristic.audible
+            
+            case .video:
+                str = AVMediaCharacteristic.visual
+                
+            }
+            
             if item.asset.availableMediaCharacteristicsWithMediaSelectionOptions.contains(str) {
                 return item.asset.mediaSelectionGroup(forMediaCharacteristic: str)
             }

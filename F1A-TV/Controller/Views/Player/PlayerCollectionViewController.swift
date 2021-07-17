@@ -95,6 +95,77 @@ class PlayerCollectionViewController: BaseCollectionViewController, UICollection
         DataManager.instance.loadStreamEntitlement(contentId: contentUrl, playerId: playerId, streamEntitlementLoadedProtocol: self)
     }
     
+    /*func didLoadStreamEntitlement(playerId: String, streamEntitlement: StreamEntitlementDto) {
+        if let index = self.playerItems.firstIndex(where: {$0.id == playerId}) {
+            var playerItem = self.playerItems[index]
+            
+            playerItem.entitlement = streamEntitlement
+            
+            //if let url = URL(string: streamEntitlement.url) {
+            DataManager.instance.loadM3U8Data(url: streamEntitlement.url, completion: { m3u8Data in
+                DispatchQueue.main.async {
+                    //print(m3u8Data)
+                    //let baseUrlString = streamEntitlement.url.components(separatedBy: "index.m3u8").first ?? ""
+                    
+                    var m3u8Lines = m3u8Data.components(separatedBy: .newlines)
+                    var lineIndex = 0
+                    while (lineIndex < m3u8Lines.count) {
+                        let currentLine = m3u8Lines[lineIndex]
+                        if(currentLine.starts(with: "#EXT-X-STREAM-INF")) {
+                            if(!currentLine.contains("RESOLUTION=1920x1080")){
+                                m3u8Lines.remove(at: lineIndex + 1)
+                                m3u8Lines.remove(at: lineIndex)
+                                
+                                continue
+                            }
+                        }
+                        
+                        lineIndex += 1
+                    }
+                    
+                    let urls = FileManager.default.urls(for: .cachesDirectory, in: .userDomainMask)
+                    let streamFileUrl = urls[urls.endIndex-1].appendingPathComponent("\(playerItem.id).m3u8")
+                    let m3u8Content = m3u8Lines.joined()
+                    
+                    do {
+                        try m3u8Content.write(to: streamFileUrl, atomically: true, encoding: String.Encoding.utf8)
+                    } catch {
+                        print("Couldn't write file")
+                    }
+                    
+                    /*if let baseUrl = URL(string: baseUrlString) {
+                        let parser = M3U8Parser()
+                        let params = M3U8Parser.Params(playlist: m3u8Data, playlistType: .master, baseUrl: baseUrl)
+                        
+                        do {
+                            let playlistResult = try parser.parse(params: params, extraParams: nil)
+                            if case let .master(masterPlaylist) = playlistResult {
+                                let streamUrl = masterPlaylist.tags.streamTags.first(where: {$0.resolution == "480x270"})?.uri ?? ""
+                                
+                                if let potatoUrl = URL(string: "\(baseUrlString)\(streamUrl)") {*/
+                                    playerItem.playerAsset = AVURLAsset(url: streamFileUrl, options: ["AVURLAssetHTTPHeaderFieldsKey" : ["User-Agent" : "RaceControl"]])
+                    playerItem.playerAsset?.tracks(withMediaType: .video)
+                                    playerItem.playerItem = AVPlayerItem(asset: playerItem.playerAsset ?? AVAsset())
+                                    playerItem.player = AVPlayer(playerItem: playerItem.playerItem)
+                                    playerItem.player?.appliesMediaSelectionCriteriaAutomatically = false
+                                    
+                                    self.setPreferredDisplayCriteria(displayCriteria: playerItem.playerAsset?.preferredDisplayCriteria)
+                                /*}
+                            }
+                        } catch {
+                            print("Couldn't parse playlist")
+                        }*/
+                        
+                        /*self.playerItems[index] = playerItem
+                        
+                        self.collectionView.reloadItems(at: [IndexPath(item: playerItem.position, section: 0)])*/
+                    PlayerController.instance.openPlayer(player: playerItem.player ?? AVPlayer())
+                    //}
+                }
+            })
+        }
+    }*/
+    
     func didLoadStreamEntitlement(playerId: String, streamEntitlement: StreamEntitlementDto) {
         if let index = self.playerItems.firstIndex(where: {$0.id == playerId}) {
             var playerItem = self.playerItems[index]

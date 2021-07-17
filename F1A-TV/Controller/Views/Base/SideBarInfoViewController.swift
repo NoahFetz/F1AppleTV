@@ -14,6 +14,7 @@ class SideBarInfoViewController: BaseViewController {
     @IBOutlet weak var subtitleLabel: FontAdjustedUILabel!
     @IBOutlet weak var topAccessoryImageView: UIImageView!
     @IBOutlet weak var headerLabel: FontAdjustedUILabel!
+    @IBOutlet weak var disclaimerLabel: FontAdjustedUILabel!
     @IBOutlet weak var bottomContentStackView: UIStackView!
     
     var contentItem: ContentItem?
@@ -45,6 +46,10 @@ class SideBarInfoViewController: BaseViewController {
         self.subtitleLabel.font = UIFont(name: "Formula1-Display-Regular", size: 54)
         self.subtitleLabel.text = ""
         self.subtitleLabel.backgroundShadow()
+        
+        self.disclaimerLabel.font = UIFont(name: "Formula1-Display-Regular", size: 12)
+        self.disclaimerLabel.text = NSLocalizedString("disclaimer", comment: "")
+        self.disclaimerLabel.backgroundShadow()
         
         self.setupContentInfo()
     }
