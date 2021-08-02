@@ -15,6 +15,7 @@ class ControlStripOverlayViewController: BaseViewController {
     var playerItem: PlayerItem?
     
     var removeChannelButton: UIButton?
+    var addChannelButton: UIButton?
     var muteChannelButton: UIButton?
     var volumeSlider: TvOSSlider?
     var enterFullScreenButton: UIButton?
@@ -79,6 +80,7 @@ class ControlStripOverlayViewController: BaseViewController {
         self.controlsBarView?.arrangedSubviews.forEach({$0.removeFromSuperview()})
         
         self.setupRemoveChannelButton()
+        self.setupAddChannelButton()
         
         self.setupSpacerView()
         
@@ -179,6 +181,21 @@ class ControlStripOverlayViewController: BaseViewController {
         self.controlsBarView?.addArrangedSubview(self.removeChannelButton ?? UIView())
     }
     
+    func setupAddChannelButton() {
+        self.addChannelButton = UIButton(type: .custom)
+        self.addChannelButton?.setBackgroundImage(UIImage(systemName: "plus.circle.fill")?.withTintColor(.white, renderingMode: .alwaysOriginal), for: .focused)
+        self.addChannelButton?.setBackgroundImage(UIImage(systemName: "plus.circle")?.withTintColor(.white, renderingMode: .alwaysOriginal), for: .normal)
+        
+        let iconScaleMultiplier = (self.addChannelButton?.backgroundImage(for: .normal)?.size.height ?? 1)/(self.addChannelButton?.backgroundImage(for: .normal)?.size.width ?? 1)
+        
+        NSLayoutConstraint.activate([
+            NSLayoutConstraint(item: self.addChannelButton ?? UIView(), attribute: .height, relatedBy: .equal, toItem: self.addChannelButton ?? UIView(), attribute: .width, multiplier: iconScaleMultiplier, constant: 0)
+        ])
+        
+        self.addChannelButton?.addTarget(self, action: #selector(self.addChannelPressed), for: .primaryActionTriggered)
+        self.controlsBarView?.addArrangedSubview(self.addChannelButton ?? UIView())
+    }
+    
     func setupMuteButton() {
         self.muteChannelButton = UIButton(type: .custom)
         self.updateMuteButtonStatus()
@@ -266,6 +283,11 @@ class ControlStripOverlayViewController: BaseViewController {
     @objc func removeChannelPressed() {
         self.controlStripActionProtocol?.willCloseFocusedPlayer()
         self.swipeDownRegognized()
+    }
+    
+    @objc func addChannelPressed() {
+        self.swipeDownRegognized()
+        self.controlStripActionProtocol?.showChannelSelectorOverlay()
     }
     
     @objc func muteChannelPressed() {
