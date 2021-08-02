@@ -13,4 +13,5 @@ protocol ControlStripActionProtocol {
     func playPausePlayer()
     func rewindPlayer()
     func forwardPlayer()
+    func showChannelSelectorOverlay()
 }
