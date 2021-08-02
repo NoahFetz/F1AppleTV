@@ -78,7 +78,7 @@ jobs:
         IPA_PATH: ${{ github.workspace }}/export/F1A-TV/F1A-TV.ipa
         signing_identity: ${{ secrets.DIST_CERT_SIGNING_IDENTITY }}
       run: |
-        /usr/bin/xcodebuild -workspace F1A-TV.xcworkspace -scheme F1A-TV archive -configuration Release -archivePath $ARCHIVE_PATH CODE_SIGNING_ALLOWED=NO
+        /usr/bin/xcodebuild -project F1A-TV.xcodeproj -scheme F1A-TV archive -configuration Release -archivePath $ARCHIVE_PATH CODE_SIGNING_ALLOWED=NO
         /usr/bin/xcodebuild -exportArchive -archivePath $ARCHIVE_PATH -exportPath $EXPORT_PATH -exportOptionsPlist _XcodeTaskExportOptions.plist
         fastlane sigh resign $IPA_PATH --signing_identity $signing_identity -p "/Users/runner/Library/MobileDevice/Provisioning Profiles/05931e23-2847-4cd7-85a2-40143617ab3b.mobileprovision" --verbose
        
