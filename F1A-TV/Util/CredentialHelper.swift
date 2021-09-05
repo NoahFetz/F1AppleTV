@@ -78,8 +78,6 @@ class CredentialHelper: AuthDataLoadedProtocol {
     }
     
     class func setPlayerSettings(playerSettings: PlayerSettings) {
-        DataManager.instance.apiStreamType = playerSettings.preferredCdn
-        
         var dataString = ""
         do{
             let encoder = JSONEncoder()

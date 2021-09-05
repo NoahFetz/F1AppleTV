@@ -13,13 +13,15 @@ class DataManager: RequestInterceptor {
     static let instance = DataManager()
     var alamofireSession = Session.default
     
-    var apiStreamType = CredentialHelper.getPlayerSettings().preferredCdn
+    var apiStreamType = APIStreamType.BigScreenHLS
     let sessionId = "WEB-\(UUID().uuidString)"
     
     init() {
         let configuration = URLSessionConfiguration.af.default
         configuration.httpAdditionalHeaders = ["User-Agent" : "RaceControl"]
         self.alamofireSession = Session(configuration: configuration)
+        
+        self.apiStreamType = CredentialHelper.getPlayerSettings().preferredCdn
     }
     
     func loadAuthData(authRequest: AuthRequestDto, authDataLoadedProtocol: AuthDataLoadedProtocol) {

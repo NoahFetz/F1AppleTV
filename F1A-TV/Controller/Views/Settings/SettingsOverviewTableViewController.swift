@@ -79,10 +79,12 @@ class SettingsOverviewTableViewController: BaseTableViewController {
     override func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
         switch indexPath.section {
         case 0:
-            let selectedType = APIStreamType.init(rawValue: indexPath.row)
-            self.playerSettings.preferredCdn = selectedType ?? APIStreamType()
+            let selectedType = APIStreamType.init(rawValue: indexPath.row) ?? APIStreamType()
+            self.playerSettings.preferredCdn = selectedType
             
             CredentialHelper.setPlayerSettings(playerSettings: self.playerSettings)
+            DataManager.instance.apiStreamType = selectedType
+            
             self.tableView.reloadData()
             
         default:
