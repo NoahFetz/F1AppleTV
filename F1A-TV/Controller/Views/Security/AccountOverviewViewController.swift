@@ -31,17 +31,17 @@ class AccountOverviewViewController: BaseViewController {
     }
     
     func setupView() {
-        self.accountTitleLabel.text = NSLocalizedString("account_title", comment: "")
-        self.idTitleLabel.text = NSLocalizedString("account_id_title", comment: "")
-        self.nameTitleLabel.text = NSLocalizedString("account_name_title", comment: "")
-        self.emailTitleLabel.text = NSLocalizedString("account_email_title", comment: "")
-        self.countryTitleLabel.text = NSLocalizedString("account_country_title", comment: "")
-        self.subscriptionTitleLabel.text = NSLocalizedString("account_subscription_title", comment: "")
+        self.accountTitleLabel.text = "account_title".localizedString
+        self.idTitleLabel.text = "account_id_title".localizedString
+        self.nameTitleLabel.text = "account_name_title".localizedString
+        self.emailTitleLabel.text = "account_email_title".localizedString
+        self.countryTitleLabel.text = "account_country_title".localizedString
+        self.subscriptionTitleLabel.text = "account_subscription_title".localizedString
         
         self.logoutButton.removeTarget(nil, action: nil, for: .allEvents)
         
         if(CredentialHelper.instance.isLoginInformationCached()) {
-            self.logoutButton.setTitle(NSLocalizedString("logout_button_title", comment: ""), for: .normal)
+            self.logoutButton.setTitle("logout_button_title".localizedString, for: .normal)
             self.logoutButton.addTarget(self, action: #selector(self.logoutPressed), for: .primaryActionTriggered)
             
             let userInfo = CredentialHelper.instance.getUserInfo()
@@ -51,7 +51,7 @@ class AccountOverviewViewController: BaseViewController {
             self.countryValueLabel.text = (IsoCountryCodes.find(key: userInfo.country)?.flag ?? "") + (IsoCountryCodes.find(key: userInfo.country)?.name ?? "")
             self.subscriptionValueLabel.text = userInfo.authData.subscriptionStatus
         }else{
-            self.logoutButton.setTitle(NSLocalizedString("login_button_title", comment: ""), for: .normal)
+            self.logoutButton.setTitle("login_button_title".localizedString, for: .normal)
             self.logoutButton.addTarget(self, action: #selector(self.loginPressed), for: .primaryActionTriggered)
             self.idValueLabel.text = "-"
             self.nameValueLabel.text = "-"

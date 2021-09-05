@@ -14,6 +14,7 @@ class MenuSelectorTableViewController: BaseTableViewController {
     var showsViewController: PageOverviewCollectionViewController?
     var docsViewController: PageOverviewCollectionViewController?
     var accountViewController: AccountOverviewViewController?
+    var settingsViewController: SettingsOverviewTableViewController?
     
     var menuSwitchTimer: Timer!
     var selectedMenuItem = 0
@@ -36,21 +37,23 @@ class MenuSelectorTableViewController: BaseTableViewController {
     
     func setupTableView() {
         self.featuredViewController = self.getViewControllerWith(viewIdentifier: ConstantsUtil.pageOverviewCollectionViewController) as? PageOverviewCollectionViewController
-        self.featuredViewController?.initialize(pageUri: "/2.0/R/" + NSLocalizedString("api_endpoing_language_id", comment: "") + "/BIG_SCREEN_HLS/ALL/PAGE/395/F1_TV_Pro_Annual/2") //Home Uri
+        self.featuredViewController?.initialize(pageUri: "/2.0/R/" + "api_endpoing_language_id".localizedString + "/BIG_SCREEN_HLS/ALL/PAGE/395/F1_TV_Pro_Annual/2") //Home Uri
         
         self.currentSeasonViewController = self.getViewControllerWith(viewIdentifier: ConstantsUtil.pageOverviewCollectionViewController) as? PageOverviewCollectionViewController
-        self.currentSeasonViewController?.initialize(pageUri: "/2.0/R/" + NSLocalizedString("api_endpoing_language_id", comment: "") + "/BIG_SCREEN_HLS/ALL/PAGE/1510/F1_TV_Pro_Annual/2") //2021 Uri
+        self.currentSeasonViewController?.initialize(pageUri: "/2.0/R/" + "api_endpoing_language_id".localizedString + "/BIG_SCREEN_HLS/ALL/PAGE/1510/F1_TV_Pro_Annual/2") //2021 Uri
         
         self.archiveViewController = self.getViewControllerWith(viewIdentifier: ConstantsUtil.pageOverviewCollectionViewController) as? PageOverviewCollectionViewController
-        self.archiveViewController?.initialize(pageUri: "/2.0/R/" + NSLocalizedString("api_endpoing_language_id", comment: "") + "/BIG_SCREEN_HLS/ALL/PAGE/493/F1_TV_Pro_Annual/2") //Archive Uri
+        self.archiveViewController?.initialize(pageUri: "/2.0/R/" + "api_endpoing_language_id".localizedString + "/BIG_SCREEN_HLS/ALL/PAGE/493/F1_TV_Pro_Annual/2") //Archive Uri
         
         self.showsViewController = self.getViewControllerWith(viewIdentifier: ConstantsUtil.pageOverviewCollectionViewController) as? PageOverviewCollectionViewController
-        self.showsViewController?.initialize(pageUri: "/2.0/R/" + NSLocalizedString("api_endpoing_language_id", comment: "") + "/BIG_SCREEN_HLS/ALL/PAGE/410/F1_TV_Pro_Annual/2") //Shows Uri
+        self.showsViewController?.initialize(pageUri: "/2.0/R/" + "api_endpoing_language_id".localizedString + "/BIG_SCREEN_HLS/ALL/PAGE/410/F1_TV_Pro_Annual/2") //Shows Uri
         
         self.docsViewController = self.getViewControllerWith(viewIdentifier: ConstantsUtil.pageOverviewCollectionViewController) as? PageOverviewCollectionViewController
-        self.docsViewController?.initialize(pageUri: "/2.0/R/" + NSLocalizedString("api_endpoing_language_id", comment: "") + "/BIG_SCREEN_HLS/ALL/PAGE/413/F1_TV_Pro_Annual/2") //Docs Uri
+        self.docsViewController?.initialize(pageUri: "/2.0/R/" + "api_endpoing_language_id".localizedString + "/BIG_SCREEN_HLS/ALL/PAGE/413/F1_TV_Pro_Annual/2") //Docs Uri
         
         self.accountViewController = self.getViewControllerWith(viewIdentifier: ConstantsUtil.accountOverviewViewController) as? AccountOverviewViewController
+        
+        self.settingsViewController = SettingsOverviewTableViewController()
         
         self.splitViewController?.showDetailViewController(self.featuredViewController ?? UIViewController(), sender: self)
         
@@ -94,7 +97,7 @@ class MenuSelectorTableViewController: BaseTableViewController {
     }
 
     override func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
-        return 6
+        return 7
     }
 
     override func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
@@ -111,22 +114,25 @@ class MenuSelectorTableViewController: BaseTableViewController {
         
         switch indexPath.row {
         case 0:
-            menuTitleLabel.text = NSLocalizedString("featured_title", comment: "")
+            menuTitleLabel.text = "featured_title".localizedString
             
         case 1:
-            menuTitleLabel.text = Date().getYear() + " " + NSLocalizedString("race_seasons_header", comment: "")
+            menuTitleLabel.text = Date().getYear() + " " + "race_seasons_header".localizedString
             
         case 2:
-            menuTitleLabel.text = NSLocalizedString("archive_title", comment: "")
+            menuTitleLabel.text = "archive_title".localizedString
             
         case 3:
-            menuTitleLabel.text = NSLocalizedString("shows_title", comment: "")
+            menuTitleLabel.text = "shows_title".localizedString
             
         case 4:
-            menuTitleLabel.text = NSLocalizedString("docs_title", comment: "")
+            menuTitleLabel.text = "docs_title".localizedString
             
         case 5:
-            menuTitleLabel.text = NSLocalizedString("account_title", comment: "")
+            menuTitleLabel.text = "account_title".localizedString
+            
+        case 6:
+            menuTitleLabel.text = "settings_title".localizedString
             
         default:
             menuTitleLabel.text = ""
@@ -173,6 +179,9 @@ class MenuSelectorTableViewController: BaseTableViewController {
             case 5:
                 self.splitViewController?.showDetailViewController(self.accountViewController ?? UIViewController(), sender: self)
                 
+            case 6:
+                self.splitViewController?.showDetailViewController(self.settingsViewController ?? UIViewController(), sender: self)
+                
             default:
                 print("No action")
             }
@@ -182,7 +191,7 @@ class MenuSelectorTableViewController: BaseTableViewController {
     override func tableView(_ tableView: UITableView, viewForFooterInSection section: Int) -> UIView? {
         let disclaimerLabel = FontAdjustedUILabel()
         disclaimerLabel.font = UIFont(name: "Formula1-Display-Regular", size: 12)
-        disclaimerLabel.text = NSLocalizedString("disclaimer", comment: "")
+        disclaimerLabel.text = "disclaimer".localizedString
         disclaimerLabel.numberOfLines = 0
         disclaimerLabel.textAlignment = .center
         disclaimerLabel.backgroundShadow()

@@ -8,7 +8,7 @@
 import UIKit
 import AVKit
 
-class PlayerCollectionViewController: BaseCollectionViewController, UICollectionViewDelegateFlowLayout, StreamEntitlementLoadedProtocol, ChannelSelectionProtocol, ControlStripActionProtocol, FullscreenPlayerDismissedProtocol {
+class PlayerCollectionViewController: BaseCollectionViewController, UICollectionViewDelegateFlowLayout, StreamEntitlementLoadedProtocol, ChannelSelectionProtocol, ControlStripActionProtocol, FullscreenPlayerDismissedProtocol, PlayTimeReportedProtocol {
     var channelItems = [ContentItem]()
     var playerItems = [PlayerItem]()
     var lastFocusedPlayer: IndexPath?
@@ -18,6 +18,8 @@ class PlayerCollectionViewController: BaseCollectionViewController, UICollection
     var playerInfoViewController: PlayerInfoOverlayViewController?
     var channelSelectorViewController: ChannelSelectorOverlayViewController?
     var controlStripViewController: ControlStripOverlayViewController?
+    
+    var isFirstPlayer = true
     
     override func viewDidLoad() {
         super.viewDidLoad()
@@ -53,6 +55,12 @@ class PlayerCollectionViewController: BaseCollectionViewController, UICollection
         let swipeLeftRecognizer = UISwipeGestureRecognizer(target: self, action: #selector(self.swipeLeftRegognized))
         swipeLeftRecognizer.direction = .left
         self.collectionView.addGestureRecognizer(swipeLeftRecognizer)
+        
+        do {
+            try AVAudioSession.sharedInstance().setCategory(.playback, mode: .moviePlayback)
+        } catch(let error) {
+            print(error.localizedDescription)
+        }
     }
     
     func initialize(channelItems: [ContentItem]) {
@@ -217,7 +225,7 @@ class PlayerCollectionViewController: BaseCollectionViewController, UICollection
         if(self.playerItems.isEmpty) {
             let cell = collectionView.dequeueReusableCell(withReuseIdentifier: ConstantsUtil.noContentCollectionViewCell, for: indexPath) as! NoContentCollectionViewCell
             
-            cell.centerLabel.text = NSLocalizedString("multiplayer_no_channels_add_first", comment: "")
+            cell.centerLabel.text = "multiplayer_no_channels_add_first".localizedString
             
             return cell
         }
@@ -318,7 +326,13 @@ class PlayerCollectionViewController: BaseCollectionViewController, UICollection
                 usleep(500000)
                 
                 self.setPreferredChannelSettings(playerItem: playerItem)
-                self.syncAllPlayers(with: self.playerItems.first ?? PlayerItem())
+                
+                if let resumePlayHeadPosition = playerItem.contentItem.container.user?.resume?.playHeadPosition, self.isFirstPlayer {
+                    self.seekAllPlayersTo(time: Float64(resumePlayHeadPosition))
+                    self.isFirstPlayer = false
+                }else{
+                    self.syncAllPlayers(with: self.playerItems.first ?? PlayerItem())
+                }
             }
         }
     }
@@ -428,6 +442,8 @@ class PlayerCollectionViewController: BaseCollectionViewController, UICollection
     }
     
     func willCloseFocusedPlayer() {
+        self.reportCurrentPlayTime()
+        
         if(self.lastFocusedPlayer == nil) {
             return
         }
@@ -446,6 +462,8 @@ class PlayerCollectionViewController: BaseCollectionViewController, UICollection
     }
     
     func enterFullScreenPlayer() {
+        self.reportCurrentPlayTime()
+        
         if(self.lastFocusedPlayer == nil) {
             return
         }
@@ -463,18 +481,26 @@ class PlayerCollectionViewController: BaseCollectionViewController, UICollection
     }
     
     func playPausePlayer() {
+        self.reportCurrentPlayTime()
+        
         self.playPausePressed()
     }
     
     func rewindPlayer() {
+        self.reportCurrentPlayTime()
+        
         self.rewindAllPlayersBy(seconds: 15)
     }
     
     func forwardPlayer() {
+        self.reportCurrentPlayTime()
+        
         self.forwardAllPlayersBy(seconds: 15)
     }
     
     @objc func playPausePressed() {
+        self.reportCurrentPlayTime()
+        
         if let firstPlayer = self.playerItems.first {
             if(firstPlayer.player?.timeControlStatus == .paused){
                 print("Resuming playback after syncing all channels")
@@ -490,6 +516,8 @@ class PlayerCollectionViewController: BaseCollectionViewController, UICollection
     }
     
     @objc func menuPressed() {
+        self.reportCurrentPlayTime()
+        
         self.pauseAll()
         self.setPreferredDisplayCriteria(displayCriteria: nil)
         self.dismiss(animated: true)
@@ -600,5 +628,15 @@ class PlayerCollectionViewController: BaseCollectionViewController, UICollection
     func setPreferredDisplayCriteria(displayCriteria: AVDisplayCriteria?) {
         let displayNamager = UserInteractionHelper.instance.getKeyWindow().avDisplayManager
         displayNamager.preferredDisplayCriteria = displayCriteria
+    }
+    
+    func reportCurrentPlayTime() {
+        if let firstItem = self.playerItems.first ,let contentId = firstItem.contentItem.container.contentId, let contentSubType = firstItem.contentItem.container.metadata?.contentSubtype, let playerDuration = firstItem.player?.currentTime() {
+            DataManager.instance.reportContentPlayTime(reportingItem: PlayTimeReportingDto(contentId: contentId, contentSubType: contentSubType, playHeadPosition: Int(CMTimeGetSeconds(playerDuration)), timestamp: Int(Date().timeIntervalSince1970)), playTimeReportingProtocol: self)
+        }
+    }
+    
+    func didReportPlayTime() {
+        print("Successfully reported current play time")
     }
 }

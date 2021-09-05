@@ -13,6 +13,9 @@ class DataManager: RequestInterceptor {
     static let instance = DataManager()
     var alamofireSession = Session.default
     
+    var apiStreamType = CredentialHelper.getPlayerSettings().preferredCdn
+    let sessionId = "WEB-\(UUID().uuidString)"
+    
     init() {
         let configuration = URLSessionConfiguration.af.default
         configuration.httpAdditionalHeaders = ["User-Agent" : "RaceControl"]
@@ -60,7 +63,9 @@ class DataManager: RequestInterceptor {
     }
     
     func loadContentVideo(videoId: String, contentVideoProtocol: ContentVideoLoadedProtocol) {
-        self.alamofireSession.request("\(ConstantsUtil.apiUrl)/2.0/R/\(NSLocalizedString("api_endpoing_language_id", comment: ""))/BIG_SCREEN_HLS/ALL/CONTENT/VIDEO/\(videoId)/F1_TV_Pro_Annual/2", method: .get)
+        self.alamofireSession.request("\(ConstantsUtil.apiUrl)/2.0/R/\("api_endpoing_language_id".localizedString)/\(self.apiStreamType.getAPIKey())/ALL/CONTENT/VIDEO/\(videoId)/F1_TV_Pro_Annual/2",
+                                      method: .get,
+                                      headers: [HTTPHeader(name: "sessionid", value: self.sessionId), HTTPHeader(name: "entitlementtoken", value: CredentialHelper.instance.getUserInfo().sessionId), HTTPHeader(name: "ascendontoken", value: CredentialHelper.instance.getUserInfo().authData.subscriptionToken)])
             .validate()
             .responseDecodable(of: ApiResponseDto.self) { response in
                 
@@ -79,9 +84,9 @@ class DataManager: RequestInterceptor {
     }
     
     func loadStreamEntitlement(contentId: String, playerId: String = "", streamEntitlementLoadedProtocol: StreamEntitlementLoadedProtocol) {
-        self.alamofireSession.request("\(ConstantsUtil.apiUrl)/1.0/R/\(NSLocalizedString("api_endpoing_language_id", comment: ""))/BIG_SCREEN_HLS/ALL/\(contentId)",
+        self.alamofireSession.request("\(ConstantsUtil.apiUrl)/1.0/R/\("api_endpoing_language_id".localizedString)/\(self.apiStreamType.getAPIKey())/ALL/\(contentId)",
                                       method: .get,
-                                      headers: [HTTPHeader(name: "ascendontoken", value: CredentialHelper.instance.getUserInfo().authData.subscriptionToken)],
+                                      headers: [HTTPHeader(name: "sessionid", value: self.sessionId), HTTPHeader(name: "entitlementtoken", value: CredentialHelper.instance.getUserInfo().sessionId), HTTPHeader(name: "ascendontoken", value: CredentialHelper.instance.getUserInfo().authData.subscriptionToken)],
                                       interceptor: self)
             .validate()
             .responseDecodable(of: StreamEntitlementResultDto.self) { response in
@@ -114,6 +119,27 @@ class DataManager: RequestInterceptor {
                     self.handleAFError(afError: afError)
                 }
             }
+    }
+    
+    func reportContentPlayTime(reportingItem: PlayTimeReportingDto, playTimeReportingProtocol: PlayTimeReportedProtocol) {
+        self.alamofireSession.request("\(ConstantsUtil.apiUrl)/1.0/R/\("api_endpoing_language_id".localizedString)/\(self.apiStreamType.getAPIKey())/ALL/ACTION/PLAY",
+                                      method: .post,
+                                      parameters: reportingItem,
+                                      encoder: JSONParameterEncoder.default,
+                                      headers: [HTTPHeader(name: "sessionid", value: self.sessionId), HTTPHeader(name: "entitlementtoken", value: CredentialHelper.instance.getUserInfo().sessionId), HTTPHeader(name: "ascendontoken", value: CredentialHelper.instance.getUserInfo().authData.subscriptionToken)])
+            .validate()
+            .responseDecodable(of: PlayTimeReportingResultDto.self) { response in
+                
+            switch response.result {
+            case .success(let apiResponse):
+                print("Reporting result: \(apiResponse.resultCode)")
+                DispatchQueue.main.async {
+                    playTimeReportingProtocol.didReportPlayTime()                }
+                
+            case .failure(let afError):
+                self.handleAFError(afError: afError)
+            }
+        }
     }
     
     func adapt(_ urlRequest: URLRequest, for session: Session, completion: @escaping (Result<URLRequest, Error>) -> Void) {
@@ -202,6 +228,6 @@ class DataManager: RequestInterceptor {
         print(outputErrorMessage)
         print("Underlying error: \(String(describing: afError.underlyingError))")
         
-        SPAlert.present(title: NSLocalizedString("error", comment: ""), message: outputErrorMessage, preset: .error)
+        SPAlert.present(title: "error".localizedString, message: outputErrorMessage, preset: .error)
     }
 }

@@ -36,7 +36,7 @@ class UserInteractionHelper {
     func showAlert(title: String, message: String) {
         let alertController = UIAlertController(title: title, message: message, preferredStyle: .alert)
         
-        alertController.addAction(UIAlertAction(title: NSLocalizedString("close", comment: ""), style: .cancel, handler: { (UIAlertAction) in
+        alertController.addAction(UIAlertAction(title: "close".localizedString, style: .cancel, handler: { (UIAlertAction) in
             print("Cancelled")
         }))
         

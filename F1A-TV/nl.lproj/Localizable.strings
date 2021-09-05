@@ -35,6 +35,13 @@
 "account_no_subscription_title" = "Geen abonnement";
 "account_no_subscription_message" = "Er is geen actief abonnement gevonden. Log in of koop een abonnement op de website van F1TV";
 
+//Settings
+"settings_title" = "Instellingen";
+"settings_cdn_header" = "Content Delivery Network";
+"settings_cdn_footer" = "Als u buffering of slechte kwaliteit ervaart bij het ene CDN, kunt u het andere uitproberen.";
+"settings_cdn_big_screen_hls_provider_displayname" = "Akamai (Standaard)";
+"settings_cdn_web_hls_provider_displayname" = "CloudFront";
+
 //Pages
 "view_all" = "Bekijk alles";
 "featured_title" = "Aanbevolen";

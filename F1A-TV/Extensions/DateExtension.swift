@@ -270,6 +270,10 @@ extension String {
     var iso8601: Date? {
         return Formatter.Date.iso8601.date(from: self)
     }
+    
+    var localizedString: String {
+        return NSLocalizedString(self, comment: "")
+    }
 }
 
 extension TimeInterval{

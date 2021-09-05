@@ -48,7 +48,7 @@ class SideBarInfoViewController: BaseViewController {
         self.subtitleLabel.backgroundShadow()
         
         self.disclaimerLabel.font = UIFont(name: "Formula1-Display-Regular", size: 12)
-        self.disclaimerLabel.text = NSLocalizedString("disclaimer", comment: "")
+        self.disclaimerLabel.text = "disclaimer".localizedString
         self.disclaimerLabel.backgroundShadow()
         
         self.setupContentInfo()

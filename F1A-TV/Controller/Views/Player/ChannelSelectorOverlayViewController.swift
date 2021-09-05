@@ -69,7 +69,7 @@ class ChannelSelectorOverlayViewController: BaseViewController {
         titleLabel.font = UIFont(name: "Formula1-Display-Bold", size: 40)
         titleLabel.numberOfLines = 0
         titleLabel.textAlignment = .center
-        titleLabel.text = NSLocalizedString("multiplayer_channel_selector_add_channel_title", comment: "")
+        titleLabel.text = "multiplayer_channel_selector_add_channel_title".localizedString
         titleLabel.textColor = .white
         self.sideBarView?.addArrangedSubview(titleLabel)
         

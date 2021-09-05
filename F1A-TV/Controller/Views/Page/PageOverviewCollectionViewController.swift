@@ -71,7 +71,7 @@ class PageOverviewCollectionViewController: BaseCollectionViewController, UIColl
             
             heroSection.layoutType = ContainerLayoutType.fromIdentifier(identifier: contentContainer.layout ?? "")
             heroSection.container = contentContainer
-            heroSection.title = NSLocalizedString("featured_title", comment: "")
+            heroSection.title = "featured_title".localizedString
             
             for itemContainer in contentContainer.retrieveItems?.resultObj.containers ?? [ContainerDto]() {
                 heroSection.items.append(self.getContentItem(itemContainer: itemContainer))
@@ -151,7 +151,7 @@ class PageOverviewCollectionViewController: BaseCollectionViewController, UIColl
             if(!actionUrl.isEmpty && indexPath.row >= (self.contentSections?[indexPath.section].items.count ?? Int.max)) {
                 let cell = collectionView.dequeueReusableCell(withReuseIdentifier: ConstantsUtil.noContentCollectionViewCell, for: indexPath) as! NoContentCollectionViewCell
                 
-                cell.centerLabel.text = NSLocalizedString("view_all", comment: "")
+                cell.centerLabel.text = "view_all".localizedString
                 
                 return cell
             }
@@ -276,7 +276,7 @@ class PageOverviewCollectionViewController: BaseCollectionViewController, UIColl
             
             //Play the video
             if(!CredentialHelper.instance.isLoginInformationCached() || CredentialHelper.instance.getUserInfo().authData.subscriptionStatus != "active"){
-                UserInteractionHelper.instance.showError(title: NSLocalizedString("account_no_subscription_title", comment: ""), message: NSLocalizedString("account_no_subscription_message", comment: ""))
+                UserInteractionHelper.instance.showError(title: "account_no_subscription_title".localizedString, message: "account_no_subscription_message".localizedString)
                 return
             }
             
@@ -315,7 +315,7 @@ class PageOverviewCollectionViewController: BaseCollectionViewController, UIColl
     
     func didLoadVideo(contentVideo: ResultObjectDto) {
         if(!CredentialHelper.instance.isLoginInformationCached() || CredentialHelper.instance.getUserInfo().authData.subscriptionStatus != "active"){
-            UserInteractionHelper.instance.showError(title: NSLocalizedString("account_no_subscription_title", comment: ""), message: NSLocalizedString("account_no_subscription_message", comment: ""))
+            UserInteractionHelper.instance.showError(title: "account_no_subscription_title".localizedString, message: "account_no_subscription_message".localizedString)
             return
         }
         
@@ -328,20 +328,20 @@ class PageOverviewCollectionViewController: BaseCollectionViewController, UIColl
             }
             
             var mainChannelsSection = ContentSection()
-            mainChannelsSection.title = NSLocalizedString("main_channels_title", comment: "")
+            mainChannelsSection.title = "main_channels_title".localizedString
             
             var driverChannelsSection = ContentSection()
-            driverChannelsSection.title = NSLocalizedString("driver_channels_title", comment: "")
+            driverChannelsSection.title = "driver_channels_title".localizedString
             
             var channelItems = [ContentItem]()
             
             //Add the main feed manually
             var mainFeedMetadata = container.metadata
-            mainFeedMetadata?.title = NSLocalizedString("main_feed_title", comment: "")
+            mainFeedMetadata?.title = "main_feed_title".localizedString
             mainFeedMetadata?.emfAttributes?.videoType = ""
             mainFeedMetadata?.additionalStreams = nil
             mainFeedMetadata?.channelType = .MainFeed
-            let mainFeedChannel = ContentItem(objectType: .Video, container: ContainerDto(layout: "CONTENT_ITEM", actions: nil, properties: container.properties, metadata: mainFeedMetadata, bundles: nil, categories: nil, platformVariants: container.platformVariants, retrieveItems: nil, contentId: container.metadata?.contentId ?? 0, suggest: container.suggest, platformName: container.platformName, eventName: nil, events: nil))
+            let mainFeedChannel = ContentItem(objectType: .Video, container: ContainerDto(layout: "CONTENT_ITEM", actions: nil, properties: container.properties, metadata: mainFeedMetadata, bundles: nil, categories: nil, platformVariants: container.platformVariants, retrieveItems: nil, contentId: container.metadata?.contentId ?? 0, suggest: container.suggest, platformName: container.platformName, eventName: nil, events: nil, user: container.user))
             channelItems.append(mainFeedChannel)
             
             for additionalChannel in container.metadata?.additionalStreams ?? [AdditionalStreamDto]() {
@@ -355,13 +355,13 @@ class PageOverviewCollectionViewController: BaseCollectionViewController, UIColl
                 case "additional":
                     switch additionalChannel.title {
                     case "TRACKER":
-                        additionalChannelMetadata?.title = NSLocalizedString("tracker_feed_title", comment: "")
+                        additionalChannelMetadata?.title = "tracker_feed_title".localizedString
                         
                     case "PIT LANE":
-                        additionalChannelMetadata?.title = NSLocalizedString("pit_lane_feed_title", comment: "")
+                        additionalChannelMetadata?.title = "pit_lane_feed_title".localizedString
                         
                     case "DATA":
-                        additionalChannelMetadata?.title = NSLocalizedString("data_feed_title", comment: "")
+                        additionalChannelMetadata?.title = "data_feed_title".localizedString
                         
                     default:
                         additionalChannelMetadata?.title = additionalChannel.title
@@ -369,7 +369,7 @@ class PageOverviewCollectionViewController: BaseCollectionViewController, UIColl
                     
                     additionalChannelMetadata?.channelType = .AdditionalFeed
                     
-                    let additionalFeedChannel = ContentItem(objectType: .Video, container: ContainerDto(layout: "CONTENT_ITEM", actions: nil, properties: container.properties, metadata: additionalChannelMetadata, bundles: nil, categories: nil, platformVariants: container.platformVariants, retrieveItems: nil, contentId: container.metadata?.contentId ?? 0, suggest: container.suggest, platformName: container.platformName, eventName: nil, events: nil))
+                    let additionalFeedChannel = ContentItem(objectType: .Video, container: ContainerDto(layout: "CONTENT_ITEM", actions: nil, properties: container.properties, metadata: additionalChannelMetadata, bundles: nil, categories: nil, platformVariants: container.platformVariants, retrieveItems: nil, contentId: container.metadata?.contentId ?? 0, suggest: container.suggest, platformName: container.platformName, eventName: nil, events: nil, user: container.user))
                     channelItems.append(additionalFeedChannel)
                     
                 case "obc":
@@ -377,11 +377,20 @@ class PageOverviewCollectionViewController: BaseCollectionViewController, UIColl
                     if(driverName == "Nikita Mazepin") {
                         driverName = "Nikita Mazes🅱️in"
                     }
+                    
+                    if(driverName == "Lewis Hamilton") {
+                        driverName = "Sir Lewis #blessed Hamilton"
+                    }
+                    
+                    if(driverName == "Max Verstappen") {
+                        driverName = "Max Max Max Super Max Verstappen"
+                    }
+                    
                     additionalChannelMetadata?.title = driverName
                     
                     additionalChannelMetadata?.channelType = .OnBoardCamera
                     
-                    let additionalFeedChannel = ContentItem(objectType: .Video, container: ContainerDto(layout: "CONTENT_ITEM", actions: nil, properties: container.properties, metadata: additionalChannelMetadata, bundles: nil, categories: nil, platformVariants: container.platformVariants, retrieveItems: nil, contentId: container.metadata?.contentId ?? 0, suggest: container.suggest, platformName: container.platformName, eventName: nil, events: nil))
+                    let additionalFeedChannel = ContentItem(objectType: .Video, container: ContainerDto(layout: "CONTENT_ITEM", actions: nil, properties: container.properties, metadata: additionalChannelMetadata, bundles: nil, categories: nil, platformVariants: container.platformVariants, retrieveItems: nil, contentId: container.metadata?.contentId ?? 0, suggest: container.suggest, platformName: container.platformName, eventName: nil, events: nil, user: container.user))
                     channelItems.append(additionalFeedChannel)
                     
                 default:

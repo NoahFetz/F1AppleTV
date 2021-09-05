@@ -34,6 +34,13 @@
 "account_no_subscription_title" = "Sin subscripción";
 "account_no_subscription_message" = "No se encontró ninguna suscripción activa. Inicie sesión o compre una suscripción en el sitio web de F1TV";
 
+//Settings
+"settings_title" = "Ajustes";
+"settings_cdn_header" = "Content Delivery Network";
+"settings_cdn_footer" = "Si experimenta almacenamiento en búfer o mala calidad con una CDN, puede probar la otra.";
+"settings_cdn_big_screen_hls_provider_displayname" = "Akamai (Defecto)";
+"settings_cdn_web_hls_provider_displayname" = "CloudFront";
+
 //Pages
 "view_all" = "Ver todo";
 "featured_title" = "Destacado";

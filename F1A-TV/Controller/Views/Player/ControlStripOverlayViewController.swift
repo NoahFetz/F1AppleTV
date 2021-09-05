@@ -337,7 +337,7 @@ class ControlStripOverlayViewController: BaseViewController {
     }
     
     func showLanguageSelectMenu() {
-        let alertController = UIAlertController(title: NSLocalizedString("select", comment: ""), message: nil, preferredStyle: .alert)
+        let alertController = UIAlertController(title: "select".localizedString, message: nil, preferredStyle: .alert)
         
         for language in self.playerItem?.playerItem?.tracks(type: .audio) ?? [MediaTrackDto]() {
             alertController.addAction(UIAlertAction(title: language.displayName, style: .default, handler: { (UIAlertAction) in
@@ -348,7 +348,7 @@ class ControlStripOverlayViewController: BaseViewController {
             }))
         }
         
-        alertController.addAction(UIAlertAction(title: NSLocalizedString("cancel", comment: ""), style: .cancel, handler: { (UIAlertAction) in
+        alertController.addAction(UIAlertAction(title: "cancel".localizedString, style: .cancel, handler: { (UIAlertAction) in
             print("Cancelled")
         }))
         
@@ -363,7 +363,7 @@ class ControlStripOverlayViewController: BaseViewController {
     }
     
     func showCaptionSelectMenu() {
-        let alertController = UIAlertController(title: NSLocalizedString("select", comment: ""), message: nil, preferredStyle: .alert)
+        let alertController = UIAlertController(title: "select".localizedString, message: nil, preferredStyle: .alert)
         
         for captions in self.playerItem?.playerItem?.tracks(type: .subtitle) ?? [MediaTrackDto]() {
             alertController.addAction(UIAlertAction(title: captions.displayName, style: .default, handler: { (UIAlertAction) in
@@ -374,7 +374,7 @@ class ControlStripOverlayViewController: BaseViewController {
             }))
         }
         
-        alertController.addAction(UIAlertAction(title: NSLocalizedString("cancel", comment: ""), style: .cancel, handler: { (UIAlertAction) in
+        alertController.addAction(UIAlertAction(title: "cancel".localizedString, style: .cancel, handler: { (UIAlertAction) in
             print("Cancelled")
         }))
         

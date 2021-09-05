@@ -22,11 +22,12 @@ struct ContainerDto: Codable {
     var platformName: String?
     var eventName: String?
     var events: [ContainerDto]?
+    var user: UserDto?
 
     init() {
     }
     
-    init(layout: String?, actions: [ActionDto]?, properties: [PropertyDto]?, metadata: MetadataDto?, bundles: [BundleDto]?, categories: [CategoryDto]?, platformVariants: [PlatformVariantDto]?, retrieveItems: RetrieveItemsDto?, contentId: Int?, suggest: SuggestDto?, platformName: String?, eventName: String?, events: [ContainerDto]?) {
+    init(layout: String?, actions: [ActionDto]?, properties: [PropertyDto]?, metadata: MetadataDto?, bundles: [BundleDto]?, categories: [CategoryDto]?, platformVariants: [PlatformVariantDto]?, retrieveItems: RetrieveItemsDto?, contentId: Int?, suggest: SuggestDto?, platformName: String?, eventName: String?, events: [ContainerDto]?, user: UserDto?) {
         self.layout = layout
         self.actions = actions
         self.properties = properties
@@ -40,6 +41,7 @@ struct ContainerDto: Codable {
         self.platformName = platformName
         self.eventName = eventName
         self.events = events
+        self.user = user
     }
     
     enum CodingKeys: String, CodingKey {
@@ -56,5 +58,6 @@ struct ContainerDto: Codable {
         case platformName = "platformName"
         case eventName = "eventName"
         case events = "events"
+        case user = "user"
     }
 }

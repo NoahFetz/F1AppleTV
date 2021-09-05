@@ -8,20 +8,23 @@
 import UIKit
 
 class BaseTableViewController: UITableViewController {
-
-    var tableHeaderActivitySpinner = [Int:UIActivityIndicatorView]()
     var tableHeaderTextLabels = [Int:UILabel]()
     var tableFooterTextLabels = [Int:UILabel]()
     
     override func viewDidLoad() {
         super.viewDidLoad()
         self.registerTableViewCells()
-//        self.tableView.backgroundColor = ConstantsUtil.brandingBackgroundColor
     }
     
     func registerTableViewCells() {
+        self.registerCell(identifier: ConstantsUtil.templateTableViewCell)
+        self.registerCell(identifier: ConstantsUtil.noContentTableViewCell)
         self.tableView.register(UINib(nibName: ConstantsUtil.templateTableViewCell, bundle: nil), forCellReuseIdentifier: ConstantsUtil.templateTableViewCell)
         self.tableView.register(UINib(nibName: ConstantsUtil.noContentTableViewCell, bundle: nil), forCellReuseIdentifier: ConstantsUtil.noContentTableViewCell)
+    }
+    
+    func registerCell(identifier: String) {
+        self.tableView.register(UINib(nibName: identifier, bundle: nil), forCellReuseIdentifier: identifier)
     }
     
     func setTitle(title: String) {
@@ -40,38 +43,20 @@ class BaseTableViewController: UITableViewController {
         
         //Set the title text
         header.textLabel?.font = UIFont.boldSystemFont(ofSize: 54)
+        header.textLabel?.textColor = .white
         header.textLabel?.text = self.tableView(self.tableView, titleForHeaderInSection: section)
         self.tableHeaderTextLabels[section] = header.textLabel
-        
-        //Add a spinner to every section
-        let headerSpinner = UIActivityIndicatorView(frame: CGRect(x: (header.textLabel?.intrinsicContentSize.width)! + header.frame.minX + 24, y: 27, width: 20, height: 20))
-        
-        headerSpinner.style = .medium
-        
-        headerSpinner.hidesWhenStopped = true
-        header.addSubview(headerSpinner)
-        self.tableHeaderActivitySpinner[section] = headerSpinner
     }
     
     override func tableView(_ tableView: UITableView, willDisplayFooterView view: UIView, forSection section: Int) {
-        guard let header = view as? UITableViewHeaderFooterView else { return }
+        guard let footer = view as? UITableViewHeaderFooterView else { return }
         
         //Set the title text
-        header.textLabel?.font = UIFont.systemFont(ofSize: 54)
-        header.textLabel?.text = self.tableView(self.tableView, titleForFooterInSection: section)
-        self.tableFooterTextLabels[section] = header.textLabel
-    }
-    
-    func startHeaderSpinner(section: Int) {
-        DispatchQueue.main.async {
-            self.tableHeaderActivitySpinner[section]?.startAnimating()
-        }
-    }
-    
-    func stopHeaderSpinner(section: Int) {
-        DispatchQueue.main.async {
-            self.tableHeaderActivitySpinner[section]?.stopAnimating()
-        }
+        footer.textLabel?.font = UIFont.systemFont(ofSize: 18)
+        footer.textLabel?.textColor = .white
+        footer.textLabel?.numberOfLines = 0
+        footer.textLabel?.text = self.tableView(self.tableView, titleForFooterInSection: section)
+        self.tableFooterTextLabels[section] = footer.textLabel
     }
     
     func getRoundedCorners(indexPath: IndexPath) -> UIRectCorner {
@@ -85,5 +70,11 @@ class BaseTableViewController: UITableViewController {
             corners.update(with: [.bottomLeft, .bottomRight])
         }
         return corners
+    }
+    
+    func getDefaultNoContentTableViewCell(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> NoContentTableViewCell {
+        let cell = tableView.dequeueReusableCell(withIdentifier: ConstantsUtil.noContentTableViewCell, for: indexPath) as! NoContentTableViewCell
+        cell.centerLabel.text = "No content found"
+        return cell
     }
 }

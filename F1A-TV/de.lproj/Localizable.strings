@@ -34,6 +34,13 @@
 "account_no_subscription_title" = "Kein Abonnement";
 "account_no_subscription_message" = "Es konnte kein aktives Abonnement gefunden werden. Bitte melde dich an, oder kaufe ein Abonnement auf der F1TV Webseite";
 
+//Settings
+"settings_title" = "Einstellungen";
+"settings_cdn_header" = "Content Delivery Network";
+"settings_cdn_footer" = "Falls der Stream stockt oder die Qualität schlecht ist, kannst du ein anderes CDN ausprobieren.";
+"settings_cdn_big_screen_hls_provider_displayname" = "Akamai (Standard)";
+"settings_cdn_web_hls_provider_displayname" = "CloudFront";
+
 //Pages
 "view_all" = "Alle ansehen";
 "featured_title" = "Featured";

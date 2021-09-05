@@ -27,10 +27,10 @@ class LoginViewController: BaseViewController, AuthDataLoadedProtocol {
         self.emailTextField.font = UIFont(name: "Titillium-Regular", size: 38)
         self.passwordTextField.font = UIFont(name: "Titillium-Regular", size: 38)
         
-        self.loginTitleLabel.text = NSLocalizedString("login_title", comment: "")
-        self.emailTitleLabel.text = NSLocalizedString("login_email_title", comment: "")
-        self.passwordTitleLabel.text = NSLocalizedString("login_password_title", comment: "")
-        self.loginButton.setTitle(NSLocalizedString("login_button_title", comment: ""), for: .normal)
+        self.loginTitleLabel.text = "login_title".localizedString
+        self.emailTitleLabel.text = "login_email_title".localizedString
+        self.passwordTitleLabel.text = "login_password_title".localizedString
+        self.loginButton.setTitle("login_button_title".localizedString, for: .normal)
         self.loginButton.addTarget(self, action: #selector(self.loginButtonPressed), for: .primaryActionTriggered)
         
         self.emailTextField.text = CredentialHelper.instance.getUserInfo().subscriber.email

@@ -8,17 +8,18 @@
 import UIKit
 
 class BaseCollectionViewController: UICollectionViewController {
-
     override func viewDidLoad() {
         super.viewDidLoad()
         
         self.collectionView.register(UINib(nibName: ConstantsUtil.customHeaderCollectionReusableView, bundle: nil), forSupplementaryViewOfKind: UICollectionView.elementKindSectionHeader, withReuseIdentifier: ConstantsUtil.customHeaderCollectionReusableView)
-        self.collectionView.register(UICollectionViewCell.self, forCellWithReuseIdentifier: ConstantsUtil.basicCollectionViewCell)
-        self.collectionView.register(UINib(nibName: ConstantsUtil.thumbnailTitleSubtitleCollectionViewCell, bundle: nil), forCellWithReuseIdentifier: ConstantsUtil.thumbnailTitleSubtitleCollectionViewCell)
-        self.collectionView.register(UINib(nibName: ConstantsUtil.noContentCollectionViewCell, bundle: nil), forCellWithReuseIdentifier: ConstantsUtil.noContentCollectionViewCell)
-        self.collectionView.register(UINib(nibName: ConstantsUtil.channelPlayerCollectionViewCell, bundle: nil), forCellWithReuseIdentifier: ConstantsUtil.channelPlayerCollectionViewCell)
-        
-//        self.collectionView.backgroundColor = ConstantsUtil.brandingBackgroundColor
+        self.registerCell(identifier: ConstantsUtil.basicCollectionViewCell)
+        self.registerCell(identifier: ConstantsUtil.thumbnailTitleSubtitleCollectionViewCell)
+        self.registerCell(identifier: ConstantsUtil.noContentCollectionViewCell)
+        self.registerCell(identifier: ConstantsUtil.channelPlayerCollectionViewCell)
+    }
+    
+    func registerCell(identifier: String) {
+        self.collectionView.register(UINib(nibName: identifier, bundle: nil), forCellWithReuseIdentifier: identifier)
     }
     
     func setTitle(title: String) {

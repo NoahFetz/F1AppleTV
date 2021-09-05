@@ -22,9 +22,9 @@ class CustomTabBarController: UITabBarController {
     }
     
     func setupTabItems() {
-        self.tabBar.items?[0].title = NSLocalizedString("featured_title", comment: "")
-        self.tabBar.items?[1].title = NSLocalizedString("archive_title", comment: "")
-        self.tabBar.items?[2].title = NSLocalizedString("account_title", comment: "")
+        self.tabBar.items?[0].title = "featured_title".localizedString
+        self.tabBar.items?[1].title = "archive_title".localizedString
+        self.tabBar.items?[2].title = "account_title".localizedString
     }
     
     override func traitCollectionDidChange(_ previousTraitCollection: UITraitCollection?) {
