@@ -73,6 +73,7 @@ jobs:
         
     - name: Xcodebuild Archive & Export & Sign
       env:
+        DEVELOPER_DIR: /Applications/Xcode_13.0.app/Contents/Developer
         ARCHIVE_PATH: ${{ github.workspace }}/archive/F1A-TV.xcarchive
         EXPORT_PATH: ${{ github.workspace }}/export/F1A-TV
         IPA_PATH: ${{ github.workspace }}/export/F1A-TV/F1A-TV.ipa
