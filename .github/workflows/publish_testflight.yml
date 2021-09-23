@@ -1,12 +1,13 @@
 name: Testflight Deploy
 
 on:
-  push:
-    branches: [ master ]
+  workflow_dispatch:
+  #push:
+    #branches: [ master ]
 
 jobs:
   build:
-    runs-on: macos-latest
+    runs-on: macos-11
 
     steps:
     - uses: actions/checkout@v2
@@ -73,6 +74,7 @@ jobs:
         
     - name: Xcodebuild Archive & Export & Sign
       env:
+        DEVELOPER_DIR: /Applications/Xcode_13.0.app/Contents/Developer
         ARCHIVE_PATH: ${{ github.workspace }}/archive/F1A-TV.xcarchive
         EXPORT_PATH: ${{ github.workspace }}/export/F1A-TV
         IPA_PATH: ${{ github.workspace }}/export/F1A-TV/F1A-TV.ipa
@@ -80,7 +82,7 @@ jobs:
       run: |
         /usr/bin/xcodebuild -project F1A-TV.xcodeproj -scheme F1A-TV archive -configuration Release -archivePath $ARCHIVE_PATH CODE_SIGNING_ALLOWED=NO
         /usr/bin/xcodebuild -exportArchive -archivePath $ARCHIVE_PATH -exportPath $EXPORT_PATH -exportOptionsPlist _XcodeTaskExportOptions.plist
-        fastlane sigh resign $IPA_PATH --signing_identity $signing_identity -p "/Users/runner/Library/MobileDevice/Provisioning Profiles/05931e23-2847-4cd7-85a2-40143617ab3b.mobileprovision" --verbose
+        fastlane sigh resign $IPA_PATH --signing_identity $signing_identity -p "/Users/runner/Library/MobileDevice/Provisioning Profiles/9c12fdff-95b8-4685-a803-0e062acc0e47.mobileprovision" --verbose
        
     - name: Upload a Build Artifact
       uses: actions/upload-artifact@v2
