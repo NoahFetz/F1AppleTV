@@ -21,6 +21,7 @@ struct ConstantsUtil {
     static let identityProvider = "/api/identity-providers/iden_732298a17f9c458890a1877880d140f3/"
     static let tokenUrl = "https://f1tv-api.formula1.com/agl/1.0/unk/en/all_devices/global/authenticate"
     static let apiUrl = "https://f1tv.formula1.com"
+    static let imageResizerUrl = "https://f1tv.formula1.com/image-resizer/image"
     
     static let thumnailCardHeightMultiplier: CGFloat = 0.90
     

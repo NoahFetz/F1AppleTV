@@ -106,11 +106,10 @@ class ThumbnailTitleSubtitleCollectionViewCell: BaseCollectionViewCell {
     }
     
     func applyImage(pictureId: String, imageView: UIImageView) {
-        var newApiUrlString = "https://ott.formula1.com/image-resizer/image/"
-        newApiUrlString.append(pictureId)
-        newApiUrlString.append("?w=1920&h=1080&q=HI&o=L")
-        
-        self.applyImage(imageUrl: newApiUrlString, imageView: imageView)
+        let width = 1920
+        let height = 1080
+        let imageUrl = "\(ConstantsUtil.imageResizerUrl)/\(pictureId)?w=\(width)&h=\(height)&q=HI&o=L"
+        self.applyImage(imageUrl: imageUrl, imageView: imageView)
     }
     
     func applyImage(countryId: String, imageView: UIImageView) {

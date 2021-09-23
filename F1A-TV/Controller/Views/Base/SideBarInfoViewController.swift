@@ -142,11 +142,8 @@ class SideBarInfoViewController: BaseViewController {
         let width = UIScreen.main.nativeBounds.width
         let height = UIScreen.main.nativeBounds.height
         
-        var newApiUrlString = "https://ott.formula1.com/image-resizer/image/"
-        newApiUrlString.append(pictureId)
-        newApiUrlString.append("?w=\(width)&h=\(height)&q=HI&o=L")
-        
-        self.applyImage(imageUrl: newApiUrlString, imageView: imageView, crop: true)
+        let imageUrl = "\(ConstantsUtil.imageResizerUrl)/\(pictureId)?w=\(width)&h=\(height)&q=HI&o=L"
+        self.applyImage(imageUrl: imageUrl, imageView: imageView, crop: true)
     }
     
     func applyImage(countryId: String, imageView: UIImageView) {

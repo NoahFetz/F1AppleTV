@@ -51,11 +51,8 @@ class BaseSplitViewController: UISplitViewController {
         let width = UIScreen.main.nativeBounds.width
         let height = UIScreen.main.nativeBounds.height
         
-        var newApiUrlString = "https://ott.formula1.com/image-resizer/image/"
-        newApiUrlString.append(pictureId)
-        newApiUrlString.append("?w=\(width)&h=\(height)&q=HI&o=L")
-        
-        self.applyImage(imageUrl: newApiUrlString, imageView: imageView)
+        let imageUrl = "\(ConstantsUtil.imageResizerUrl)/\(pictureId)?w=\(width)&h=\(height)&q=HI&o=L"
+        self.applyImage(imageUrl: imageUrl, imageView: imageView)
     }
     
     func applyImage(imageUrl: String, imageView: UIImageView) {
