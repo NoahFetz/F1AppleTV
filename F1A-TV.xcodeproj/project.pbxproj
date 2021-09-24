@@ -75,6 +75,7 @@
 		1B8DEF0C25FC2209004780B9 /* SuggestDto.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1B8DEF0B25FC2209004780B9 /* SuggestDto.swift */; };
 		1B8DEF0E25FC2257004780B9 /* TechnicalPackageDto.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1B8DEF0D25FC2257004780B9 /* TechnicalPackageDto.swift */; };
 		1B93FDFC26222B680017AC97 /* AVPlayerItemExtension.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1B93FDFB26222B680017AC97 /* AVPlayerItemExtension.swift */; };
+		1B9A429E26FE0B86008049B2 /* APILanguageType.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1B9A429D26FE0B86008049B2 /* APILanguageType.swift */; };
 		1B9F8B68261C9E000020AC55 /* ChannelSelectorOverlayViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1B9F8B67261C9E000020AC55 /* ChannelSelectorOverlayViewController.swift */; };
 		1B9F8B70261CE5640020AC55 /* NoContentTableViewCell.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1B9F8B6E261CE5640020AC55 /* NoContentTableViewCell.swift */; };
 		1B9F8B71261CE5640020AC55 /* NoContentTableViewCell.xib in Resources */ = {isa = PBXBuildFile; fileRef = 1B9F8B6F261CE5640020AC55 /* NoContentTableViewCell.xib */; };
@@ -237,6 +238,7 @@
 		1B8DEF0B25FC2209004780B9 /* SuggestDto.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SuggestDto.swift; sourceTree = "<group>"; };
 		1B8DEF0D25FC2257004780B9 /* TechnicalPackageDto.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TechnicalPackageDto.swift; sourceTree = "<group>"; };
 		1B93FDFB26222B680017AC97 /* AVPlayerItemExtension.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AVPlayerItemExtension.swift; sourceTree = "<group>"; };
+		1B9A429D26FE0B86008049B2 /* APILanguageType.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = APILanguageType.swift; sourceTree = "<group>"; };
 		1B9F8B67261C9E000020AC55 /* ChannelSelectorOverlayViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ChannelSelectorOverlayViewController.swift; sourceTree = "<group>"; };
 		1B9F8B6E261CE5640020AC55 /* NoContentTableViewCell.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NoContentTableViewCell.swift; sourceTree = "<group>"; };
 		1B9F8B6F261CE5640020AC55 /* NoContentTableViewCell.xib */ = {isa = PBXFileReference; lastKnownFileType = file.xib; path = NoContentTableViewCell.xib; sourceTree = "<group>"; };
@@ -497,6 +499,7 @@
 				1BF18CDD25FCED0B00BF3854 /* ContentObjectType.swift */,
 				1B9F8B74261CEF0B0020AC55 /* ChannelType.swift */,
 				1BE7BA8926E3FD2F008AFDDC /* APIStreamType.swift */,
+				1B9A429D26FE0B86008049B2 /* APILanguageType.swift */,
 			);
 			path = Enum;
 			sourceTree = "<group>";
@@ -900,6 +903,7 @@
 				1B8DEF0825FC1F43004780B9 /* ResultObjectDto.swift in Sources */,
 				1BB29C282544790D00ECC074 /* TokenRequestDto.swift in Sources */,
 				1BB29C3325449A8800ECC074 /* UIViewControllerExtension.swift in Sources */,
+				1B9A429E26FE0B86008049B2 /* APILanguageType.swift in Sources */,
 				1BC656AC25F6B0FC0025CA1D /* ThumbnailTitleSubtitleCollectionViewCell.swift in Sources */,
 				1BC3458C25FC058E00496671 /* CategoryDto.swift in Sources */,
 				1BF18CDE25FCED0B00BF3854 /* ContentObjectType.swift in Sources */,
@@ -1164,7 +1168,7 @@
 				CODE_SIGN_ENTITLEMENTS = "F1A-TV/F1A-TV.entitlements";
 				CODE_SIGN_IDENTITY = "Apple Development";
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 21.0923.1;
+				CURRENT_PROJECT_VERSION = 21.0924.1;
 				DEVELOPMENT_TEAM = 8SW735FL99;
 				INFOPLIST_FILE = "$(SRCROOT)/F1A-TV/Info.plist";
 				LD_RUNPATH_SEARCH_PATHS = (
@@ -1191,7 +1195,7 @@
 				CODE_SIGN_ENTITLEMENTS = "F1A-TV/F1A-TV.entitlements";
 				CODE_SIGN_IDENTITY = "Apple Development";
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 21.0923.1;
+				CURRENT_PROJECT_VERSION = 21.0924.1;
 				DEVELOPMENT_TEAM = 8SW735FL99;
 				INFOPLIST_FILE = "$(SRCROOT)/F1A-TV/Info.plist";
 				LD_RUNPATH_SEARCH_PATHS = (

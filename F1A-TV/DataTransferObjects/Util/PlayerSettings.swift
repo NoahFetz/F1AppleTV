@@ -14,6 +14,7 @@ struct PlayerSettings: Codable, Identifiable {
     var preferredChannelVolume: [Int:Float]
     var preferredChannelMute: [Int:Bool]
     var preferredCdn: APIStreamType
+    var preferredApiLanguage: APILanguageType
     
     init() {
         self.id = UUID().uuidString
@@ -21,7 +22,8 @@ struct PlayerSettings: Codable, Identifiable {
         self.preferredChannelCaptions = [Int:String]()
         self.preferredChannelVolume = [Int:Float]()
         self.preferredChannelMute = [Int:Bool]()
-        self.preferredCdn = APIStreamType.BigScreenHLS
+        self.preferredCdn = APIStreamType()
+        self.preferredApiLanguage = APILanguageType()
         
         for channelType in ChannelType.allCases {
             self.setPreferredLanugage(for: channelType, language: nil)
@@ -31,13 +33,14 @@ struct PlayerSettings: Codable, Identifiable {
         }
     }
     
-    init(id: String, preferredChannelLanguage: [Int:String?], preferredChannelCaptions: [Int:String?], preferredChannelVolume: [Int:Float], preferredChannelMute: [Int:Bool], preferredCdn: APIStreamType) {
+    init(id: String, preferredChannelLanguage: [Int:String?], preferredChannelCaptions: [Int:String?], preferredChannelVolume: [Int:Float], preferredChannelMute: [Int:Bool], preferredCdn: APIStreamType, preferredApiLanguage: APILanguageType) {
         self.id = id
         self.preferredChannelLanguage = preferredChannelLanguage
         self.preferredChannelCaptions = preferredChannelCaptions
         self.preferredChannelVolume = preferredChannelVolume
         self.preferredChannelMute = preferredChannelMute
         self.preferredCdn = preferredCdn
+        self.preferredApiLanguage = preferredApiLanguage
     }
     
     func getPreferredLanguage(for channelType: ChannelType) -> String? {

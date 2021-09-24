@@ -37,19 +37,19 @@ class MenuSelectorTableViewController: BaseTableViewController {
     
     func setupTableView() {
         self.featuredViewController = self.getViewControllerWith(viewIdentifier: ConstantsUtil.pageOverviewCollectionViewController) as? PageOverviewCollectionViewController
-        self.featuredViewController?.initialize(pageUri: "/2.0/R/" + "api_endpoing_language_id".localizedString + "/BIG_SCREEN_HLS/ALL/PAGE/395/F1_TV_Pro_Annual/2") //Home Uri
+        self.featuredViewController?.initialize(pageUri: "/2.0/R/\(DataManager.instance.apiLanguage.getAPIKey())/\(DataManager.instance.apiStreamType.getAPIKey())/ALL/PAGE/395/F1_TV_Pro_Annual/2") //Home Uri
         
         self.currentSeasonViewController = self.getViewControllerWith(viewIdentifier: ConstantsUtil.pageOverviewCollectionViewController) as? PageOverviewCollectionViewController
-        self.currentSeasonViewController?.initialize(pageUri: "/2.0/R/" + "api_endpoing_language_id".localizedString + "/BIG_SCREEN_HLS/ALL/PAGE/1510/F1_TV_Pro_Annual/2") //2021 Uri
+        self.currentSeasonViewController?.initialize(pageUri: "/2.0/R/\(DataManager.instance.apiLanguage.getAPIKey())/\(DataManager.instance.apiStreamType.getAPIKey())/ALL/PAGE/1510/F1_TV_Pro_Annual/2") //2021 Uri
         
         self.archiveViewController = self.getViewControllerWith(viewIdentifier: ConstantsUtil.pageOverviewCollectionViewController) as? PageOverviewCollectionViewController
-        self.archiveViewController?.initialize(pageUri: "/2.0/R/" + "api_endpoing_language_id".localizedString + "/BIG_SCREEN_HLS/ALL/PAGE/493/F1_TV_Pro_Annual/2") //Archive Uri
+        self.archiveViewController?.initialize(pageUri: "/2.0/R/\(DataManager.instance.apiLanguage.getAPIKey())/\(DataManager.instance.apiStreamType.getAPIKey())/ALL/PAGE/493/F1_TV_Pro_Annual/2") //Archive Uri
         
         self.showsViewController = self.getViewControllerWith(viewIdentifier: ConstantsUtil.pageOverviewCollectionViewController) as? PageOverviewCollectionViewController
-        self.showsViewController?.initialize(pageUri: "/2.0/R/" + "api_endpoing_language_id".localizedString + "/BIG_SCREEN_HLS/ALL/PAGE/410/F1_TV_Pro_Annual/2") //Shows Uri
+        self.showsViewController?.initialize(pageUri: "/2.0/R/\(DataManager.instance.apiLanguage.getAPIKey())/\(DataManager.instance.apiStreamType.getAPIKey())/ALL/PAGE/410/F1_TV_Pro_Annual/2") //Shows Uri
         
         self.docsViewController = self.getViewControllerWith(viewIdentifier: ConstantsUtil.pageOverviewCollectionViewController) as? PageOverviewCollectionViewController
-        self.docsViewController?.initialize(pageUri: "/2.0/R/" + "api_endpoing_language_id".localizedString + "/BIG_SCREEN_HLS/ALL/PAGE/413/F1_TV_Pro_Annual/2") //Docs Uri
+        self.docsViewController?.initialize(pageUri: "/2.0/R/\(DataManager.instance.apiLanguage.getAPIKey())/\(DataManager.instance.apiStreamType.getAPIKey())/ALL/PAGE/413/F1_TV_Pro_Annual/2") //Docs Uri
         
         self.accountViewController = self.getViewControllerWith(viewIdentifier: ConstantsUtil.accountOverviewViewController) as? AccountOverviewViewController
         
@@ -77,16 +77,10 @@ class MenuSelectorTableViewController: BaseTableViewController {
     override func traitCollectionDidChange(_ previousTraitCollection: UITraitCollection?) {
         super.traitCollectionDidChange(previousTraitCollection)
         
-        if #available(iOS 13.0, *) {
-            let hasUserInterfaceStyleChanged = previousTraitCollection?.hasDifferentColorAppearance(comparedTo: traitCollection) ?? false
-            if(hasUserInterfaceStyleChanged){
-                if(traitCollection.userInterfaceStyle == .dark){
-                    ConstantsUtil.darkStyle = true
-                }else{
-                    ConstantsUtil.darkStyle = false
-                }
-                NotificationCenter.default.post(name: .userInterfaceStyleChanged, object: nil)
-            }
+        let hasUserInterfaceStyleChanged = previousTraitCollection?.hasDifferentColorAppearance(comparedTo: traitCollection) ?? false
+        if(hasUserInterfaceStyleChanged){
+            ConstantsUtil.darkStyle = traitCollection.userInterfaceStyle == .dark
+            NotificationCenter.default.post(name: .userInterfaceStyleChanged, object: nil)
         }
     }
     
