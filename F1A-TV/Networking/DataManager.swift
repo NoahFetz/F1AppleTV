@@ -19,7 +19,7 @@ class DataManager: RequestInterceptor {
     
     init() {
         let configuration = URLSessionConfiguration.af.default
-        if #available(iOS 15.0, *) {
+        if #available(tvOS 15.0, *) {
             configuration.httpAdditionalHeaders = ["User-Agent" : "RaceControl Darwin/21.1.0"]
         }else{
             configuration.httpAdditionalHeaders = ["User-Agent" : "RaceControl Darwin"]
@@ -92,7 +92,7 @@ class DataManager: RequestInterceptor {
     }
     
     func loadStreamEntitlement(contentId: String, playerId: String = "", streamEntitlementLoadedProtocol: StreamEntitlementLoadedProtocol) {
-        self.alamofireSession.request("\(ConstantsUtil.apiUrl)/1.0/R/\(self.apiLanguage.getAPIKey())/\(self.apiStreamType.getAPIKey())/ALL/\(contentId)",
+        self.alamofireSession.request("\(ConstantsUtil.apiUrl)/2.0/R/\(self.apiLanguage.getAPIKey())/\(self.apiStreamType.getAPIKey())/ALL/\(contentId)",
                                       method: .get,
                                       headers: [HTTPHeader(name: "sessionid", value: self.sessionId), HTTPHeader(name: "entitlementtoken", value: CredentialHelper.instance.getUserInfo().sessionId), HTTPHeader(name: "ascendontoken", value: CredentialHelper.instance.getUserInfo().authData.subscriptionToken)],
                                       interceptor: self)
