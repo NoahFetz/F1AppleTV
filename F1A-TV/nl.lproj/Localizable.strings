@@ -51,6 +51,9 @@
 "settings_language_dutch_displayname" = "Nederlands";
 "settings_language_portuguese_displayname" = "Portugees";
 
+"settings_show_fun_names_title" = "Toon namen uit een parallel universum waar de sport Formula Juan heet";
+"settings_fun_header" = "Alleen voor r/FormulaDank-gebruikers";
+
 //Pages
 "view_all" = "Bekijk alles";
 "featured_title" = "Aanbevolen";

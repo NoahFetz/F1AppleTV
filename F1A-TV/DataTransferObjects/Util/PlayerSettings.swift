@@ -15,6 +15,7 @@ struct PlayerSettings: Codable, Identifiable {
     var preferredChannelMute: [Int:Bool]
     var preferredCdn: APIStreamType
     var preferredApiLanguage: APILanguageType
+    var showFunNames: Bool
     
     init() {
         self.id = UUID().uuidString
@@ -24,6 +25,7 @@ struct PlayerSettings: Codable, Identifiable {
         self.preferredChannelMute = [Int:Bool]()
         self.preferredCdn = APIStreamType()
         self.preferredApiLanguage = APILanguageType()
+        self.showFunNames = false
         
         for channelType in ChannelType.allCases {
             self.setPreferredLanugage(for: channelType, language: nil)
@@ -33,7 +35,7 @@ struct PlayerSettings: Codable, Identifiable {
         }
     }
     
-    init(id: String, preferredChannelLanguage: [Int:String?], preferredChannelCaptions: [Int:String?], preferredChannelVolume: [Int:Float], preferredChannelMute: [Int:Bool], preferredCdn: APIStreamType, preferredApiLanguage: APILanguageType) {
+    init(id: String, preferredChannelLanguage: [Int:String?], preferredChannelCaptions: [Int:String?], preferredChannelVolume: [Int:Float], preferredChannelMute: [Int:Bool], preferredCdn: APIStreamType, preferredApiLanguage: APILanguageType, showFunNames: Bool) {
         self.id = id
         self.preferredChannelLanguage = preferredChannelLanguage
         self.preferredChannelCaptions = preferredChannelCaptions
@@ -41,6 +43,7 @@ struct PlayerSettings: Codable, Identifiable {
         self.preferredChannelMute = preferredChannelMute
         self.preferredCdn = preferredCdn
         self.preferredApiLanguage = preferredApiLanguage
+        self.showFunNames = showFunNames
     }
     
     func getPreferredLanguage(for channelType: ChannelType) -> String? {

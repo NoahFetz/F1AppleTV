@@ -374,16 +374,12 @@ class PageOverviewCollectionViewController: BaseCollectionViewController, UIColl
                     
                 case "obc":
                     var driverName = (additionalChannel.driverFirstName ?? "") + " " + (additionalChannel.driverLastName ?? "")
-                    if(driverName == "Nikita Mazepin") {
-                        driverName = "Nikita Mazes🅱️in"
-                    }
                     
-                    if(driverName == "Lewis Hamilton") {
-                        driverName = "Sir Lewis #blessed Hamilton"
-                    }
-                    
-                    if(driverName == "Max Verstappen") {
-                        driverName = "Max Max Max Super Max Verstappen"
+                    if(CredentialHelper.getPlayerSettings().showFunNames) {
+                        let alternateUniverseDriver = AlternateUniverseDrivers.fromOriginalName(originalName: driverName)
+                        if(alternateUniverseDriver != .None) {
+                            driverName = alternateUniverseDriver.getAlternateName()
+                        }
                     }
                     
                     additionalChannelMetadata?.title = driverName

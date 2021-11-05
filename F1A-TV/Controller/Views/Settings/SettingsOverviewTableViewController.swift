@@ -26,7 +26,7 @@ class SettingsOverviewTableViewController: BaseTableViewController {
     // MARK: - Table view data source
 
     override func numberOfSections(in tableView: UITableView) -> Int {
-        return 2
+        return 3
     }
 
     override func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
@@ -36,6 +36,9 @@ class SettingsOverviewTableViewController: BaseTableViewController {
             
         case 1:
             return APILanguageType.allCases.count
+            
+        case 2:
+            return 1
             
         default:
             return 0
@@ -101,6 +104,35 @@ class SettingsOverviewTableViewController: BaseTableViewController {
             
             return cell
             
+        case 2:
+            let cell = tableView.dequeueReusableCell(withIdentifier: ConstantsUtil.templateTableViewCell, for: indexPath) as! TemplateTableViewCell
+            
+            cell.contentStackView.arrangedSubviews.forEach({$0.removeFromSuperview()})
+            
+            cell.unselectedBackgroundColor = .clear
+            cell.userInterfaceStyleChanged()
+            
+            let titleLabel = UILabel()
+            titleLabel.font = UIFont(name: "Formula1-Display-Regular", size: 18)
+            titleLabel.textColor = .white
+            titleLabel.text = "settings_show_fun_names_title".localizedString
+            titleLabel.minimumScaleFactor = 0.5
+            titleLabel.adjustsFontSizeToFitWidth = true
+            titleLabel.allowsDefaultTighteningForTruncation = true
+            
+            if(self.playerSettings.showFunNames) {
+                let selectedImage = UIImageView()
+                selectedImage.image = UIImage(systemName: "checkmark.circle.fill")
+                selectedImage.tintColor = .systemBlue
+                selectedImage.contentMode = .scaleAspectFit
+                
+                cell.addViewsToStackView(views: [titleLabel, selectedImage])
+            }else{
+                cell.addViewsToStackView(views: [titleLabel])
+            }
+            
+            return cell
+            
         default:
             return self.getDefaultNoContentTableViewCell(tableView, cellForRowAt: indexPath)
             
@@ -116,8 +148,9 @@ class SettingsOverviewTableViewController: BaseTableViewController {
             CredentialHelper.setPlayerSettings(playerSettings: self.playerSettings)
             DataManager.instance.apiStreamType = selectedType
             
-            self.tableView.reloadData()
-            self.tableView.scrollToRow(at: indexPath, at: .none, animated: true)
+            //self.tableView.reloadData()
+            //self.tableView.scrollToRow(at: indexPath, at: .none, animated: true)
+            self.tableView.reloadSections(IndexSet(arrayLiteral: indexPath.section), with: .none)
             
         case 1:
             let selectedType = APILanguageType.init(rawValue: indexPath.row) ?? APILanguageType()
@@ -126,8 +159,18 @@ class SettingsOverviewTableViewController: BaseTableViewController {
             CredentialHelper.setPlayerSettings(playerSettings: self.playerSettings)
             DataManager.instance.apiLanguage = selectedType
             
-            self.tableView.reloadData()
-            self.tableView.scrollToRow(at: indexPath, at: .none, animated: true)
+            //self.tableView.reloadData()
+            //self.tableView.scrollToRow(at: indexPath, at: .none, animated: true)
+            self.tableView.reloadSections(IndexSet(arrayLiteral: indexPath.section), with: .none)
+            
+        case 2:
+            self.playerSettings.showFunNames = !self.playerSettings.showFunNames
+            
+            CredentialHelper.setPlayerSettings(playerSettings: self.playerSettings)
+            
+            //self.tableView.reloadData()
+            //self.tableView.scrollToRow(at: indexPath, at: .none, animated: true)
+            self.tableView.reloadSections(IndexSet(arrayLiteral: indexPath.section), with: .none)
             
         default:
             print("No action")
@@ -142,6 +185,9 @@ class SettingsOverviewTableViewController: BaseTableViewController {
             
         case 1:
             return "settings_language_header".localizedString
+            
+        case 2:
+            return "settings_fun_header".localizedString
             
         default:
             return nil

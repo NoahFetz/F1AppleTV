@@ -1,8 +1,9 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<document type="com.apple.InterfaceBuilder.AppleTV.XIB" version="3.0" toolsVersion="18122" targetRuntime="AppleTV" propertyAccessControl="none" useAutolayout="YES" useTraitCollections="YES" useSafeAreas="YES" colorMatched="YES">
+<document type="com.apple.InterfaceBuilder.AppleTV.XIB" version="3.0" toolsVersion="19528" targetRuntime="AppleTV" propertyAccessControl="none" useAutolayout="YES" useTraitCollections="YES" useSafeAreas="YES" colorMatched="YES">
     <device id="appleTV" appearance="light"/>
     <dependencies>
-        <plugIn identifier="com.apple.InterfaceBuilder.IBCocoaTouchPlugin" version="18092"/>
+        <deployment identifier="tvOS"/>
+        <plugIn identifier="com.apple.InterfaceBuilder.IBCocoaTouchPlugin" version="19519"/>
         <capability name="Safe area layout guides" minToolsVersion="9.0"/>
         <capability name="documents saved in the Xcode 8 format" minToolsVersion="8.0"/>
     </dependencies>
@@ -17,16 +18,16 @@
                 <autoresizingMask key="autoresizingMask"/>
                 <subviews>
                     <view contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="HPg-8U-UZJ">
-                        <rect key="frame" x="4" y="2.5" width="952" height="535.5"/>
+                        <rect key="frame" x="0.0" y="0.0" width="960" height="540"/>
                         <subviews>
                             <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="title" textAlignment="natural" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" minimumFontSize="8" adjustsLetterSpacingToFitWidth="YES" translatesAutoresizingMaskIntoConstraints="NO" id="S6q-Wi-foJ">
-                                <rect key="frame" x="16" y="425.5" width="920" height="46"/>
+                                <rect key="frame" x="16" y="430" width="928" height="46"/>
                                 <fontDescription key="fontDescription" type="system" pointSize="38"/>
                                 <color key="textColor" white="1" alpha="1" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
                                 <nil key="highlightedColor"/>
                             </label>
                             <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="subtitle" textAlignment="natural" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" minimumFontSize="8" adjustsLetterSpacingToFitWidth="YES" translatesAutoresizingMaskIntoConstraints="NO" id="UTA-v6-cIc">
-                                <rect key="frame" x="16" y="473.5" width="920" height="46"/>
+                                <rect key="frame" x="16" y="478" width="928" height="46"/>
                                 <fontDescription key="fontDescription" type="system" pointSize="38"/>
                                 <color key="textColor" white="1" alpha="1" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
                                 <nil key="highlightedColor"/>
@@ -49,10 +50,10 @@
             </view>
             <viewLayoutGuide key="safeArea" id="7PP-Ag-gPX"/>
             <constraints>
-                <constraint firstAttribute="bottom" secondItem="HPg-8U-UZJ" secondAttribute="bottom" constant="2.25" id="HYg-RT-0BZ"/>
-                <constraint firstAttribute="trailing" secondItem="HPg-8U-UZJ" secondAttribute="trailing" constant="4" id="PYa-Va-HXj"/>
-                <constraint firstItem="HPg-8U-UZJ" firstAttribute="leading" secondItem="Rz2-K0-ksD" secondAttribute="leading" constant="4" id="aJB-S5-KYW"/>
-                <constraint firstItem="HPg-8U-UZJ" firstAttribute="top" secondItem="Rz2-K0-ksD" secondAttribute="top" constant="2.25" id="y0m-Ka-irE"/>
+                <constraint firstAttribute="bottom" secondItem="HPg-8U-UZJ" secondAttribute="bottom" id="HYg-RT-0BZ"/>
+                <constraint firstAttribute="trailing" secondItem="HPg-8U-UZJ" secondAttribute="trailing" id="PYa-Va-HXj"/>
+                <constraint firstItem="HPg-8U-UZJ" firstAttribute="leading" secondItem="Rz2-K0-ksD" secondAttribute="leading" id="aJB-S5-KYW"/>
+                <constraint firstItem="HPg-8U-UZJ" firstAttribute="top" secondItem="Rz2-K0-ksD" secondAttribute="top" id="y0m-Ka-irE"/>
             </constraints>
             <size key="customSize" width="629" height="312"/>
             <connections>

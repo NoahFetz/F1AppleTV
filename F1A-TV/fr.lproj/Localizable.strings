@@ -50,6 +50,9 @@
 "settings_language_dutch_displayname" = "Néerlandais";
 "settings_language_portuguese_displayname" = "Portugais";
 
+"settings_show_fun_names_title" = "Afficher les noms d'un univers parallèle où le sport s'appelle Formule Juan";
+"settings_fun_header" = "Uniquement pour les utilisateurs de r/FormulaDank";
+
 //Pages
 "view_all" = "Tout voir";
 "featured_title" = "Sélection";

@@ -37,6 +37,7 @@
 		1B64ACF826B9A295000AA985 /* PlayTimeReportingDto.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1B64ACF726B9A295000AA985 /* PlayTimeReportingDto.swift */; };
 		1B64ACFA26B9A428000AA985 /* PlayTimeReportedProtocol.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1B64ACF926B9A428000AA985 /* PlayTimeReportedProtocol.swift */; };
 		1B64ACFC26B9A4A5000AA985 /* PlayTimeReportingResultDto.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1B64ACFB26B9A4A5000AA985 /* PlayTimeReportingResultDto.swift */; };
+		1B6B6FB62735A9E2005A855D /* AlternateUniverseDrivers.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1B6B6FB52735A9E2005A855D /* AlternateUniverseDrivers.swift */; };
 		1B77BD2126E4DF7F0025A9EA /* SettingsOverviewTableViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1B77BD2026E4DF7F0025A9EA /* SettingsOverviewTableViewController.swift */; };
 		1B78A79E2586440A007CF57C /* PlayerController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1B78A79D2586440A007CF57C /* PlayerController.swift */; };
 		1B7CCA5B261E0AB600FB25C2 /* ControlStripOverlayViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1B7CCA5A261E0AB600FB25C2 /* ControlStripOverlayViewController.swift */; };
@@ -200,6 +201,7 @@
 		1B64ACF726B9A295000AA985 /* PlayTimeReportingDto.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PlayTimeReportingDto.swift; sourceTree = "<group>"; };
 		1B64ACF926B9A428000AA985 /* PlayTimeReportedProtocol.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PlayTimeReportedProtocol.swift; sourceTree = "<group>"; };
 		1B64ACFB26B9A4A5000AA985 /* PlayTimeReportingResultDto.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PlayTimeReportingResultDto.swift; sourceTree = "<group>"; };
+		1B6B6FB52735A9E2005A855D /* AlternateUniverseDrivers.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AlternateUniverseDrivers.swift; sourceTree = "<group>"; };
 		1B77BD2026E4DF7F0025A9EA /* SettingsOverviewTableViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsOverviewTableViewController.swift; sourceTree = "<group>"; };
 		1B78A79D2586440A007CF57C /* PlayerController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PlayerController.swift; sourceTree = "<group>"; };
 		1B7CCA5A261E0AB600FB25C2 /* ControlStripOverlayViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ControlStripOverlayViewController.swift; sourceTree = "<group>"; };
@@ -500,6 +502,7 @@
 				1B9F8B74261CEF0B0020AC55 /* ChannelType.swift */,
 				1BE7BA8926E3FD2F008AFDDC /* APIStreamType.swift */,
 				1B9A429D26FE0B86008049B2 /* APILanguageType.swift */,
+				1B6B6FB52735A9E2005A855D /* AlternateUniverseDrivers.swift */,
 			);
 			path = Enum;
 			sourceTree = "<group>";
@@ -917,6 +920,7 @@
 				1BFFAB7825F901C600EADC99 /* SeriesType.swift in Sources */,
 				1B19AEA0269119B40008049C /* PlaylistFetcher.swift in Sources */,
 				1B19AEA82691BCAD0008049C /* M3u8LoadedProtocol.swift in Sources */,
+				1B6B6FB62735A9E2005A855D /* AlternateUniverseDrivers.swift in Sources */,
 				1BB23D0F2544F38A00D0CC71 /* AccessoryIconType.swift in Sources */,
 				1BB29C1E2544773300ECC074 /* SubscriberDto.swift in Sources */,
 				1BB29C842544B8BA00ECC074 /* NotificationExtension.swift in Sources */,
@@ -1168,7 +1172,7 @@
 				CODE_SIGN_ENTITLEMENTS = "F1A-TV/F1A-TV.entitlements";
 				CODE_SIGN_IDENTITY = "Apple Development";
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 21.1010.1;
+				CURRENT_PROJECT_VERSION = 21.1105.1;
 				DEVELOPMENT_TEAM = 8SW735FL99;
 				INFOPLIST_FILE = "$(SRCROOT)/F1A-TV/Info.plist";
 				LD_RUNPATH_SEARCH_PATHS = (
@@ -1195,7 +1199,7 @@
 				CODE_SIGN_ENTITLEMENTS = "F1A-TV/F1A-TV.entitlements";
 				CODE_SIGN_IDENTITY = "Apple Development";
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 21.1010.1;
+				CURRENT_PROJECT_VERSION = 21.1105.1;
 				DEVELOPMENT_TEAM = 8SW735FL99;
 				INFOPLIST_FILE = "$(SRCROOT)/F1A-TV/Info.plist";
 				LD_RUNPATH_SEARCH_PATHS = (

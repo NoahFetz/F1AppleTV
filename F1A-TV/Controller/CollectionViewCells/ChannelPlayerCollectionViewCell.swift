@@ -21,7 +21,7 @@ class ChannelPlayerCollectionViewCell: BaseCollectionViewCell {
     override func awakeFromNib() {
         super.awakeFromNib()
         
-        self.playerContainerView.layer.cornerRadius = 10
+        //self.playerContainerView.layer.cornerRadius = 10
         self.playerContainerView.layer.masksToBounds = true
         self.playerContainerView.backgroundColor = ConstantsUtil.brandingBackgroundColor
         self.userInterfaceStyleChanged()
