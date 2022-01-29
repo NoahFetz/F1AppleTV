@@ -77,4 +77,8 @@ class BaseTableViewController: UITableViewController {
         cell.centerLabel.text = "No content found"
         return cell
     }
+    
+    deinit {
+        NotificationCenter.default.removeObserver(self)
+    }
 }

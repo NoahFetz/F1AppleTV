@@ -13,4 +13,8 @@ class BaseViewController: UIViewController {
         super.viewDidLoad()
 //        self.view.backgroundColor = ConstantsUtil.brandingBackgroundColor
     }
+    
+    deinit {
+        NotificationCenter.default.removeObserver(self)
+    }
 }

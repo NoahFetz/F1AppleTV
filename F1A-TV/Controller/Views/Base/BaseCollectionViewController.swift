@@ -25,4 +25,8 @@ class BaseCollectionViewController: UICollectionViewController {
     func setTitle(title: String) {
         self.navigationItem.title = title
     }
+    
+    deinit {
+        NotificationCenter.default.removeObserver(self)
+    }
 }

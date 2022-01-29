@@ -40,7 +40,7 @@ class MenuSelectorTableViewController: BaseTableViewController {
         self.featuredViewController?.initialize(pageUri: "/2.0/R/\(DataManager.instance.apiLanguage.getAPIKey())/\(DataManager.instance.apiStreamType.getAPIKey())/ALL/PAGE/395/F1_TV_Pro_Annual/2") //Home Uri
         
         self.currentSeasonViewController = self.getViewControllerWith(viewIdentifier: ConstantsUtil.pageOverviewCollectionViewController) as? PageOverviewCollectionViewController
-        self.currentSeasonViewController?.initialize(pageUri: "/2.0/R/\(DataManager.instance.apiLanguage.getAPIKey())/\(DataManager.instance.apiStreamType.getAPIKey())/ALL/PAGE/1510/F1_TV_Pro_Annual/2") //2021 Uri
+        self.currentSeasonViewController?.initialize(pageUri: "/2.0/R/\(DataManager.instance.apiLanguage.getAPIKey())/\(DataManager.instance.apiStreamType.getAPIKey())/ALL/PAGE/4319/F1_TV_Pro_Annual/2") //2021 Uri
         
         self.archiveViewController = self.getViewControllerWith(viewIdentifier: ConstantsUtil.pageOverviewCollectionViewController) as? PageOverviewCollectionViewController
         self.archiveViewController?.initialize(pageUri: "/2.0/R/\(DataManager.instance.apiLanguage.getAPIKey())/\(DataManager.instance.apiStreamType.getAPIKey())/ALL/PAGE/493/F1_TV_Pro_Annual/2") //Archive Uri

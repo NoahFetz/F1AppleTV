@@ -42,4 +42,8 @@ class CustomTabBarController: UITabBarController {
             }
         }
     }
+    
+    deinit {
+        NotificationCenter.default.removeObserver(self)
+    }
 }

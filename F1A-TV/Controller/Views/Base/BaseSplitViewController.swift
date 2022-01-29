@@ -79,4 +79,8 @@ class BaseSplitViewController: UISplitViewController {
                     })
         }
     }
+    
+    deinit {
+        NotificationCenter.default.removeObserver(self)
+    }
 }
