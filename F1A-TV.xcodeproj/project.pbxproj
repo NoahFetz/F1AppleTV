@@ -23,6 +23,7 @@
 		1B20CB2C25FB5691002F39D8 /* StreamEntitlementResultDto.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1B20CB2B25FB5691002F39D8 /* StreamEntitlementResultDto.swift */; };
 		1B20CB3125FB60BD002F39D8 /* ContentPageLoadedProtocol.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1B20CB3025FB60BD002F39D8 /* ContentPageLoadedProtocol.swift */; };
 		1B20CB3325FB7261002F39D8 /* StreamEntitlementLoadedProtocol.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1B20CB3225FB7261002F39D8 /* StreamEntitlementLoadedProtocol.swift */; };
+		1B24741D27E4A4F000BBA9AC /* MenuPageType.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1B24741C27E4A4F000BBA9AC /* MenuPageType.swift */; };
 		1B3493242626E2A300AB2C3F /* Alamofire in Frameworks */ = {isa = PBXBuildFile; productRef = 1B3493232626E2A300AB2C3F /* Alamofire */; };
 		1B34C5F32545F614008325CC /* F1ATV.xcdatamodeld in Sources */ = {isa = PBXBuildFile; fileRef = 1B34C5F12545F614008325CC /* F1ATV.xcdatamodeld */; };
 		1B36C7B025F781E6005533F9 /* SideBarInfoViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1B36C7AF25F781E6005533F9 /* SideBarInfoViewController.swift */; };
@@ -186,6 +187,7 @@
 		1B20CB2B25FB5691002F39D8 /* StreamEntitlementResultDto.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StreamEntitlementResultDto.swift; sourceTree = "<group>"; };
 		1B20CB3025FB60BD002F39D8 /* ContentPageLoadedProtocol.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContentPageLoadedProtocol.swift; sourceTree = "<group>"; };
 		1B20CB3225FB7261002F39D8 /* StreamEntitlementLoadedProtocol.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StreamEntitlementLoadedProtocol.swift; sourceTree = "<group>"; };
+		1B24741C27E4A4F000BBA9AC /* MenuPageType.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MenuPageType.swift; sourceTree = "<group>"; };
 		1B34C5F22545F614008325CC /* F1ATV.xcdatamodel */ = {isa = PBXFileReference; lastKnownFileType = wrapper.xcdatamodel; path = F1ATV.xcdatamodel; sourceTree = "<group>"; };
 		1B36C7AF25F781E6005533F9 /* SideBarInfoViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SideBarInfoViewController.swift; sourceTree = "<group>"; };
 		1B43FB08267CDA8C00F22345 /* FullscreenPlayerDismissedProtocol.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FullscreenPlayerDismissedProtocol.swift; sourceTree = "<group>"; };
@@ -503,6 +505,7 @@
 				1BE7BA8926E3FD2F008AFDDC /* APIStreamType.swift */,
 				1B9A429D26FE0B86008049B2 /* APILanguageType.swift */,
 				1B6B6FB52735A9E2005A855D /* AlternateUniverseDrivers.swift */,
+				1B24741C27E4A4F000BBA9AC /* MenuPageType.swift */,
 			);
 			path = Enum;
 			sourceTree = "<group>";
@@ -977,6 +980,7 @@
 				1B64ACFC26B9A4A5000AA985 /* PlayTimeReportingResultDto.swift in Sources */,
 				1BB29C6D2544AC7D00ECC074 /* BaseTableViewController.swift in Sources */,
 				1B8DEEFA25FC0C88004780B9 /* EmfAttributesDto.swift in Sources */,
+				1B24741D27E4A4F000BBA9AC /* MenuPageType.swift in Sources */,
 				1B8DEF0E25FC2257004780B9 /* TechnicalPackageDto.swift in Sources */,
 				1BC656B225F6C7660025CA1D /* NoContentCollectionViewCell.swift in Sources */,
 				1BB29BD1254464BB00ECC074 /* AuthRequestDto.swift in Sources */,
@@ -1103,7 +1107,7 @@
 				SDKROOT = appletvos;
 				SWIFT_ACTIVE_COMPILATION_CONDITIONS = DEBUG;
 				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
-				TVOS_DEPLOYMENT_TARGET = 14.2;
+				TVOS_DEPLOYMENT_TARGET = 15.0;
 			};
 			name = Debug;
 		};
@@ -1158,7 +1162,7 @@
 				SDKROOT = appletvos;
 				SWIFT_COMPILATION_MODE = wholemodule;
 				SWIFT_OPTIMIZATION_LEVEL = "-O";
-				TVOS_DEPLOYMENT_TARGET = 14.2;
+				TVOS_DEPLOYMENT_TARGET = 15.0;
 				VALIDATE_PRODUCT = YES;
 			};
 			name = Release;
@@ -1172,7 +1176,7 @@
 				CODE_SIGN_ENTITLEMENTS = "F1A-TV/F1A-TV.entitlements";
 				CODE_SIGN_IDENTITY = "Apple Development";
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 22.0129.1;
+				CURRENT_PROJECT_VERSION = 22.0318.1;
 				DEVELOPMENT_TEAM = 8SW735FL99;
 				INFOPLIST_FILE = "$(SRCROOT)/F1A-TV/Info.plist";
 				LD_RUNPATH_SEARCH_PATHS = (
@@ -1186,7 +1190,7 @@
 				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
 				SWIFT_VERSION = 5.0;
 				TARGETED_DEVICE_FAMILY = 3;
-				TVOS_DEPLOYMENT_TARGET = 14.0;
+				TVOS_DEPLOYMENT_TARGET = 15.0;
 			};
 			name = Debug;
 		};
@@ -1199,7 +1203,7 @@
 				CODE_SIGN_ENTITLEMENTS = "F1A-TV/F1A-TV.entitlements";
 				CODE_SIGN_IDENTITY = "Apple Development";
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 22.0129.1;
+				CURRENT_PROJECT_VERSION = 22.0318.1;
 				DEVELOPMENT_TEAM = 8SW735FL99;
 				INFOPLIST_FILE = "$(SRCROOT)/F1A-TV/Info.plist";
 				LD_RUNPATH_SEARCH_PATHS = (
@@ -1212,7 +1216,7 @@
 				PROVISIONING_PROFILE_SPECIFIER = "";
 				SWIFT_VERSION = 5.0;
 				TARGETED_DEVICE_FAMILY = 3;
-				TVOS_DEPLOYMENT_TARGET = 14.0;
+				TVOS_DEPLOYMENT_TARGET = 15.0;
 			};
 			name = Release;
 		};

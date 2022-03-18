@@ -19,11 +19,6 @@ class DataManager: RequestInterceptor {
     
     init() {
         let configuration = URLSessionConfiguration.af.default
-        if #available(tvOS 15.0, *) {
-            configuration.httpAdditionalHeaders = ["User-Agent" : "RaceControl Darwin/21.1.0"]
-        }else{
-            configuration.httpAdditionalHeaders = ["User-Agent" : "RaceControl Darwin"]
-        }
         self.alamofireSession = Session(configuration: configuration)
         
         self.apiStreamType = CredentialHelper.getPlayerSettings().preferredCdn

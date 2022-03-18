@@ -1,43 +1,41 @@
 {
-  "object": {
-    "pins": [
-      {
-        "package": "Alamofire",
-        "repositoryURL": "https://github.com/Alamofire/Alamofire.git",
-        "state": {
-          "branch": "master",
-          "revision": "6de3f6579bc04e0a769aa39993663e5a131d1c41",
-          "version": null
-        }
-      },
-      {
-        "package": "Kingfisher",
-        "repositoryURL": "https://github.com/onevcat/Kingfisher.git",
-        "state": {
-          "branch": "master",
-          "revision": "c21f9abbfa29dd3e1456387503d722ca5d11a71e",
-          "version": null
-        }
-      },
-      {
-        "package": "SkeletonView",
-        "repositoryURL": "https://github.com/Juanpe/SkeletonView.git",
-        "state": {
-          "branch": "main",
-          "revision": "2eaf72ed0e04784c381e7bce1a051a6c131f1d71",
-          "version": null
-        }
-      },
-      {
-        "package": "SPAlert",
-        "repositoryURL": "https://github.com/NoahFetz/SPAlert.git",
-        "state": {
-          "branch": "tvOS",
-          "revision": "93bb4df089e6a85ef76f0d5876385e3283ba38e3",
-          "version": null
-        }
+  "pins" : [
+    {
+      "identity" : "alamofire",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/Alamofire/Alamofire.git",
+      "state" : {
+        "branch" : "master",
+        "revision" : "6eeff3c57e02f07c8494433aed8bf90532010089"
       }
-    ]
-  },
-  "version": 1
+    },
+    {
+      "identity" : "kingfisher",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/onevcat/Kingfisher.git",
+      "state" : {
+        "branch" : "master",
+        "revision" : "5957c8f09e3f048de42a6fb8dcb467cc0ac4e7b4"
+      }
+    },
+    {
+      "identity" : "skeletonview",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/Juanpe/SkeletonView.git",
+      "state" : {
+        "branch" : "main",
+        "revision" : "2eaf72ed0e04784c381e7bce1a051a6c131f1d71"
+      }
+    },
+    {
+      "identity" : "spalert",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/NoahFetz/SPAlert.git",
+      "state" : {
+        "branch" : "tvOS",
+        "revision" : "93bb4df089e6a85ef76f0d5876385e3283ba38e3"
+      }
+    }
+  ],
+  "version" : 2
 }

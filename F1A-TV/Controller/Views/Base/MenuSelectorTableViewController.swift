@@ -36,25 +36,7 @@ class MenuSelectorTableViewController: BaseTableViewController {
     }
     
     func setupTableView() {
-        self.featuredViewController = self.getViewControllerWith(viewIdentifier: ConstantsUtil.pageOverviewCollectionViewController) as? PageOverviewCollectionViewController
-        self.featuredViewController?.initialize(pageUri: "/2.0/R/\(DataManager.instance.apiLanguage.getAPIKey())/\(DataManager.instance.apiStreamType.getAPIKey())/ALL/PAGE/395/F1_TV_Pro_Annual/2") //Home Uri
-        
-        self.currentSeasonViewController = self.getViewControllerWith(viewIdentifier: ConstantsUtil.pageOverviewCollectionViewController) as? PageOverviewCollectionViewController
-        self.currentSeasonViewController?.initialize(pageUri: "/2.0/R/\(DataManager.instance.apiLanguage.getAPIKey())/\(DataManager.instance.apiStreamType.getAPIKey())/ALL/PAGE/4319/F1_TV_Pro_Annual/2") //2021 Uri
-        
-        self.archiveViewController = self.getViewControllerWith(viewIdentifier: ConstantsUtil.pageOverviewCollectionViewController) as? PageOverviewCollectionViewController
-        self.archiveViewController?.initialize(pageUri: "/2.0/R/\(DataManager.instance.apiLanguage.getAPIKey())/\(DataManager.instance.apiStreamType.getAPIKey())/ALL/PAGE/493/F1_TV_Pro_Annual/2") //Archive Uri
-        
-        self.showsViewController = self.getViewControllerWith(viewIdentifier: ConstantsUtil.pageOverviewCollectionViewController) as? PageOverviewCollectionViewController
-        self.showsViewController?.initialize(pageUri: "/2.0/R/\(DataManager.instance.apiLanguage.getAPIKey())/\(DataManager.instance.apiStreamType.getAPIKey())/ALL/PAGE/410/F1_TV_Pro_Annual/2") //Shows Uri
-        
-        self.docsViewController = self.getViewControllerWith(viewIdentifier: ConstantsUtil.pageOverviewCollectionViewController) as? PageOverviewCollectionViewController
-        self.docsViewController?.initialize(pageUri: "/2.0/R/\(DataManager.instance.apiLanguage.getAPIKey())/\(DataManager.instance.apiStreamType.getAPIKey())/ALL/PAGE/413/F1_TV_Pro_Annual/2") //Docs Uri
-        
-        self.accountViewController = self.getViewControllerWith(viewIdentifier: ConstantsUtil.accountOverviewViewController) as? AccountOverviewViewController
-        
-        self.settingsViewController = SettingsOverviewTableViewController()
-        
+        self.featuredViewController = self.createPageViewController(pageUri: self.buildPageUri(pageId: MenuPageType.Home.getPageId()))
         self.splitViewController?.showDetailViewController(self.featuredViewController ?? UIViewController(), sender: self)
         
         let backgroundImageView = UIImageView(frame: self.tableView.bounds)
@@ -146,34 +128,45 @@ class MenuSelectorTableViewController: BaseTableViewController {
         }
         
         tableView.selectRow(at: context.nextFocusedIndexPath, animated: true, scrollPosition: .none)
-        self.selectedMenuItem = context.nextFocusedIndexPath?.row ?? 0
         
         if(self.menuSwitchTimer != nil){
             self.menuSwitchTimer.invalidate()
             self.menuSwitchTimer = nil
         }
+        
+        if(context.nextFocusedIndexPath?.row == self.selectedMenuItem) {
+            return
+        }
+        self.selectedMenuItem = context.nextFocusedIndexPath?.row ?? 0
+        
         self.menuSwitchTimer = Timer.scheduledTimer(withTimeInterval: 0.4, repeats: false, block: {timer in
-            
             switch context.nextFocusedIndexPath?.row {
             case 0:
+                self.featuredViewController = self.createPageViewController(pageUri: self.buildPageUri(pageId: MenuPageType.Home.getPageId()))
                 self.splitViewController?.showDetailViewController(self.featuredViewController ?? UIViewController(), sender: self)
                 
             case 1:
+                self.currentSeasonViewController = self.createPageViewController(pageUri: self.buildPageUri(pageId: MenuPageType.CurrentSeason.getPageId()))
                 self.splitViewController?.showDetailViewController(self.currentSeasonViewController ?? UIViewController(), sender: self)
                 
             case 2:
+                self.archiveViewController = self.createPageViewController(pageUri: self.buildPageUri(pageId: MenuPageType.Archive.getPageId()))
                 self.splitViewController?.showDetailViewController(self.archiveViewController ?? UIViewController(), sender: self)
                 
             case 3:
+                self.showsViewController = self.createPageViewController(pageUri: self.buildPageUri(pageId: MenuPageType.Shows.getPageId()))
                 self.splitViewController?.showDetailViewController(self.showsViewController ?? UIViewController(), sender: self)
                 
             case 4:
+                self.docsViewController = self.createPageViewController(pageUri: self.buildPageUri(pageId: MenuPageType.Docs.getPageId()))
                 self.splitViewController?.showDetailViewController(self.docsViewController ?? UIViewController(), sender: self)
                 
             case 5:
+                self.accountViewController = self.getViewControllerWith(viewIdentifier: ConstantsUtil.accountOverviewViewController) as? AccountOverviewViewController
                 self.splitViewController?.showDetailViewController(self.accountViewController ?? UIViewController(), sender: self)
                 
             case 6:
+                self.settingsViewController = SettingsOverviewTableViewController()
                 self.splitViewController?.showDetailViewController(self.settingsViewController ?? UIViewController(), sender: self)
                 
             default:
@@ -195,5 +188,16 @@ class MenuSelectorTableViewController: BaseTableViewController {
     
     override func tableView(_ tableView: UITableView, heightForFooterInSection section: Int) -> CGFloat {
         return 600
+    }
+    
+    func buildPageUri(pageId: String) -> String {
+        return "/2.0/R/\(DataManager.instance.apiLanguage.getAPIKey())/\(DataManager.instance.apiStreamType.getAPIKey())/ALL/PAGE/\(pageId)/F1_TV_Pro_Annual/2"
+    }
+    
+    func createPageViewController(pageUri: String) -> PageOverviewCollectionViewController {
+        let viewController = self.getViewControllerWith(viewIdentifier: ConstantsUtil.pageOverviewCollectionViewController) as? PageOverviewCollectionViewController
+        viewController?.initialize(pageUri: pageUri)
+        
+        return viewController ?? PageOverviewCollectionViewController()
     }
 }
