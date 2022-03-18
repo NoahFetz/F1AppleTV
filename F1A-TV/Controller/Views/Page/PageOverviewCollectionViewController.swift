@@ -337,7 +337,7 @@ class PageOverviewCollectionViewController: BaseCollectionViewController, UIColl
             
             //Add the main feed manually
             var mainFeedMetadata = container.metadata
-            mainFeedMetadata?.title = "main_feed_title".localizedString
+            mainFeedMetadata?.title = "international_feed_title".localizedString
             mainFeedMetadata?.emfAttributes?.videoType = ""
             mainFeedMetadata?.additionalStreams = nil
             mainFeedMetadata?.channelType = .MainFeed
@@ -362,6 +362,13 @@ class PageOverviewCollectionViewController: BaseCollectionViewController, UIColl
                         
                     case "DATA":
                         additionalChannelMetadata?.title = "data_feed_title".localizedString
+                        
+                    case "INTERNATIONAL":
+                        //additionalChannelMetadata?.title = "international_feed_title".localizedString
+                        continue
+                        
+                    case "F1 LIVE":
+                        additionalChannelMetadata?.title = "f1_live_feed_title".localizedString
                         
                     default:
                         additionalChannelMetadata?.title = additionalChannel.title

@@ -66,6 +66,8 @@
 "pit_lane_feed_title" = "Pit Lane";
 "tracker_feed_title" = "Tracker Feed";
 "data_feed_title" = "Data Feed";
+"international_feed_title" = "International Feed";
+"f1_live_feed_title" = "F1 Live";
 
 //Player
 "multiplayer_no_channels_add_first" = "Kein Kanal gewählt\nWähle einen Kanal";

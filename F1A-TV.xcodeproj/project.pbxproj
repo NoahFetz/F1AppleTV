@@ -24,6 +24,7 @@
 		1B20CB3125FB60BD002F39D8 /* ContentPageLoadedProtocol.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1B20CB3025FB60BD002F39D8 /* ContentPageLoadedProtocol.swift */; };
 		1B20CB3325FB7261002F39D8 /* StreamEntitlementLoadedProtocol.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1B20CB3225FB7261002F39D8 /* StreamEntitlementLoadedProtocol.swift */; };
 		1B24741D27E4A4F000BBA9AC /* MenuPageType.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1B24741C27E4A4F000BBA9AC /* MenuPageType.swift */; };
+		1B24741F27E4C52F00BBA9AC /* APIVersionType.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1B24741E27E4C52F00BBA9AC /* APIVersionType.swift */; };
 		1B3493242626E2A300AB2C3F /* Alamofire in Frameworks */ = {isa = PBXBuildFile; productRef = 1B3493232626E2A300AB2C3F /* Alamofire */; };
 		1B34C5F32545F614008325CC /* F1ATV.xcdatamodeld in Sources */ = {isa = PBXBuildFile; fileRef = 1B34C5F12545F614008325CC /* F1ATV.xcdatamodeld */; };
 		1B36C7B025F781E6005533F9 /* SideBarInfoViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1B36C7AF25F781E6005533F9 /* SideBarInfoViewController.swift */; };
@@ -188,6 +189,7 @@
 		1B20CB3025FB60BD002F39D8 /* ContentPageLoadedProtocol.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContentPageLoadedProtocol.swift; sourceTree = "<group>"; };
 		1B20CB3225FB7261002F39D8 /* StreamEntitlementLoadedProtocol.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StreamEntitlementLoadedProtocol.swift; sourceTree = "<group>"; };
 		1B24741C27E4A4F000BBA9AC /* MenuPageType.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MenuPageType.swift; sourceTree = "<group>"; };
+		1B24741E27E4C52F00BBA9AC /* APIVersionType.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = APIVersionType.swift; sourceTree = "<group>"; };
 		1B34C5F22545F614008325CC /* F1ATV.xcdatamodel */ = {isa = PBXFileReference; lastKnownFileType = wrapper.xcdatamodel; path = F1ATV.xcdatamodel; sourceTree = "<group>"; };
 		1B36C7AF25F781E6005533F9 /* SideBarInfoViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SideBarInfoViewController.swift; sourceTree = "<group>"; };
 		1B43FB08267CDA8C00F22345 /* FullscreenPlayerDismissedProtocol.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FullscreenPlayerDismissedProtocol.swift; sourceTree = "<group>"; };
@@ -506,6 +508,7 @@
 				1B9A429D26FE0B86008049B2 /* APILanguageType.swift */,
 				1B6B6FB52735A9E2005A855D /* AlternateUniverseDrivers.swift */,
 				1B24741C27E4A4F000BBA9AC /* MenuPageType.swift */,
+				1B24741E27E4C52F00BBA9AC /* APIVersionType.swift */,
 			);
 			path = Enum;
 			sourceTree = "<group>";
@@ -979,6 +982,7 @@
 				1B64ACFA26B9A428000AA985 /* PlayTimeReportedProtocol.swift in Sources */,
 				1B64ACFC26B9A4A5000AA985 /* PlayTimeReportingResultDto.swift in Sources */,
 				1BB29C6D2544AC7D00ECC074 /* BaseTableViewController.swift in Sources */,
+				1B24741F27E4C52F00BBA9AC /* APIVersionType.swift in Sources */,
 				1B8DEEFA25FC0C88004780B9 /* EmfAttributesDto.swift in Sources */,
 				1B24741D27E4A4F000BBA9AC /* MenuPageType.swift in Sources */,
 				1B8DEF0E25FC2257004780B9 /* TechnicalPackageDto.swift in Sources */,
@@ -1176,7 +1180,7 @@
 				CODE_SIGN_ENTITLEMENTS = "F1A-TV/F1A-TV.entitlements";
 				CODE_SIGN_IDENTITY = "Apple Development";
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 22.0318.2;
+				CURRENT_PROJECT_VERSION = 22.0318.3;
 				DEVELOPMENT_TEAM = 8SW735FL99;
 				INFOPLIST_FILE = "$(SRCROOT)/F1A-TV/Info.plist";
 				LD_RUNPATH_SEARCH_PATHS = (
@@ -1203,7 +1207,7 @@
 				CODE_SIGN_ENTITLEMENTS = "F1A-TV/F1A-TV.entitlements";
 				CODE_SIGN_IDENTITY = "Apple Development";
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 22.0318.2;
+				CURRENT_PROJECT_VERSION = 22.0318.3;
 				DEVELOPMENT_TEAM = 8SW735FL99;
 				INFOPLIST_FILE = "$(SRCROOT)/F1A-TV/Info.plist";
 				LD_RUNPATH_SEARCH_PATHS = (

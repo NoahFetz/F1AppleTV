@@ -15,6 +15,7 @@ class DataManager: RequestInterceptor {
     
     var apiStreamType = APIStreamType()
     var apiLanguage = APILanguageType()
+    var apiVersion = APIVersionType.V3
     let sessionId = "WEB-\(UUID().uuidString)"
     
     init() {
@@ -67,7 +68,7 @@ class DataManager: RequestInterceptor {
     }
     
     func loadContentVideo(videoId: String, contentVideoProtocol: ContentVideoLoadedProtocol) {
-        self.alamofireSession.request("\(ConstantsUtil.apiUrl)/2.0/R/\(self.apiLanguage.getAPIKey())/\(self.apiStreamType.getAPIKey())/ALL/CONTENT/VIDEO/\(videoId)/F1_TV_Pro_Annual/2",
+        self.alamofireSession.request("\(ConstantsUtil.apiUrl)/\(self.apiVersion.getVersionType())/R/\(self.apiLanguage.getAPIKey())/\(self.apiStreamType.getAPIKey())/ALL/CONTENT/VIDEO/\(videoId)/F1_TV_Pro_Annual/2",
                                       method: .get,
                                       headers: [HTTPHeader(name: "sessionid", value: self.sessionId), HTTPHeader(name: "entitlementtoken", value: CredentialHelper.instance.getUserInfo().sessionId), HTTPHeader(name: "ascendontoken", value: CredentialHelper.instance.getUserInfo().authData.subscriptionToken)])
             .validate()
@@ -88,7 +89,7 @@ class DataManager: RequestInterceptor {
     }
     
     func loadStreamEntitlement(contentId: String, playerId: String = "", streamEntitlementLoadedProtocol: StreamEntitlementLoadedProtocol) {
-        self.alamofireSession.request("\(ConstantsUtil.apiUrl)/2.0/R/\(self.apiLanguage.getAPIKey())/\(self.apiStreamType.getAPIKey())/ALL/\(contentId)",
+        self.alamofireSession.request("\(ConstantsUtil.apiUrl)/\(APIVersionType.V2.getVersionType())/R/\(self.apiLanguage.getAPIKey())/\(self.apiStreamType.getAPIKey())/ALL/\(contentId)",
                                       method: .get,
                                       headers: [HTTPHeader(name: "sessionid", value: self.sessionId), HTTPHeader(name: "entitlementtoken", value: CredentialHelper.instance.getUserInfo().sessionId), HTTPHeader(name: "ascendontoken", value: CredentialHelper.instance.getUserInfo().authData.subscriptionToken)],
                                       interceptor: self)
@@ -126,7 +127,7 @@ class DataManager: RequestInterceptor {
     }
     
     func reportContentPlayTime(reportingItem: PlayTimeReportingDto, playTimeReportingProtocol: PlayTimeReportedProtocol) {
-        self.alamofireSession.request("\(ConstantsUtil.apiUrl)/1.0/R/\(self.apiLanguage.getAPIKey())/\(self.apiStreamType.getAPIKey())/ALL/ACTION/PLAY",
+        self.alamofireSession.request("\(ConstantsUtil.apiUrl)/\(APIVersionType.V1.getVersionType())/R/\(self.apiLanguage.getAPIKey())/\(self.apiStreamType.getAPIKey())/ALL/ACTION/PLAY",
                                       method: .post,
                                       parameters: reportingItem,
                                       encoder: JSONParameterEncoder.default,

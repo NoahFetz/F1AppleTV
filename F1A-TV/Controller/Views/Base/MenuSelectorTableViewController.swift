@@ -191,7 +191,7 @@ class MenuSelectorTableViewController: BaseTableViewController {
     }
     
     func buildPageUri(pageId: String) -> String {
-        return "/2.0/R/\(DataManager.instance.apiLanguage.getAPIKey())/\(DataManager.instance.apiStreamType.getAPIKey())/ALL/PAGE/\(pageId)/F1_TV_Pro_Annual/2"
+        return "/\(APIVersionType.V2.getVersionType())/R/\(DataManager.instance.apiLanguage.getAPIKey())/\(DataManager.instance.apiStreamType.getAPIKey())/ALL/PAGE/\(pageId)/F1_TV_Pro_Annual/2"
     }
     
     func createPageViewController(pageUri: String) -> PageOverviewCollectionViewController {
