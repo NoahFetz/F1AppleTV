@@ -19,6 +19,7 @@ class DataManager: RequestInterceptor {
     
     init() {
         let configuration = URLSessionConfiguration.af.default
+        configuration.httpAdditionalHeaders = ["User-Agent" : "RaceControl"]
         self.alamofireSession = Session(configuration: configuration)
         
         self.apiStreamType = CredentialHelper.getPlayerSettings().preferredCdn
