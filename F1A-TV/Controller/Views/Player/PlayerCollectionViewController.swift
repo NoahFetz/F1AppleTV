@@ -7,6 +7,7 @@
 
 import UIKit
 import AVKit
+//import Telegraph
 
 class PlayerCollectionViewController: BaseCollectionViewController, UICollectionViewDelegateFlowLayout, StreamEntitlementLoadedProtocol, ChannelSelectionProtocol, ControlStripActionProtocol, FullscreenPlayerDismissedProtocol, PlayTimeReportedProtocol {
     var channelItems = [ContentItem]()
@@ -20,6 +21,7 @@ class PlayerCollectionViewController: BaseCollectionViewController, UICollection
     var controlStripViewController: ControlStripOverlayViewController?
     
     var isFirstPlayer = true
+    var playFromStart = false
     
     override func viewDidLoad() {
         super.viewDidLoad()
@@ -63,8 +65,9 @@ class PlayerCollectionViewController: BaseCollectionViewController, UICollection
         }
     }
     
-    func initialize(channelItems: [ContentItem]) {
+    func initialize(channelItems: [ContentItem], playFromStart: Bool? = false) {
         self.channelItems = channelItems
+        self.playFromStart = playFromStart ?? false
         
         for mainChannel in self.channelItems.filter({$0.container.metadata?.channelType == .MainFeed}) {
             self.loadStreamEntitlement(channelItem: mainChannel)
@@ -120,7 +123,7 @@ class PlayerCollectionViewController: BaseCollectionViewController, UICollection
                     while (lineIndex < m3u8Lines.count) {
                         let currentLine = m3u8Lines[lineIndex]
                         if(currentLine.starts(with: "#EXT-X-STREAM-INF")) {
-                            if(!currentLine.contains("RESOLUTION=1920x1080")){
+                            if(!currentLine.contains("RESOLUTION=480x270")){
                                 m3u8Lines.remove(at: lineIndex + 1)
                                 m3u8Lines.remove(at: lineIndex)
                                 
@@ -131,42 +134,52 @@ class PlayerCollectionViewController: BaseCollectionViewController, UICollection
                         lineIndex += 1
                     }
                     
-                    let urls = FileManager.default.urls(for: .cachesDirectory, in: .userDomainMask)
-                    let streamFileUrl = urls[urls.endIndex-1].appendingPathComponent("\(playerItem.id).m3u8")
+                    //let urls = FileManager.default.urls(for: .cachesDirectory, in: .userDomainMask)
+                    //let streamFileUrl = urls[urls.endIndex-1].appendingPathComponent("\(playerItem.id).m3u8")
                     let m3u8Content = m3u8Lines.joined()
                     
-                    do {
+                    /*do {
                         try m3u8Content.write(to: streamFileUrl, atomically: true, encoding: String.Encoding.utf8)
                     } catch {
                         print("Couldn't write file")
-                    }
+                    }*/
                     
                     /*if let baseUrl = URL(string: baseUrlString) {
-                        let parser = M3U8Parser()
-                        let params = M3U8Parser.Params(playlist: m3u8Data, playlistType: .master, baseUrl: baseUrl)
+                     let parser = M3U8Parser()
+                     let params = M3U8Parser.Params(playlist: m3u8Data, playlistType: .master, baseUrl: baseUrl)
+                     
+                     do {
+                     let playlistResult = try parser.parse(params: params, extraParams: nil)
+                     if case let .master(masterPlaylist) = playlistResult {
+                     let streamUrl = masterPlaylist.tags.streamTags.first(where: {$0.resolution == "480x270"})?.uri ?? ""
+                     
+                     if let potatoUrl = URL(string: "\(baseUrlString)\(streamUrl)") {*/
+                    
+                    let m3u8Server = Server()
+                    m3u8Server.route(.GET, playerItem.id, content: {(.ok, m3u8Content)})
+                    do {
+                        try m3u8Server.start(port: 2506)
+                    } catch (let error) {
+                        print("Couldn't start server " + error.localizedDescription)
+                    }
+                    
+                    if let localUrl =  URL(string: "http://localhost:2506/\(playerItem.id)") {
+                        playerItem.playerAsset = AVAsset(url: localUrl)
+                        playerItem.playerItem = AVPlayerItem(asset: playerItem.playerAsset ?? AVAsset())
+                        playerItem.player = AVPlayer(playerItem: playerItem.playerItem)
+                        playerItem.player?.appliesMediaSelectionCriteriaAutomatically = false
                         
-                        do {
-                            let playlistResult = try parser.parse(params: params, extraParams: nil)
-                            if case let .master(masterPlaylist) = playlistResult {
-                                let streamUrl = masterPlaylist.tags.streamTags.first(where: {$0.resolution == "480x270"})?.uri ?? ""
-                                
-                                if let potatoUrl = URL(string: "\(baseUrlString)\(streamUrl)") {*/
-                                    playerItem.playerAsset = AVURLAsset(url: streamFileUrl, options: ["AVURLAssetHTTPHeaderFieldsKey" : ["User-Agent" : "RaceControl"]])
-                    playerItem.playerAsset?.tracks(withMediaType: .video)
-                                    playerItem.playerItem = AVPlayerItem(asset: playerItem.playerAsset ?? AVAsset())
-                                    playerItem.player = AVPlayer(playerItem: playerItem.playerItem)
-                                    playerItem.player?.appliesMediaSelectionCriteriaAutomatically = false
-                                    
-                                    self.setPreferredDisplayCriteria(displayCriteria: playerItem.playerAsset?.preferredDisplayCriteria)
-                                /*}
-                            }
-                        } catch {
-                            print("Couldn't parse playlist")
-                        }*/
-                        
-                        /*self.playerItems[index] = playerItem
-                        
-                        self.collectionView.reloadItems(at: [IndexPath(item: playerItem.position, section: 0)])*/
+                        self.setPreferredDisplayCriteria(displayCriteria: playerItem.playerAsset?.preferredDisplayCriteria)
+                    }
+                    /*}
+                     }
+                     } catch {
+                     print("Couldn't parse playlist")
+                     }*/
+                    
+                    /*self.playerItems[index] = playerItem
+                     
+                     self.collectionView.reloadItems(at: [IndexPath(item: playerItem.position, section: 0)])*/
                     PlayerController.instance.openPlayer(player: playerItem.player ?? AVPlayer())
                     //}
                 }
@@ -185,6 +198,11 @@ class PlayerCollectionViewController: BaseCollectionViewController, UICollection
                 playerItem.playerItem = AVPlayerItem(asset: playerItem.playerAsset ?? AVAsset())
                 playerItem.player = AVPlayer(playerItem: playerItem.playerItem)
                 playerItem.player?.appliesMediaSelectionCriteriaAutomatically = false
+                
+                if(self.playFromStart) {
+                    playerItem.player?.seek(to: CMTimeMakeWithSeconds(Float64(1), preferredTimescale: 1))
+                    self.playFromStart = false
+                }
                 
                 self.setPreferredDisplayCriteria(displayCriteria: playerItem.playerAsset?.preferredDisplayCriteria)
             }

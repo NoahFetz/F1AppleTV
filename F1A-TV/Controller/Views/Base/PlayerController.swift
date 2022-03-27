@@ -11,6 +11,8 @@ import AVKit
 class PlayerController: NSObject, AVPlayerViewControllerDelegate, StreamEntitlementLoadedProtocol {
     static let instance = PlayerController()
     
+    var playFromStart = false
+    
     var fullscreenPlayerDismissedProtocol: FullscreenPlayerDismissedProtocol?
     
     override init() {
@@ -31,7 +33,9 @@ class PlayerController: NSObject, AVPlayerViewControllerDelegate, StreamEntitlem
         }
     }
     
-    func playStream(contentId: String) {
+    func playStream(contentId: String, playFromStart: Bool? = false) {
+        self.playFromStart = playFromStart ?? false
+        
         var contentUrl = contentId
         if(!contentUrl.starts(with: "CONTENT")){
             contentUrl = "CONTENT/PLAY?contentId=" + contentId
@@ -49,6 +53,10 @@ class PlayerController: NSObject, AVPlayerViewControllerDelegate, StreamEntitlem
         let playerAsset = AVAsset(url: url)
         let playerItem = AVPlayerItem(asset: playerAsset)
         let player = AVPlayer(playerItem: playerItem)
+        
+        if(self.playFromStart) {
+            player.seek(to: CMTimeMakeWithSeconds(Float64(1), preferredTimescale: 1))
+        }
         
         self.openPlayer(player: player)
     }

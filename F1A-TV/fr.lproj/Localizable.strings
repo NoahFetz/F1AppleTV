@@ -72,3 +72,7 @@
 //Player
 "multiplayer_no_channels_add_first" = "Aucun canal sélectionné\nSélectionnez une chaîne";
 "multiplayer_channel_selector_add_channel_title" = "Ajouter une chaîne";
+"stream_start_live_or_from_start_title" = "Séance en direct";
+"stream_start_live_or_from_start_message" = "Regardez depuis le début ou continuez en direct";
+"stream_start_live_or_from_start_live" = "Continuer en direct";
+"stream_start_live_or_from_start_start" = "Depuis le début";

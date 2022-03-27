@@ -68,7 +68,7 @@ class DataManager: RequestInterceptor {
     }
     
     func loadContentVideo(videoId: String, contentVideoProtocol: ContentVideoLoadedProtocol) {
-        self.alamofireSession.request("\(ConstantsUtil.apiUrl)/\(self.apiVersion.getVersionType())/R/\(self.apiLanguage.getAPIKey())/\(self.apiStreamType.getAPIKey())/ALL/CONTENT/VIDEO/\(videoId)/F1_TV_Pro_Annual/2",
+        self.alamofireSession.request("\(ConstantsUtil.apiUrl)/\(self.apiVersion.getVersionType())/R/\(self.apiLanguage.getAPIKey())/\(self.apiStreamType.getAPIKey())/ALL/CONTENT/VIDEO/\(videoId)/F1_TV_Pro_Annual/14",
                                       method: .get,
                                       headers: [HTTPHeader(name: "sessionid", value: self.sessionId), HTTPHeader(name: "entitlementtoken", value: CredentialHelper.instance.getUserInfo().sessionId), HTTPHeader(name: "ascendontoken", value: CredentialHelper.instance.getUserInfo().authData.subscriptionToken)])
             .validate()

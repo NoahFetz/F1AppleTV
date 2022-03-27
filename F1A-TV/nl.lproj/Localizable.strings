@@ -73,3 +73,7 @@
 //Player
 "multiplayer_no_channels_add_first" = "Geen kanaal geselecteerd\nSelecteer een kanaal";
 "multiplayer_channel_selector_add_channel_title" = "Kanaal toevoegen";
+"stream_start_live_or_from_start_title" = "Live sessie";
+"stream_start_live_or_from_start_message" = "Kijk vanaf het begin of ga verder Live";
+"stream_start_live_or_from_start_live" = "Doorgaan met Live";
+"stream_start_live_or_from_start_start" = "Van start";
