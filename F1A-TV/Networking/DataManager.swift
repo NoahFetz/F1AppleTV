@@ -18,9 +18,11 @@ class DataManager: RequestInterceptor {
     var apiVersion = APIVersionType.V3
     let sessionId = "WEB-\(UUID().uuidString)"
     
+    var challengeToken = ""
+    
     init() {
         let configuration = URLSessionConfiguration.af.default
-        configuration.httpAdditionalHeaders = ["User-Agent" : "RaceControl"]
+        configuration.httpAdditionalHeaders = ["User-Agent" : "VROOM-tvOS/1.0.0"]
         self.alamofireSession = Session(configuration: configuration)
         
         self.apiStreamType = CredentialHelper.getPlayerSettings().preferredCdn
@@ -32,7 +34,7 @@ class DataManager: RequestInterceptor {
                                       method: .post,
                                       parameters: authRequest,
                                       encoder: JSONParameterEncoder.default,
-                                      headers: [HTTPHeader(name: "apikey", value: ConstantsUtil.apiKey)])
+                                      headers: [HTTPHeader(name: "apikey", value: ConstantsUtil.apiKey), HTTPHeader(name: "cookie", value: "reese84=\(self.challengeToken);")])
             .validate()
             .responseDecodable(of: AuthResultDto.self) { response in
                 
@@ -70,7 +72,7 @@ class DataManager: RequestInterceptor {
     func loadContentVideo(videoId: String, contentVideoProtocol: ContentVideoLoadedProtocol) {
         self.alamofireSession.request("\(ConstantsUtil.apiUrl)/\(self.apiVersion.getVersionType())/R/\(self.apiLanguage.getAPIKey())/\(self.apiStreamType.getAPIKey())/ALL/CONTENT/VIDEO/\(videoId)/F1_TV_Pro_Annual/14",
                                       method: .get,
-                                      headers: [HTTPHeader(name: "sessionid", value: self.sessionId), HTTPHeader(name: "entitlementtoken", value: CredentialHelper.instance.getUserInfo().sessionId), HTTPHeader(name: "ascendontoken", value: CredentialHelper.instance.getUserInfo().authData.subscriptionToken)])
+                                      headers: [HTTPHeader(name: "sessionid", value: self.sessionId), HTTPHeader(name: "entitlementtoken", value: CredentialHelper.instance.getUserInfo().authData.subscriptionToken), HTTPHeader(name: "ascendontoken", value: CredentialHelper.instance.getUserInfo().authData.subscriptionToken)])
             .validate()
             .responseDecodable(of: ApiResponseDto.self) { response in
                 
@@ -166,6 +168,7 @@ class DataManager: RequestInterceptor {
         }
         
         print("Retried - Retry count: \(request.retryCount)")
+        self.solveLoginChallenge()
         self.refreshToken { isSuccess in
             isSuccess ? completion(.retry) : completion(.doNotRetry)
         }
@@ -173,11 +176,12 @@ class DataManager: RequestInterceptor {
     
     func refreshToken(completion: @escaping (_ isSuccess: Bool) -> Void) {
         let authRequest = AuthRequestDto(login: CredentialHelper.instance.getUserInfo().subscriber.email, password: CredentialHelper.instance.getPassword())
+        
         self.alamofireSession.request(ConstantsUtil.authenticateUrl,
                                       method: .post,
                                       parameters: authRequest,
                                       encoder: JSONParameterEncoder.default,
-                                      headers: [HTTPHeader(name: "apikey", value: ConstantsUtil.apiKey)])
+                                      headers: [HTTPHeader(name: "apikey", value: ConstantsUtil.apiKey), HTTPHeader(name: "cookie", value: "reese84=\(self.challengeToken)")])
             .validate()
             .responseDecodable(of: AuthResultDto.self) { response in
                 
@@ -191,6 +195,27 @@ class DataManager: RequestInterceptor {
                     completion(false)
                 }
             }
+    }
+    
+    func solveLoginChallenge() {
+        var request = URLRequest(url: URL(string: ConstantsUtil.challengeUrl)!)
+        let data = ConstantsUtil.challengeQuestion.data(using: .utf8)
+        request.httpBody = data
+        request.httpMethod = "POST"
+        request.headers = [HTTPHeader(name: "X-D-Domain", value: "api.formula1.com"), HTTPHeader(name: "User-Agent", value: "Densimeter Axiom iOS")]
+        
+        self.alamofireSession.request(request)
+        .validate()
+        .responseDecodable(of: ChallengeResultDto.self) { response in
+            
+            switch response.result {
+            case .success(let apiResponse):
+                self.challengeToken = apiResponse.token
+                
+            case .failure(let afError):
+                self.handleAFError(afError: afError)
+            }
+        }
     }
     
     func handleAFError(afError: AFError) {

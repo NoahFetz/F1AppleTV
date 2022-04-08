@@ -35,6 +35,8 @@ class LoginViewController: BaseViewController, AuthDataLoadedProtocol {
         
         self.emailTextField.text = CredentialHelper.instance.getUserInfo().subscriber.email
         self.passwordTextField.text = CredentialHelper.instance.getPassword()
+        
+        DataManager.instance.solveLoginChallenge()
     }
     
     @objc func loginButtonPressed() {

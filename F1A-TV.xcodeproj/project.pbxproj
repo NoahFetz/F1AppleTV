@@ -154,6 +154,7 @@
 		1BF18CDE25FCED0B00BF3854 /* ContentObjectType.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1BF18CDD25FCED0B00BF3854 /* ContentObjectType.swift */; };
 		1BF4774B2620EB930079F90B /* ControlStripActionProtocol.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1BF4774A2620EB930079F90B /* ControlStripActionProtocol.swift */; };
 		1BF95A3F25EFAE3300A7C7C6 /* UserInteractionHelper.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1BF95A3E25EFAE3300A7C7C6 /* UserInteractionHelper.swift */; };
+		1BFB15542800EA29001FB3DA /* ChallengeResultDto.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1BFB15532800EA29001FB3DA /* ChallengeResultDto.swift */; };
 		1BFED8F5262443FA00540511 /* PlayerSettings.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1BFED8F4262443FA00540511 /* PlayerSettings.swift */; };
 		1BFFAB7825F901C600EADC99 /* SeriesType.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1BFFAB7725F901C600EADC99 /* SeriesType.swift */; };
 /* End PBXBuildFile section */
@@ -323,6 +324,7 @@
 		1BF18CDD25FCED0B00BF3854 /* ContentObjectType.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContentObjectType.swift; sourceTree = "<group>"; };
 		1BF4774A2620EB930079F90B /* ControlStripActionProtocol.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ControlStripActionProtocol.swift; sourceTree = "<group>"; };
 		1BF95A3E25EFAE3300A7C7C6 /* UserInteractionHelper.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UserInteractionHelper.swift; sourceTree = "<group>"; };
+		1BFB15532800EA29001FB3DA /* ChallengeResultDto.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ChallengeResultDto.swift; sourceTree = "<group>"; };
 		1BFED8F4262443FA00540511 /* PlayerSettings.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PlayerSettings.swift; sourceTree = "<group>"; };
 		1BFFAB7725F901C600EADC99 /* SeriesType.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SeriesType.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
@@ -601,6 +603,7 @@
 				1BB29C2C254479FE00ECC074 /* TokenResultDto.swift */,
 				1B20CB2925FB5649002F39D8 /* StreamEntitlementDto.swift */,
 				1B20CB2B25FB5691002F39D8 /* StreamEntitlementResultDto.swift */,
+				1BFB15532800EA29001FB3DA /* ChallengeResultDto.swift */,
 			);
 			path = Security;
 			sourceTree = "<group>";
@@ -985,6 +988,7 @@
 				1B24741F27E4C52F00BBA9AC /* APIVersionType.swift in Sources */,
 				1B8DEEFA25FC0C88004780B9 /* EmfAttributesDto.swift in Sources */,
 				1B24741D27E4A4F000BBA9AC /* MenuPageType.swift in Sources */,
+				1BFB15542800EA29001FB3DA /* ChallengeResultDto.swift in Sources */,
 				1B8DEF0E25FC2257004780B9 /* TechnicalPackageDto.swift in Sources */,
 				1BC656B225F6C7660025CA1D /* NoContentCollectionViewCell.swift in Sources */,
 				1BB29BD1254464BB00ECC074 /* AuthRequestDto.swift in Sources */,
@@ -1180,7 +1184,7 @@
 				CODE_SIGN_ENTITLEMENTS = "F1A-TV/F1A-TV.entitlements";
 				CODE_SIGN_IDENTITY = "Apple Development";
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 22.0327.1;
+				CURRENT_PROJECT_VERSION = 22.0409.1;
 				DEVELOPMENT_TEAM = 8SW735FL99;
 				INFOPLIST_FILE = "$(SRCROOT)/F1A-TV/Info.plist";
 				LD_RUNPATH_SEARCH_PATHS = (
@@ -1207,7 +1211,7 @@
 				CODE_SIGN_ENTITLEMENTS = "F1A-TV/F1A-TV.entitlements";
 				CODE_SIGN_IDENTITY = "Apple Development";
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 22.0327.1;
+				CURRENT_PROJECT_VERSION = 22.0409.1;
 				DEVELOPMENT_TEAM = 8SW735FL99;
 				INFOPLIST_FILE = "$(SRCROOT)/F1A-TV/Info.plist";
 				LD_RUNPATH_SEARCH_PATHS = (
