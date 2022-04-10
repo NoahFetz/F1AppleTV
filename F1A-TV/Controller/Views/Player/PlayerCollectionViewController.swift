@@ -193,19 +193,18 @@ class PlayerCollectionViewController: BaseCollectionViewController, UICollection
             
             playerItem.entitlement = streamEntitlement
             
-            if let url = URL(string: streamEntitlement.url) {
-                playerItem.playerAsset = AVAsset(url: url)
-                playerItem.playerItem = AVPlayerItem(asset: playerItem.playerAsset ?? AVAsset())
-                playerItem.player = AVPlayer(playerItem: playerItem.playerItem)
-                playerItem.player?.appliesMediaSelectionCriteriaAutomatically = false
-                
-                if(self.playFromStart) {
-                    playerItem.player?.seek(to: CMTimeMakeWithSeconds(Float64(1), preferredTimescale: 1))
-                    self.playFromStart = false
-                }
-                
-                self.setPreferredDisplayCriteria(displayCriteria: playerItem.playerAsset?.preferredDisplayCriteria)
+            playerItem.fairPlayManager = FairPlayManager(streamEntitlement: streamEntitlement)
+            playerItem.playerAsset = playerItem.fairPlayManager?.makeFairPlayReady()
+            playerItem.playerItem = AVPlayerItem(asset: playerItem.playerAsset ?? AVAsset())
+            playerItem.player = AVPlayer(playerItem: playerItem.playerItem)
+            playerItem.player?.appliesMediaSelectionCriteriaAutomatically = false
+            
+            if(self.playFromStart) {
+                playerItem.player?.seek(to: CMTimeMakeWithSeconds(Float64(1), preferredTimescale: 1))
+                self.playFromStart = false
             }
+            
+            self.setPreferredDisplayCriteria(displayCriteria: playerItem.playerAsset?.preferredDisplayCriteria)
             
             self.playerItems[index] = playerItem
             

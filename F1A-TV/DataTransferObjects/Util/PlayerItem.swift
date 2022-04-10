@@ -13,7 +13,8 @@ struct PlayerItem: Identifiable {
     var contentItem: ContentItem
     var entitlement: StreamEntitlementDto?
     var position: Int
-    var playerAsset: AVAsset?
+    var fairPlayManager: FairPlayManager?
+    var playerAsset: AVURLAsset?
     var playerItem: AVPlayerItem?
     var player: AVPlayer?
     

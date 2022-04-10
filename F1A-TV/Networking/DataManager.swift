@@ -19,6 +19,7 @@ class DataManager: RequestInterceptor {
     let sessionId = "WEB-\(UUID().uuidString)"
     
     var challengeToken = ""
+    var fairPlayCertificate: Data?
     
     init() {
         let configuration = URLSessionConfiguration.af.default
@@ -27,6 +28,8 @@ class DataManager: RequestInterceptor {
         
         self.apiStreamType = CredentialHelper.getPlayerSettings().preferredCdn
         self.apiLanguage = CredentialHelper.getPlayerSettings().preferredApiLanguage
+        
+        self.loadFairPlayCertificate()
     }
     
     func loadAuthData(authRequest: AuthRequestDto, authDataLoadedProtocol: AuthDataLoadedProtocol) {
@@ -216,6 +219,41 @@ class DataManager: RequestInterceptor {
                 self.handleAFError(afError: afError)
             }
         }
+    }
+    
+    func loadFairPlayCertificate() {
+        self.alamofireSession.request("\(ConstantsUtil.apiUrl)/fairplay01.der",
+                                      method: .get)
+        .validate()
+        .responseData() { certificateResponse in
+            switch certificateResponse.result {
+            case .success(let certificateData):
+                self.fairPlayCertificate = certificateData
+                
+            case .failure(let afError):
+                self.handleAFError(afError: afError)
+            }
+        }
+    }
+    
+    func getFairPlayLease(fairPlayRequestUrl: String, fairPlayRequestData: Data, assetId: String, completion: @escaping (Data?, Error?) -> ()) {
+        var request = URLRequest(url: URL(string: fairPlayRequestUrl)!)
+        request.httpMethod = "POST"
+        request.httpBody = "spc=\(fairPlayRequestData.base64EncodedString())&assetId=\(assetId)".data(using: .utf8)
+        request.headers = [HTTPHeader(name: "entitlementtoken", value: CredentialHelper.instance.getUserInfo().sessionId), HTTPHeader(name: "ascendontoken", value: CredentialHelper.instance.getUserInfo().authData.subscriptionToken)]
+        
+        self.alamofireSession.request(request)
+            .validate()
+            .responseData() { ckcResponse in
+                switch ckcResponse.result {
+                case .success(let ckcData):
+                    completion(ckcData, nil)
+                    
+                case .failure(let afError):
+                    self.handleAFError(afError: afError)
+                    completion(nil, afError)
+                }
+            }
     }
     
     func handleAFError(afError: AFError) {

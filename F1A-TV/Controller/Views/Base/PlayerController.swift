@@ -44,13 +44,9 @@ class PlayerController: NSObject, AVPlayerViewControllerDelegate, StreamEntitlem
     }
     
     func didLoadStreamEntitlement(playerId: String, streamEntitlement: StreamEntitlementDto) {
-        if let url = URL(string: streamEntitlement.url) {
-            self.openPlayer(url: url)
-        }
-    }
-    
-    func openPlayer(url: URL) {
-        let playerAsset = AVAsset(url: url)
+        let fairPlayManager = FairPlayManager(streamEntitlement: streamEntitlement)
+        
+        let playerAsset = fairPlayManager.makeFairPlayReady() ?? AVAsset()
         let playerItem = AVPlayerItem(asset: playerAsset)
         let player = AVPlayer(playerItem: playerItem)
         
