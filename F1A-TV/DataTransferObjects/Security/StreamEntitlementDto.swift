@@ -36,7 +36,7 @@ struct StreamEntitlementDto: Codable {
         case url = "url"
         case streamType = "streamType"
         case drmType = "drmType"
-        case laUrl = "laUrl"
+        case laUrl = "laURL"
         case channelId = "channelId"
     }
 }

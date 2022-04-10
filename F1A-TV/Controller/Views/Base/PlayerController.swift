@@ -12,6 +12,7 @@ class PlayerController: NSObject, AVPlayerViewControllerDelegate, StreamEntitlem
     static let instance = PlayerController()
     
     var playFromStart = false
+    var playerItem = PlayerItem()
     
     var fullscreenPlayerDismissedProtocol: FullscreenPlayerDismissedProtocol?
     
@@ -44,17 +45,20 @@ class PlayerController: NSObject, AVPlayerViewControllerDelegate, StreamEntitlem
     }
     
     func didLoadStreamEntitlement(playerId: String, streamEntitlement: StreamEntitlementDto) {
-        let fairPlayManager = FairPlayManager(streamEntitlement: streamEntitlement)
+        var localPlayerItem = PlayerItem()
         
-        let playerAsset = fairPlayManager.makeFairPlayReady() ?? AVAsset()
-        let playerItem = AVPlayerItem(asset: playerAsset)
-        let player = AVPlayer(playerItem: playerItem)
+        localPlayerItem.fairPlayManager = FairPlayManager(streamEntitlement: streamEntitlement)
+        localPlayerItem.playerAsset = localPlayerItem.fairPlayManager?.makeFairPlayReady()
+        localPlayerItem.playerItem = AVPlayerItem(asset: localPlayerItem.playerAsset ?? AVAsset())
+        localPlayerItem.player = AVPlayer(playerItem: localPlayerItem.playerItem)
         
         if(self.playFromStart) {
-            player.seek(to: CMTimeMakeWithSeconds(Float64(1), preferredTimescale: 1))
+            localPlayerItem.player?.seek(to: CMTimeMakeWithSeconds(Float64(1), preferredTimescale: 1))
         }
         
-        self.openPlayer(player: player)
+        self.playerItem = localPlayerItem
+        
+        self.openPlayer(player: localPlayerItem.player ?? AVPlayer())
     }
     
     func openPlayer(player: AVPlayer, fullscreenPlayerDismissedProtocol: FullscreenPlayerDismissedProtocol? = nil) {

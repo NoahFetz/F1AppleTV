@@ -141,7 +141,6 @@
 		1BCC9B2C260E2AC9002B4E95 /* F1TVsImSometimesAnIntAndSometimesAStringDto.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1BCC9B2B260E2AC9002B4E95 /* F1TVsImSometimesAnIntAndSometimesAStringDto.swift */; };
 		1BCDE424261E5A350091C183 /* TvOSSlider.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1BCDE423261E5A350091C183 /* TvOSSlider.swift */; };
 		1BCDE426261E5A4D0091C183 /* DPadState.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1BCDE425261E5A4D0091C183 /* DPadState.swift */; };
-		1BD33E71280254BD00999384 /* BigInt.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1BD33E70280254BD00999384 /* BigInt.swift */; };
 		1BD5FE6E2544CF6900CA03B4 /* UIViewExtension.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1BD5FE6D2544CF6900CA03B4 /* UIViewExtension.swift */; };
 		1BDAED3A261212C0003361F8 /* PlayerCollectionViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1BDAED39261212C0003361F8 /* PlayerCollectionViewController.swift */; };
 		1BDAED3D26122D66003361F8 /* ChannelPlayerCollectionViewCell.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1BDAED3B26122D66003361F8 /* ChannelPlayerCollectionViewCell.swift */; };
@@ -313,7 +312,6 @@
 		1BCC9B2B260E2AC9002B4E95 /* F1TVsImSometimesAnIntAndSometimesAStringDto.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = F1TVsImSometimesAnIntAndSometimesAStringDto.swift; sourceTree = "<group>"; };
 		1BCDE423261E5A350091C183 /* TvOSSlider.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TvOSSlider.swift; sourceTree = "<group>"; };
 		1BCDE425261E5A4D0091C183 /* DPadState.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DPadState.swift; sourceTree = "<group>"; };
-		1BD33E70280254BD00999384 /* BigInt.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BigInt.swift; sourceTree = "<group>"; };
 		1BD5FE6D2544CF6900CA03B4 /* UIViewExtension.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UIViewExtension.swift; sourceTree = "<group>"; };
 		1BDAED39261212C0003361F8 /* PlayerCollectionViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PlayerCollectionViewController.swift; sourceTree = "<group>"; };
 		1BDAED3B26122D66003361F8 /* ChannelPlayerCollectionViewCell.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ChannelPlayerCollectionViewCell.swift; sourceTree = "<group>"; };
@@ -655,7 +653,6 @@
 				1B1734F625FAAD4C00ACAB0E /* FontAdjustedUILabel.swift */,
 				1B4F98D6261B40A4008FCE4A /* AVPlayerViewControllerExtension.swift */,
 				1B93FDFB26222B680017AC97 /* AVPlayerItemExtension.swift */,
-				1BD33E70280254BD00999384 /* BigInt.swift */,
 			);
 			path = Extensions;
 			sourceTree = "<group>";
@@ -945,7 +942,6 @@
 				1B85210E25F7CCC400B3356B /* IsoCountryCodes.swift in Sources */,
 				1BC656A925F6A08D0025CA1D /* MenuSelectorTableViewController.swift in Sources */,
 				1B19AE9F269119B40008049C /* M3U8Parser.swift in Sources */,
-				1BD33E71280254BD00999384 /* BigInt.swift in Sources */,
 				1B43FB09267CDA8C00F22345 /* FullscreenPlayerDismissedProtocol.swift in Sources */,
 				1BEC362B26263805002F7504 /* BaseViewController.swift in Sources */,
 				1B8DEEF825FC074C004780B9 /* ContainerDto.swift in Sources */,
@@ -1192,7 +1188,7 @@
 				CODE_SIGN_ENTITLEMENTS = "F1A-TV/F1A-TV.entitlements";
 				CODE_SIGN_IDENTITY = "Apple Development";
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 22.0410.1;
+				CURRENT_PROJECT_VERSION = 22.0410.2;
 				DEVELOPMENT_TEAM = 8SW735FL99;
 				INFOPLIST_FILE = "$(SRCROOT)/F1A-TV/Info.plist";
 				LD_RUNPATH_SEARCH_PATHS = (
@@ -1219,7 +1215,7 @@
 				CODE_SIGN_ENTITLEMENTS = "F1A-TV/F1A-TV.entitlements";
 				CODE_SIGN_IDENTITY = "Apple Development";
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 22.0410.1;
+				CURRENT_PROJECT_VERSION = 22.0410.2;
 				DEVELOPMENT_TEAM = 8SW735FL99;
 				INFOPLIST_FILE = "$(SRCROOT)/F1A-TV/Info.plist";
 				LD_RUNPATH_SEARCH_PATHS = (
