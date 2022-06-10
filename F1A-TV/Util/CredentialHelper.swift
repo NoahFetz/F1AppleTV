@@ -114,9 +114,9 @@ class CredentialHelper: AuthDataLoadedProtocol {
         DataSource.instance.addKeyValue(keyValuePair: KeyValueStoreObject(id: UUID().uuidString.lowercased(), key: ConstantsUtil.playerSettingsKeyValueStorageKey, value: dataString))
     }
     
-    func performAuthRequest(authRequest: AuthRequestDto) {
+    /*func performAuthRequest(authRequest: AuthRequestDto) {
         DataManager.instance.loadAuthData(authRequest: authRequest, authDataLoadedProtocol: self)
-    }
+    }*/
     
     func didLoadAuthData(authResult: AuthResultDto) {
         //CredentialHelper.instance.setUserInfo(userInfo: authResult)
