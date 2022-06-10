@@ -8,20 +8,16 @@
 import Foundation
 
 struct DeviceRegistrationSessionSummaryExternalAuthorizationDto: Codable {
-    var contextData: String
-    var id: Int
-    var provider: Int
-    var subscriberExternalReference: String
+    var contextData: String?
+    var id: Int?
+    var provider: Int?
+    var subscriberExternalReference: String?
     var tokenActive: Bool?
 
     init() {
-        self.contextData = ""
-        self.id = -1
-        self.provider = -1
-        self.subscriberExternalReference = ""
     }
     
-    init(contextData: String, id: Int, provider: Int, subscriberExternalReference: String, tokenActive: Bool) {
+    init(contextData: String?, id: Int?, provider: Int?, subscriberExternalReference: String?, tokenActive: Bool?) {
         self.contextData = contextData
         self.id = id
         self.provider = provider

@@ -9,30 +9,26 @@ import Foundation
 
 struct DeviceRegistrationSessionSummaryDto: Codable {
     var email: String
-    var externalAuthorizations: [DeviceRegistrationSessionSummaryExternalAuthorizationDto]
+    var externalAuthorizations: [DeviceRegistrationSessionSummaryExternalAuthorizationDto]?
     var firstName: String
     var homeCountry: String
     var lastName: String
     var login: String
     var subscriberId: Int
-    var subscriberLanguage: String
-    var termsAndConditionsAccepted: String
-    var title: String
+    var subscriberLanguage: String?
+    var termsAndConditionsAccepted: String?
+    var title: String?
     
     init() {
         self.email = ""
-        self.externalAuthorizations = [DeviceRegistrationSessionSummaryExternalAuthorizationDto]()
         self.firstName = ""
         self.homeCountry = ""
         self.lastName = ""
         self.login = ""
         self.subscriberId = -1
-        self.subscriberLanguage = ""
-        self.termsAndConditionsAccepted = ""
-        self.title = ""
     }
 
-    init(email: String, externalAuthorizations: [DeviceRegistrationSessionSummaryExternalAuthorizationDto], firstName: String, homeCountry: String, lastName: String, login: String, subscriberId: Int, subscriberLanguage: String, termsAndConditionsAccepted: String, title: String) {
+    init(email: String, externalAuthorizations: [DeviceRegistrationSessionSummaryExternalAuthorizationDto]?, firstName: String, homeCountry: String, lastName: String, login: String, subscriberId: Int, subscriberLanguage: String?, termsAndConditionsAccepted: String?, title: String?) {
         self.email = email
         self.externalAuthorizations = externalAuthorizations
         self.firstName = firstName

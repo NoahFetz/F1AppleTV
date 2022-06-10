@@ -35,7 +35,7 @@ class DataManager: RequestInterceptor {
     /**
      This gets replaced by Device Registration
      */
-    func loadAuthData(authRequest: AuthRequestDto, authDataLoadedProtocol: AuthDataLoadedProtocol) {
+    /*func loadAuthData(authRequest: AuthRequestDto, authDataLoadedProtocol: AuthDataLoadedProtocol) {
         self.alamofireSession.request(ConstantsUtil.authenticateUrl,
                                       method: .post,
                                       parameters: authRequest,
@@ -53,8 +53,19 @@ class DataManager: RequestInterceptor {
                 self.handleAFError(afError: afError)
             }
         }
-    }
+    }*/
     
+    /**
+     TODO: Check for device limit  -> json looks like this
+     {
+         "ContextId": "74b1ec48-1a4a-4a6d-9af2-b5054f4c9a8b",
+         "Fault": {
+             "Code": 811,
+             "Message": "The subscriber already has the limited number of active associated devices.",
+             "Severity": 4
+         }
+     }
+     */
     func performDeviceRegistration(deviceRegistrationRequest: DeviceRegistrationRequestDto, deviceRegistrationLoadedProtocol: DeviceRegistrationLoadedProtocol) {
         self.alamofireSession.request(ConstantsUtil.deviceRegistrationUrl,
                                       method: .post,

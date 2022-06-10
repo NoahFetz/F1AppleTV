@@ -36,7 +36,6 @@ class LoginViewController: BaseViewController, AuthDataLoadedProtocol, DeviceReg
         self.emailTextField.text = CredentialHelper.instance.getDeviceRegistration().sessionSummary.email
         self.passwordTextField.text = ""
         
-        //DataManager.instance.solveLoginChallenge()
         self.fetchCookieFromBrowserWindow()
     }
     
