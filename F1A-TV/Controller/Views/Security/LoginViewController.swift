@@ -48,7 +48,7 @@ class LoginViewController: BaseViewController, AuthDataLoadedProtocol, DeviceReg
         let request = URLRequest(url: url!)
         tempWebview.loadRequest(request)
         let uiview = tempWebview as! UIView
-        uiview.frame = CGRectMake(0, 0, self.view.frame.width, self.view.frame.height)
+        uiview.frame = CGRect(x: 0, y: 0, width: self.view.frame.width, height: self.view.frame.height)
         uiview.alpha = 0
         self.view.addSubview(uiview)
         
