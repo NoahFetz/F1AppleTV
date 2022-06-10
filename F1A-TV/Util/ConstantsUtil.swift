@@ -17,8 +17,14 @@ struct ConstantsUtil {
     
     //General
     static let authenticateUrl = "https://api.formula1.com/v2/account/subscriber/authenticate/by-password"
+    static let deviceRegistrationUrl = "https://api.formula1.com/v1/account/Subscriber/RegisterDevice"
+    static let deviceUnregistrationUrl = "https://api.formula1.com/v1/account/Subscriber/UnregisterDevice"
+    static let deviceAuthenticationUrl = "https://api.formula1.com/v2/account/subscriber/authenticate/by-device"
     static let challengeUrl = "https://api.formula1.com/6657193977244c13/rSa9Vzy3KajA9f9m/v1/challenge"
     static let apiKey = "fCUCjWrKPu9ylJwRAv8BpGLEgiAuThx7"
+    static let deviceRegistrationApiKey = "BPhVa4xbZoebPNdxRor9rouq6gzMoPyZ"
+    static let deviceRegistrationSystemId = "60a9ad84-e93d-480f-80d6-af37494f2e22"
+    static let deviceRegistrationDistributionChannel = "40500b92-005d-4e10-972f-b41850d6125b"
     static let identityProvider = "/api/identity-providers/iden_732298a17f9c458890a1877880d140f3/"
     static let tokenUrl = "https://f1tv-api.formula1.com/agl/1.0/unk/en/all_devices/global/authenticate"
     static let apiUrl = "https://f1tv.formula1.com"
@@ -32,6 +38,7 @@ struct ConstantsUtil {
     static let userInfoKeyValueStorageKey = "F1ATV_UserInfoKVSKey"
     static let passwordKeyValueStorageKey = "F1ATV_PasswordKVSKey"
     static let playerSettingsKeyValueStorageKey = "F1ATV_PlayerSettingsKVSKey"
+    static let deviceRegistrationKeyValueStorageKey = "F1ATV_DeviceRegistrationKVSKey"
 
     
     //Controller

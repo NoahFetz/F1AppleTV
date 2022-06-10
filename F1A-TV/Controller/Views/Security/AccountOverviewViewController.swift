@@ -7,7 +7,7 @@
 
 import UIKit
 
-class AccountOverviewViewController: BaseViewController {
+class AccountOverviewViewController: BaseViewController, DeviceRegistrationLoadedProtocol {
     @IBOutlet weak var accountTitleLabel: UILabel!
     @IBOutlet weak var idTitleLabel: UILabel!
     @IBOutlet weak var idValueLabel: UILabel!
@@ -44,12 +44,12 @@ class AccountOverviewViewController: BaseViewController {
             self.logoutButton.setTitle("logout_button_title".localizedString, for: .normal)
             self.logoutButton.addTarget(self, action: #selector(self.logoutPressed), for: .primaryActionTriggered)
             
-            let userInfo = CredentialHelper.instance.getUserInfo()
-            self.idValueLabel.text = String(userInfo.subscriber.id)
-            self.nameValueLabel.text = userInfo.subscriber.firstName + " " + userInfo.subscriber.lastName
-            self.emailValueLabel.text = userInfo.subscriber.email
-            self.countryValueLabel.text = (IsoCountryCodes.find(key: userInfo.country)?.flag ?? "") + (IsoCountryCodes.find(key: userInfo.country)?.name ?? "")
-            self.subscriptionValueLabel.text = userInfo.authData.subscriptionStatus
+            let deviceRegistration = CredentialHelper.instance.getDeviceRegistration()
+            self.idValueLabel.text = String(deviceRegistration.sessionSummary.subscriberId)
+            self.nameValueLabel.text = deviceRegistration.sessionSummary.firstName + " " + deviceRegistration.sessionSummary.lastName
+            self.emailValueLabel.text = deviceRegistration.sessionSummary.email
+            self.countryValueLabel.text = (IsoCountryCodes.find(key: deviceRegistration.sessionSummary.homeCountry)?.flag ?? "") + (IsoCountryCodes.find(key: deviceRegistration.sessionSummary.homeCountry)?.name ?? "")
+            self.subscriptionValueLabel.text = deviceRegistration.data.subscriptionStatus
         }else{
             self.logoutButton.setTitle("login_button_title".localizedString, for: .normal)
             self.logoutButton.addTarget(self, action: #selector(self.loginPressed), for: .primaryActionTriggered)
@@ -62,13 +62,23 @@ class AccountOverviewViewController: BaseViewController {
     }
     
     @objc func logoutPressed() {
-        CredentialHelper.instance.setUserInfo(userInfo: AuthResultDto())
-        CredentialHelper.instance.setPassword(password: "")
+        DataManager.instance.performDeviceUnregistration(deviceRegistrationLoadedProtocol: self)
         
-        self.setupView()
+        //CredentialHelper.instance.setUserInfo(userInfo: AuthResultDto())
+        //CredentialHelper.instance.setPassword(password: "")
+        
+        //self.setupView()
     }
     
     @objc func loginPressed() {
         self.presentFullscreen(viewIdentifier: ConstantsUtil.loginViewController)
+    }
+    
+    func didPerformDeviceRegistration(deviceRegistration: DeviceRegistrationResultDto) {
+    }
+    
+    func didPerformDeviceUnregistration() {
+        CredentialHelper.instance.setDeviceRegistration(deviceRegistration: DeviceRegistrationResultDto())
+        self.setupView()
     }
 }

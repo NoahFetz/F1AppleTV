@@ -32,6 +32,9 @@ class DataManager: RequestInterceptor {
         self.loadFairPlayCertificate()
     }
     
+    /**
+     This gets replaced by Device Registration
+     */
     func loadAuthData(authRequest: AuthRequestDto, authDataLoadedProtocol: AuthDataLoadedProtocol) {
         self.alamofireSession.request(ConstantsUtil.authenticateUrl,
                                       method: .post,
@@ -40,7 +43,6 @@ class DataManager: RequestInterceptor {
                                       headers: [HTTPHeader(name: "apikey", value: ConstantsUtil.apiKey), HTTPHeader(name: "cookie", value: "reese84=\(self.challengeToken);")])
             .validate()
             .responseDecodable(of: AuthResultDto.self) { response in
-                
             switch response.result {
             case .success(let apiResponse):
                 DispatchQueue.main.async {
@@ -53,11 +55,52 @@ class DataManager: RequestInterceptor {
         }
     }
     
+    func performDeviceRegistration(deviceRegistrationRequest: DeviceRegistrationRequestDto, deviceRegistrationLoadedProtocol: DeviceRegistrationLoadedProtocol) {
+        self.alamofireSession.request(ConstantsUtil.deviceRegistrationUrl,
+                                      method: .post,
+                                      parameters: deviceRegistrationRequest,
+                                      encoder: JSONParameterEncoder.default,
+                                      headers: [HTTPHeader(name: "apikey", value: ConstantsUtil.deviceRegistrationApiKey), HTTPHeader(name: "X-D-Token", value: self.challengeToken), HTTPHeader(name: "CD-SystemID", value: ConstantsUtil.deviceRegistrationSystemId)])
+            .validate()
+            .responseDecodable(of: DeviceRegistrationResultDto.self) { response in
+            switch response.result {
+            case .success(let apiResponse):
+                DispatchQueue.main.async {
+                    deviceRegistrationLoadedProtocol.didPerformDeviceRegistration(deviceRegistration: apiResponse)
+                }
+                
+            case .failure(let afError):
+                self.handleAFError(afError: afError)
+            }
+        }
+    }
+    
+    func performDeviceUnregistration(deviceRegistrationLoadedProtocol: DeviceRegistrationLoadedProtocol) {
+        let deviceUnregistrationRequest = DeviceUnregistrationRequestDto()
+        
+        self.alamofireSession.request(ConstantsUtil.deviceUnregistrationUrl,
+                                      method: .post,
+                                      parameters: deviceUnregistrationRequest,
+                                      encoder: JSONParameterEncoder.default,
+                                      headers: [HTTPHeader(name: "apikey", value: ConstantsUtil.deviceRegistrationApiKey), HTTPHeader(name: "CD-SessionID", value: CredentialHelper.instance.getDeviceRegistration().sessionId), HTTPHeader(name: "CD-SystemID", value: ConstantsUtil.deviceRegistrationSystemId)])
+            .validate()
+            .response() { response in
+            switch response.result {
+            case .success( _):
+                DispatchQueue.main.async {
+                    deviceRegistrationLoadedProtocol.didPerformDeviceUnregistration()
+                }
+                
+            case .failure(let afError):
+                self.handleAFError(afError: afError)
+            }
+        }
+    }
+    
     func loadContentPage(pageUri: String, contentPageProtocol: ContentPageLoadedProtocol) {
         self.alamofireSession.request("\(ConstantsUtil.apiUrl)\(pageUri)", method: .get)
             .validate()
             .responseDecodable(of: ApiResponseDto.self) { response in
-                
             switch response.result {
             case .success(let apiResponse):
                 if let resultObject = apiResponse.resultObj {
@@ -75,10 +118,9 @@ class DataManager: RequestInterceptor {
     func loadContentVideo(videoId: String, contentVideoProtocol: ContentVideoLoadedProtocol) {
         self.alamofireSession.request("\(ConstantsUtil.apiUrl)/\(self.apiVersion.getVersionType())/R/\(self.apiLanguage.getAPIKey())/\(self.apiStreamType.getAPIKey())/ALL/CONTENT/VIDEO/\(videoId)/F1_TV_Pro_Annual/14",
                                       method: .get,
-                                      headers: [HTTPHeader(name: "sessionid", value: self.sessionId), HTTPHeader(name: "entitlementtoken", value: CredentialHelper.instance.getUserInfo().authData.subscriptionToken), HTTPHeader(name: "ascendontoken", value: CredentialHelper.instance.getUserInfo().authData.subscriptionToken)])
+                                      headers: [HTTPHeader(name: "sessionid", value: self.sessionId), HTTPHeader(name: "entitlementtoken", value: CredentialHelper.instance.getDeviceRegistration().data.subscriptionToken), HTTPHeader(name: "ascendontoken", value: CredentialHelper.instance.getDeviceRegistration().data.subscriptionToken)])
             .validate()
             .responseDecodable(of: ApiResponseDto.self) { response in
-                
             switch response.result {
             case .success(let apiResponse):
                 if let resultObject = apiResponse.resultObj {
@@ -96,11 +138,10 @@ class DataManager: RequestInterceptor {
     func loadStreamEntitlement(contentId: String, playerId: String = "", streamEntitlementLoadedProtocol: StreamEntitlementLoadedProtocol) {
         self.alamofireSession.request("\(ConstantsUtil.apiUrl)/\(APIVersionType.V2.getVersionType())/R/\(self.apiLanguage.getAPIKey())/\(self.apiStreamType.getAPIKey())/ALL/\(contentId)",
                                       method: .get,
-                                      headers: [HTTPHeader(name: "sessionid", value: self.sessionId), HTTPHeader(name: "entitlementtoken", value: CredentialHelper.instance.getUserInfo().sessionId), HTTPHeader(name: "ascendontoken", value: CredentialHelper.instance.getUserInfo().authData.subscriptionToken)],
+                                      headers: [HTTPHeader(name: "sessionid", value: self.sessionId), HTTPHeader(name: "entitlementtoken", value: CredentialHelper.instance.getDeviceRegistration().sessionId), HTTPHeader(name: "ascendontoken", value: CredentialHelper.instance.getDeviceRegistration().data.subscriptionToken)],
                                       interceptor: self)
             .validate()
             .responseDecodable(of: StreamEntitlementResultDto.self) { response in
-                
             switch response.result {
             case .success(let apiResponse):
                 if let resultObject = apiResponse.resultObj {
@@ -136,10 +177,9 @@ class DataManager: RequestInterceptor {
                                       method: .post,
                                       parameters: reportingItem,
                                       encoder: JSONParameterEncoder.default,
-                                      headers: [HTTPHeader(name: "sessionid", value: self.sessionId), HTTPHeader(name: "entitlementtoken", value: CredentialHelper.instance.getUserInfo().sessionId), HTTPHeader(name: "ascendontoken", value: CredentialHelper.instance.getUserInfo().authData.subscriptionToken)])
+                                      headers: [HTTPHeader(name: "sessionid", value: self.sessionId), HTTPHeader(name: "entitlementtoken", value: CredentialHelper.instance.getDeviceRegistration().sessionId), HTTPHeader(name: "ascendontoken", value: CredentialHelper.instance.getDeviceRegistration().data.subscriptionToken)])
             .validate()
             .responseDecodable(of: PlayTimeReportingResultDto.self) { response in
-                
             switch response.result {
             case .success(let apiResponse):
                 print("Reporting result: \(apiResponse.resultCode)")
@@ -154,13 +194,13 @@ class DataManager: RequestInterceptor {
     
     func adapt(_ urlRequest: URLRequest, for session: Session, completion: @escaping (Result<URLRequest, Error>) -> Void) {
         var request = urlRequest
-        if(CredentialHelper.instance.getUserInfo().authData.subscriptionToken == urlRequest.headers.first(where: {$0.name == "ascendontoken"})?.value) {
+        if(CredentialHelper.instance.getDeviceRegistration().data.subscriptionToken == urlRequest.headers.first(where: {$0.name == "ascendontoken"})?.value) {
             completion(.success(urlRequest))
             return
         }
         
-        request.headers = [HTTPHeader(name: "ascendontoken", value: CredentialHelper.instance.getUserInfo().authData.subscriptionToken)]
-        print("Adapted - Token set to the header field is: \(CredentialHelper.instance.getUserInfo().authData.subscriptionToken)")
+        request.headers = [HTTPHeader(name: "entitlementtoken", value: CredentialHelper.instance.getDeviceRegistration().sessionId), HTTPHeader(name: "ascendontoken", value: CredentialHelper.instance.getDeviceRegistration().data.subscriptionToken)]
+        print("Adapted - Token set to the header field is: \(CredentialHelper.instance.getDeviceRegistration().data.subscriptionToken)")
         completion(.success(request))
     }
     
@@ -171,26 +211,36 @@ class DataManager: RequestInterceptor {
         }
         
         print("Retried - Retry count: \(request.retryCount)")
-        self.solveLoginChallenge()
         self.refreshToken { isSuccess in
             isSuccess ? completion(.retry) : completion(.doNotRetry)
         }
     }
     
     func refreshToken(completion: @escaping (_ isSuccess: Bool) -> Void) {
-        let authRequest = AuthRequestDto(login: CredentialHelper.instance.getUserInfo().subscriber.email, password: CredentialHelper.instance.getPassword())
+        let authRequest = DeviceAuthenticationRequestDto()
         
-        self.alamofireSession.request(ConstantsUtil.authenticateUrl,
+        self.alamofireSession.request(ConstantsUtil.deviceAuthenticationUrl,
                                       method: .post,
                                       parameters: authRequest,
                                       encoder: JSONParameterEncoder.default,
-                                      headers: [HTTPHeader(name: "apikey", value: ConstantsUtil.apiKey), HTTPHeader(name: "cookie", value: "reese84=\(self.challengeToken)")])
+                                      headers: [HTTPHeader(name: "apikey", value: ConstantsUtil.deviceRegistrationApiKey),])
             .validate()
-            .responseDecodable(of: AuthResultDto.self) { response in
-                
+            .responseDecodable(of: DeviceAuthenticationResultDto.self) { response in
                 switch response.result {
                 case .success(let apiResponse):
-                    CredentialHelper.instance.setUserInfo(userInfo: apiResponse)
+                    var deviceRegistration = CredentialHelper.instance.getDeviceRegistration()
+                    
+                    deviceRegistration.sessionId = apiResponse.authenticationKey
+                    deviceRegistration.physicalDevice.authenticationKey = apiResponse.authenticationKey
+                    deviceRegistration.data = apiResponse.data
+                    deviceRegistration.sessionSummary.firstName = apiResponse.subscriber.firstName
+                    deviceRegistration.sessionSummary.lastName = apiResponse.subscriber.lastName
+                    deviceRegistration.sessionSummary.homeCountry = apiResponse.subscriber.homeCountry
+                    deviceRegistration.sessionSummary.subscriberId = apiResponse.subscriber.id
+                    deviceRegistration.sessionSummary.email = apiResponse.subscriber.email
+                    deviceRegistration.sessionSummary.login = apiResponse.subscriber.login
+                    
+                    CredentialHelper.instance.setDeviceRegistration(deviceRegistration: deviceRegistration)
                     completion(true)
                     
                 case .failure(let afError):
@@ -198,27 +248,6 @@ class DataManager: RequestInterceptor {
                     completion(false)
                 }
             }
-    }
-    
-    func solveLoginChallenge() {
-        var request = URLRequest(url: URL(string: ConstantsUtil.challengeUrl)!)
-        let data = ConstantsUtil.challengeQuestion.data(using: .utf8)
-        request.httpBody = data
-        request.httpMethod = "POST"
-        request.headers = [HTTPHeader(name: "X-D-Domain", value: "api.formula1.com"), HTTPHeader(name: "User-Agent", value: "Densimeter Axiom iOS")]
-        
-        self.alamofireSession.request(request)
-        .validate()
-        .responseDecodable(of: ChallengeResultDto.self) { response in
-            
-            switch response.result {
-            case .success(let apiResponse):
-                self.challengeToken = apiResponse.token
-                
-            case .failure(let afError):
-                self.handleAFError(afError: afError)
-            }
-        }
     }
     
     func loadFairPlayCertificate() {
@@ -240,7 +269,7 @@ class DataManager: RequestInterceptor {
         var request = URLRequest(url: URL(string: fairPlayRequestUrl)!)
         request.httpMethod = "POST"
         request.httpBody = "spc=\(fairPlayRequestData.base64EncodedString())&assetId=\(assetId)".data(using: .utf8)
-        request.headers = [HTTPHeader(name: "entitlementtoken", value: CredentialHelper.instance.getUserInfo().sessionId), HTTPHeader(name: "ascendontoken", value: CredentialHelper.instance.getUserInfo().authData.subscriptionToken)]
+        request.headers = [HTTPHeader(name: "entitlementtoken", value: CredentialHelper.instance.getDeviceRegistration().sessionId), HTTPHeader(name: "ascendontoken", value: CredentialHelper.instance.getDeviceRegistration().data.subscriptionToken)]
         
         self.alamofireSession.request(request)
             .validate()

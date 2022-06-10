@@ -145,6 +145,16 @@
 		1BDAED3A261212C0003361F8 /* PlayerCollectionViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1BDAED39261212C0003361F8 /* PlayerCollectionViewController.swift */; };
 		1BDAED3D26122D66003361F8 /* ChannelPlayerCollectionViewCell.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1BDAED3B26122D66003361F8 /* ChannelPlayerCollectionViewCell.swift */; };
 		1BDAED3E26122D66003361F8 /* ChannelPlayerCollectionViewCell.xib in Resources */ = {isa = PBXBuildFile; fileRef = 1BDAED3C26122D66003361F8 /* ChannelPlayerCollectionViewCell.xib */; };
+		1BE2B05B2852A613007A1A2E /* DeviceRegistrationRequestDto.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1BE2B05A2852A613007A1A2E /* DeviceRegistrationRequestDto.swift */; };
+		1BE2B05D2852A649007A1A2E /* DeviceRegistrationRequestDeviceDto.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1BE2B05C2852A649007A1A2E /* DeviceRegistrationRequestDeviceDto.swift */; };
+		1BE2B05F2852AB06007A1A2E /* DeviceRegistrationLoadedProtocol.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1BE2B05E2852AB06007A1A2E /* DeviceRegistrationLoadedProtocol.swift */; };
+		1BE2B06228535D57007A1A2E /* DeviceRegistrationResultDto.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1BE2B06128535D57007A1A2E /* DeviceRegistrationResultDto.swift */; };
+		1BE2B06428535E7C007A1A2E /* DeviceRegistrationResultDeviceDto.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1BE2B06328535E7C007A1A2E /* DeviceRegistrationResultDeviceDto.swift */; };
+		1BE2B06628535F52007A1A2E /* DeviceRegistrationSessionSummaryDto.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1BE2B06528535F52007A1A2E /* DeviceRegistrationSessionSummaryDto.swift */; };
+		1BE2B06828535FCA007A1A2E /* DeviceRegistrationSessionSummaryExternalAuthorizationDto.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1BE2B06728535FCA007A1A2E /* DeviceRegistrationSessionSummaryExternalAuthorizationDto.swift */; };
+		1BE2B06A28536EEE007A1A2E /* DeviceAuthenticationRequestDto.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1BE2B06928536EEE007A1A2E /* DeviceAuthenticationRequestDto.swift */; };
+		1BE2B06D2853700A007A1A2E /* DeviceAuthenticationResultDto.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1BE2B06C2853700A007A1A2E /* DeviceAuthenticationResultDto.swift */; };
+		1BE2B070285379FA007A1A2E /* DeviceUnregistrationRequestDto.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1BE2B06F285379FA007A1A2E /* DeviceUnregistrationRequestDto.swift */; };
 		1BE7BA8A26E3FD2F008AFDDC /* APIStreamType.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1BE7BA8926E3FD2F008AFDDC /* APIStreamType.swift */; };
 		1BEC362B26263805002F7504 /* BaseViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1BEC362A26263805002F7504 /* BaseViewController.swift */; };
 		1BEC362D262638B2002F7504 /* BaseSplitViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1BEC362C262638B2002F7504 /* BaseSplitViewController.swift */; };
@@ -316,6 +326,16 @@
 		1BDAED39261212C0003361F8 /* PlayerCollectionViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PlayerCollectionViewController.swift; sourceTree = "<group>"; };
 		1BDAED3B26122D66003361F8 /* ChannelPlayerCollectionViewCell.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ChannelPlayerCollectionViewCell.swift; sourceTree = "<group>"; };
 		1BDAED3C26122D66003361F8 /* ChannelPlayerCollectionViewCell.xib */ = {isa = PBXFileReference; lastKnownFileType = file.xib; path = ChannelPlayerCollectionViewCell.xib; sourceTree = "<group>"; };
+		1BE2B05A2852A613007A1A2E /* DeviceRegistrationRequestDto.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DeviceRegistrationRequestDto.swift; sourceTree = "<group>"; };
+		1BE2B05C2852A649007A1A2E /* DeviceRegistrationRequestDeviceDto.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DeviceRegistrationRequestDeviceDto.swift; sourceTree = "<group>"; };
+		1BE2B05E2852AB06007A1A2E /* DeviceRegistrationLoadedProtocol.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DeviceRegistrationLoadedProtocol.swift; sourceTree = "<group>"; };
+		1BE2B06128535D57007A1A2E /* DeviceRegistrationResultDto.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DeviceRegistrationResultDto.swift; sourceTree = "<group>"; };
+		1BE2B06328535E7C007A1A2E /* DeviceRegistrationResultDeviceDto.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DeviceRegistrationResultDeviceDto.swift; sourceTree = "<group>"; };
+		1BE2B06528535F52007A1A2E /* DeviceRegistrationSessionSummaryDto.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DeviceRegistrationSessionSummaryDto.swift; sourceTree = "<group>"; };
+		1BE2B06728535FCA007A1A2E /* DeviceRegistrationSessionSummaryExternalAuthorizationDto.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DeviceRegistrationSessionSummaryExternalAuthorizationDto.swift; sourceTree = "<group>"; };
+		1BE2B06928536EEE007A1A2E /* DeviceAuthenticationRequestDto.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DeviceAuthenticationRequestDto.swift; sourceTree = "<group>"; };
+		1BE2B06C2853700A007A1A2E /* DeviceAuthenticationResultDto.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DeviceAuthenticationResultDto.swift; sourceTree = "<group>"; };
+		1BE2B06F285379FA007A1A2E /* DeviceUnregistrationRequestDto.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DeviceUnregistrationRequestDto.swift; sourceTree = "<group>"; };
 		1BE7BA8926E3FD2F008AFDDC /* APIStreamType.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = APIStreamType.swift; sourceTree = "<group>"; };
 		1BEC362A26263805002F7504 /* BaseViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BaseViewController.swift; sourceTree = "<group>"; };
 		1BEC362C262638B2002F7504 /* BaseSplitViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BaseSplitViewController.swift; sourceTree = "<group>"; };
@@ -496,6 +516,7 @@
 				1B43FB08267CDA8C00F22345 /* FullscreenPlayerDismissedProtocol.swift */,
 				1B19AEA72691BCAD0008049C /* M3u8LoadedProtocol.swift */,
 				1B64ACF926B9A428000AA985 /* PlayTimeReportedProtocol.swift */,
+				1BE2B05E2852AB06007A1A2E /* DeviceRegistrationLoadedProtocol.swift */,
 			);
 			path = Protocols;
 			sourceTree = "<group>";
@@ -598,6 +619,9 @@
 		1BB29BCF254464AA00ECC074 /* Security */ = {
 			isa = PBXGroup;
 			children = (
+				1BE2B06028535D2D007A1A2E /* DeviceRegistration */,
+				1BE2B06B28536FE4007A1A2E /* DeviceAuthentication */,
+				1BE2B06E285379E4007A1A2E /* DeviceUnregistration */,
 				1BB29BD0254464BB00ECC074 /* AuthRequestDto.swift */,
 				1BB29C1D2544773300ECC074 /* SubscriberDto.swift */,
 				1BB29C222544777300ECC074 /* AuthDataDto.swift */,
@@ -770,6 +794,36 @@
 			path = Player;
 			sourceTree = "<group>";
 		};
+		1BE2B06028535D2D007A1A2E /* DeviceRegistration */ = {
+			isa = PBXGroup;
+			children = (
+				1BE2B05A2852A613007A1A2E /* DeviceRegistrationRequestDto.swift */,
+				1BE2B05C2852A649007A1A2E /* DeviceRegistrationRequestDeviceDto.swift */,
+				1BE2B06128535D57007A1A2E /* DeviceRegistrationResultDto.swift */,
+				1BE2B06328535E7C007A1A2E /* DeviceRegistrationResultDeviceDto.swift */,
+				1BE2B06528535F52007A1A2E /* DeviceRegistrationSessionSummaryDto.swift */,
+				1BE2B06728535FCA007A1A2E /* DeviceRegistrationSessionSummaryExternalAuthorizationDto.swift */,
+			);
+			path = DeviceRegistration;
+			sourceTree = "<group>";
+		};
+		1BE2B06B28536FE4007A1A2E /* DeviceAuthentication */ = {
+			isa = PBXGroup;
+			children = (
+				1BE2B06928536EEE007A1A2E /* DeviceAuthenticationRequestDto.swift */,
+				1BE2B06C2853700A007A1A2E /* DeviceAuthenticationResultDto.swift */,
+			);
+			path = DeviceAuthentication;
+			sourceTree = "<group>";
+		};
+		1BE2B06E285379E4007A1A2E /* DeviceUnregistration */ = {
+			isa = PBXGroup;
+			children = (
+				1BE2B06F285379FA007A1A2E /* DeviceUnregistrationRequestDto.swift */,
+			);
+			path = DeviceUnregistration;
+			sourceTree = "<group>";
+		};
 		1BF18CD625FCE50E00BF3854 /* Util */ = {
 			isa = PBXGroup;
 			children = (
@@ -930,6 +984,7 @@
 				1BC3458825FC045B00496671 /* BackupStreamDto.swift in Sources */,
 				1BB29C5B2544A01E00ECC074 /* CustomHeaderCollectionReusableView.swift in Sources */,
 				1BFFAB7825F901C600EADC99 /* SeriesType.swift in Sources */,
+				1BE2B06D2853700A007A1A2E /* DeviceAuthenticationResultDto.swift in Sources */,
 				1B19AEA0269119B40008049C /* PlaylistFetcher.swift in Sources */,
 				1B19AEA82691BCAD0008049C /* M3u8LoadedProtocol.swift in Sources */,
 				1B6B6FB62735A9E2005A855D /* AlternateUniverseDrivers.swift in Sources */,
@@ -946,16 +1001,19 @@
 				1BEC362B26263805002F7504 /* BaseViewController.swift in Sources */,
 				1B8DEEF825FC074C004780B9 /* ContainerDto.swift in Sources */,
 				1B19AE9C269119B40008049C /* Tags.swift in Sources */,
+				1BE2B06228535D57007A1A2E /* DeviceRegistrationResultDto.swift in Sources */,
 				1BB29BDE2544655B00ECC074 /* DataSource.swift in Sources */,
 				1BBE40202615FEFE00FD552E /* MosaicProtocols.swift in Sources */,
 				1B19AE9A269119B40008049C /* MediaPlaylist.swift in Sources */,
 				1BB29BD92544652D00ECC074 /* DatabaseController.swift in Sources */,
 				1B1734F725FAAD4C00ACAB0E /* FontAdjustedUILabel.swift in Sources */,
 				1BCDE424261E5A350091C183 /* TvOSSlider.swift in Sources */,
+				1BE2B05B2852A613007A1A2E /* DeviceRegistrationRequestDto.swift in Sources */,
 				1BB29C2D254479FE00ECC074 /* TokenResultDto.swift in Sources */,
 				1BB29BE4254465BF00ECC074 /* KeyValueRepository.swift in Sources */,
 				1BBE401E2615FEDE00FD552E /* MosaicObject.swift in Sources */,
 				1BB29C722544AF4600ECC074 /* CustomTabBarController.swift in Sources */,
+				1BE2B05D2852A649007A1A2E /* DeviceRegistrationRequestDeviceDto.swift in Sources */,
 				1BB29C5225449FE900ECC074 /* BaseCollectionViewCell.swift in Sources */,
 				1BFB1558280214C4001FB3DA /* FairPlayManager.swift in Sources */,
 				1BE7BA8A26E3FD2F008AFDDC /* APIStreamType.swift in Sources */,
@@ -974,11 +1032,13 @@
 				1B8DEF0625FC1D9A004780B9 /* PropertyDto.swift in Sources */,
 				1B4F98D52618A927008FCE4A /* PlayerItem.swift in Sources */,
 				1BF95A3F25EFAE3300A7C7C6 /* UserInteractionHelper.swift in Sources */,
+				1BE2B06828535FCA007A1A2E /* DeviceRegistrationSessionSummaryExternalAuthorizationDto.swift in Sources */,
 				1BC656AF25F6BD9E0025CA1D /* UIColorExtension.swift in Sources */,
 				1BC0773B25F67F5100D9498A /* AccountOverviewViewController.swift in Sources */,
 				1B4F98D7261B40A4008FCE4A /* AVPlayerViewControllerExtension.swift in Sources */,
 				1B19AE98269119B40008049C /* MasterPlaylist.swift in Sources */,
 				1B20CB2A25FB5649002F39D8 /* StreamEntitlementDto.swift in Sources */,
+				1BE2B06428535E7C007A1A2E /* DeviceRegistrationResultDeviceDto.swift in Sources */,
 				1B7CCA5B261E0AB600FB25C2 /* ControlStripOverlayViewController.swift in Sources */,
 				1B8DEEFC25FC0EDA004780B9 /* NewEpisodeDto.swift in Sources */,
 				1BAF9BA826271BF000321D95 /* AuthDataLoadedProtocol.swift in Sources */,
@@ -988,7 +1048,9 @@
 				1B19AE9E269119B40008049C /* PlaylistOperation.swift in Sources */,
 				1B64ACFA26B9A428000AA985 /* PlayTimeReportedProtocol.swift in Sources */,
 				1B64ACFC26B9A4A5000AA985 /* PlayTimeReportingResultDto.swift in Sources */,
+				1BE2B070285379FA007A1A2E /* DeviceUnregistrationRequestDto.swift in Sources */,
 				1BB29C6D2544AC7D00ECC074 /* BaseTableViewController.swift in Sources */,
+				1BE2B06A28536EEE007A1A2E /* DeviceAuthenticationRequestDto.swift in Sources */,
 				1B24741F27E4C52F00BBA9AC /* APIVersionType.swift in Sources */,
 				1B8DEEFA25FC0C88004780B9 /* EmfAttributesDto.swift in Sources */,
 				1B24741D27E4A4F000BBA9AC /* MenuPageType.swift in Sources */,
@@ -1008,6 +1070,7 @@
 				1B8DEF0425FC1573004780B9 /* PlatformVariantDto.swift in Sources */,
 				1BF18CD825FCE53D00BF3854 /* ContentSection.swift in Sources */,
 				1BEC362D262638B2002F7504 /* BaseSplitViewController.swift in Sources */,
+				1BE2B05F2852AB06007A1A2E /* DeviceRegistrationLoadedProtocol.swift in Sources */,
 				1B19AE9B269119B40008049C /* BaseTag.swift in Sources */,
 				1B20CB3125FB60BD002F39D8 /* ContentPageLoadedProtocol.swift in Sources */,
 				1BC3458425FC03AC00496671 /* AudioLanguageDto.swift in Sources */,
@@ -1016,6 +1079,7 @@
 				1B64ACF426B99249000AA985 /* UserDto.swift in Sources */,
 				1BB864E625FFFC24001A6329 /* ContentVideoLoadedProtocol.swift in Sources */,
 				1B9F8B73261CE6420020AC55 /* BaseTableViewCell.swift in Sources */,
+				1BE2B06628535F52007A1A2E /* DeviceRegistrationSessionSummaryDto.swift in Sources */,
 				1B80954525457D3E00889DFE /* CredentialHelper.swift in Sources */,
 				1B4F98D9261C85CE008FCE4A /* PlayerInfoOverlayViewController.swift in Sources */,
 				1BB29C0C25446DC000ECC074 /* ConstantsUtil.swift in Sources */,
@@ -1188,9 +1252,11 @@
 				CODE_SIGN_ENTITLEMENTS = "F1A-TV/F1A-TV.entitlements";
 				CODE_SIGN_IDENTITY = "Apple Development";
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 22.0520.2;
+				CURRENT_PROJECT_VERSION = 22.0610.1;
 				DEVELOPMENT_TEAM = 8SW735FL99;
 				INFOPLIST_FILE = "$(SRCROOT)/F1A-TV/Info.plist";
+				INFOPLIST_KEY_CFBundleDisplayName = "Vroom TV";
+				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.entertainment";
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",
@@ -1215,9 +1281,11 @@
 				CODE_SIGN_ENTITLEMENTS = "F1A-TV/F1A-TV.entitlements";
 				CODE_SIGN_IDENTITY = "Apple Development";
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 22.0520.2;
+				CURRENT_PROJECT_VERSION = 22.0610.1;
 				DEVELOPMENT_TEAM = 8SW735FL99;
 				INFOPLIST_FILE = "$(SRCROOT)/F1A-TV/Info.plist";
+				INFOPLIST_KEY_CFBundleDisplayName = "Vroom TV";
+				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.entertainment";
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",

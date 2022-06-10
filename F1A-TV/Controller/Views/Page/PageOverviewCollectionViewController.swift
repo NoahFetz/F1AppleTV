@@ -275,7 +275,7 @@ class PageOverviewCollectionViewController: BaseCollectionViewController, UIColl
             }
             
             //Play the video
-            if(!CredentialHelper.instance.isLoginInformationCached() || CredentialHelper.instance.getUserInfo().authData.subscriptionStatus != "active"){
+            if(!CredentialHelper.instance.isLoginInformationCached() || CredentialHelper.instance.getDeviceRegistration().data.subscriptionStatus != "active"){
                 UserInteractionHelper.instance.showError(title: "account_no_subscription_title".localizedString, message: "account_no_subscription_message".localizedString)
                 return
             }
@@ -314,7 +314,7 @@ class PageOverviewCollectionViewController: BaseCollectionViewController, UIColl
     }
     
     func didLoadVideo(contentVideo: ResultObjectDto) {
-        if(!CredentialHelper.instance.isLoginInformationCached() || CredentialHelper.instance.getUserInfo().authData.subscriptionStatus != "active"){
+        if(!CredentialHelper.instance.isLoginInformationCached() || CredentialHelper.instance.getDeviceRegistration().data.subscriptionStatus != "active"){
             UserInteractionHelper.instance.showError(title: "account_no_subscription_title".localizedString, message: "account_no_subscription_message".localizedString)
             return
         }
