@@ -57,12 +57,6 @@ class PlayerCollectionViewController: BaseCollectionViewController, UICollection
         let swipeLeftRecognizer = UISwipeGestureRecognizer(target: self, action: #selector(self.swipeLeftRegognized))
         swipeLeftRecognizer.direction = .left
         self.collectionView.addGestureRecognizer(swipeLeftRecognizer)
-        
-        do {
-            try AVAudioSession.sharedInstance().setCategory(.playback, mode: .moviePlayback)
-        } catch(let error) {
-            print(error.localizedDescription)
-        }
     }
     
     func initialize(channelItems: [ContentItem], playFromStart: Bool? = false) {
@@ -193,10 +187,11 @@ class PlayerCollectionViewController: BaseCollectionViewController, UICollection
             
             playerItem.entitlement = streamEntitlement
             
-            playerItem.fairPlayManager = FairPlayManager(streamEntitlement: streamEntitlement)
-            playerItem.playerAsset = playerItem.fairPlayManager?.makeFairPlayReady()
+            playerItem.player = FairPlayer()
+            playerItem.player?.playStream(streamEntitlement: streamEntitlement)
+            playerItem.playerAsset = playerItem.player?.makeFairPlayReady()
             playerItem.playerItem = AVPlayerItem(asset: playerItem.playerAsset ?? AVAsset())
-            playerItem.player = AVPlayer(playerItem: playerItem.playerItem)
+            playerItem.player?.replaceCurrentItem(with: playerItem.playerItem)
             playerItem.player?.appliesMediaSelectionCriteriaAutomatically = false
             
             if(self.playFromStart) {

@@ -6,6 +6,7 @@
 //
 
 import UIKit
+import AVKit
 import CoreData
 
 @main
@@ -21,6 +22,12 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
             let names = UIFont.fontNames(forFamilyName: family)
             print("Family: \(family) Font names: \(names)")
         }*/
+        
+        do {
+            try AVAudioSession.sharedInstance().setCategory(.playback, mode: .moviePlayback)
+        } catch(let error) {
+            print(error.localizedDescription)
+        }
         
         return true
     }

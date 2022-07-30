@@ -6,7 +6,7 @@
       "location" : "https://github.com/Alamofire/Alamofire.git",
       "state" : {
         "branch" : "master",
-        "revision" : "8a9e280b160bbe82b725596d5934572be17389fe"
+        "revision" : "8dd85aee02e39dd280c75eef88ffdb86eed4b07b"
       }
     },
     {
@@ -15,7 +15,7 @@
       "location" : "https://github.com/onevcat/Kingfisher.git",
       "state" : {
         "branch" : "master",
-        "revision" : "2de32a15bdd640a30ee9972a40b031fc604fc880"
+        "revision" : "7046ecf52f1b8481709d896bafc8f53f18e39dcb"
       }
     },
     {
@@ -34,15 +34,6 @@
       "state" : {
         "branch" : "tvOS",
         "revision" : "93bb4df089e6a85ef76f0d5876385e3283ba38e3"
-      }
-    },
-    {
-      "identity" : "swift-docc-plugin",
-      "kind" : "remoteSourceControl",
-      "location" : "https://github.com/apple/swift-docc-plugin",
-      "state" : {
-        "revision" : "3303b164430d9a7055ba484c8ead67a52f7b74f6",
-        "version" : "1.0.0"
       }
     }
   ],

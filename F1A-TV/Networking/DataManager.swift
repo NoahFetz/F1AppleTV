@@ -23,7 +23,7 @@ class DataManager: RequestInterceptor {
     
     init() {
         let configuration = URLSessionConfiguration.af.default
-        configuration.httpAdditionalHeaders = ["User-Agent" : "F1TV-iOS Darwin"]
+        configuration.httpAdditionalHeaders = ["User-Agent" : "F1TV-tvOS Darwin"]
         self.alamofireSession = Session(configuration: configuration)
         
         self.apiStreamType = CredentialHelper.getPlayerSettings().preferredCdn

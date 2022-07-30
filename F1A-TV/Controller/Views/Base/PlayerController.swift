@@ -47,10 +47,11 @@ class PlayerController: NSObject, AVPlayerViewControllerDelegate, StreamEntitlem
     func didLoadStreamEntitlement(playerId: String, streamEntitlement: StreamEntitlementDto) {
         var localPlayerItem = PlayerItem()
         
-        localPlayerItem.fairPlayManager = FairPlayManager(streamEntitlement: streamEntitlement)
-        localPlayerItem.playerAsset = localPlayerItem.fairPlayManager?.makeFairPlayReady()
+        localPlayerItem.player = FairPlayer()
+        localPlayerItem.player?.playStream(streamEntitlement: streamEntitlement)
+        localPlayerItem.playerAsset = localPlayerItem.player?.makeFairPlayReady()
         localPlayerItem.playerItem = AVPlayerItem(asset: localPlayerItem.playerAsset ?? AVAsset())
-        localPlayerItem.player = AVPlayer(playerItem: localPlayerItem.playerItem)
+        localPlayerItem.player?.replaceCurrentItem(with: localPlayerItem.playerItem)
         
         if(self.playFromStart) {
             localPlayerItem.player?.seek(to: CMTimeMakeWithSeconds(Float64(1), preferredTimescale: 1))
@@ -67,12 +68,6 @@ class PlayerController: NSObject, AVPlayerViewControllerDelegate, StreamEntitlem
         let playerViewController = AVPlayerViewController()
         
         playerViewController.player = player
-        
-        do {
-            try AVAudioSession.sharedInstance().setCategory(.playback, mode: .moviePlayback)
-        } catch(let error) {
-            print(error.localizedDescription)
-        }
         
         playerViewController.delegate = self
         playerViewController.allowsPictureInPicturePlayback = true

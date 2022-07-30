@@ -165,7 +165,7 @@
 		1BF4774B2620EB930079F90B /* ControlStripActionProtocol.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1BF4774A2620EB930079F90B /* ControlStripActionProtocol.swift */; };
 		1BF95A3F25EFAE3300A7C7C6 /* UserInteractionHelper.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1BF95A3E25EFAE3300A7C7C6 /* UserInteractionHelper.swift */; };
 		1BFB15542800EA29001FB3DA /* ChallengeResultDto.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1BFB15532800EA29001FB3DA /* ChallengeResultDto.swift */; };
-		1BFB1558280214C4001FB3DA /* FairPlayManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1BFB1557280214C4001FB3DA /* FairPlayManager.swift */; };
+		1BFB1558280214C4001FB3DA /* FairPlayer.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1BFB1557280214C4001FB3DA /* FairPlayer.swift */; };
 		1BFED8F5262443FA00540511 /* PlayerSettings.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1BFED8F4262443FA00540511 /* PlayerSettings.swift */; };
 		1BFFAB7825F901C600EADC99 /* SeriesType.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1BFFAB7725F901C600EADC99 /* SeriesType.swift */; };
 /* End PBXBuildFile section */
@@ -346,7 +346,7 @@
 		1BF4774A2620EB930079F90B /* ControlStripActionProtocol.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ControlStripActionProtocol.swift; sourceTree = "<group>"; };
 		1BF95A3E25EFAE3300A7C7C6 /* UserInteractionHelper.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UserInteractionHelper.swift; sourceTree = "<group>"; };
 		1BFB15532800EA29001FB3DA /* ChallengeResultDto.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ChallengeResultDto.swift; sourceTree = "<group>"; };
-		1BFB1557280214C4001FB3DA /* FairPlayManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FairPlayManager.swift; sourceTree = "<group>"; };
+		1BFB1557280214C4001FB3DA /* FairPlayer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FairPlayer.swift; sourceTree = "<group>"; };
 		1BFED8F4262443FA00540511 /* PlayerSettings.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PlayerSettings.swift; sourceTree = "<group>"; };
 		1BFFAB7725F901C600EADC99 /* SeriesType.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SeriesType.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
@@ -831,7 +831,7 @@
 				1BF18CD925FCE60700BF3854 /* ContentItem.swift */,
 				1B4F98D42618A927008FCE4A /* PlayerItem.swift */,
 				1BFED8F4262443FA00540511 /* PlayerSettings.swift */,
-				1BFB1557280214C4001FB3DA /* FairPlayManager.swift */,
+				1BFB1557280214C4001FB3DA /* FairPlayer.swift */,
 			);
 			path = Util;
 			sourceTree = "<group>";
@@ -1015,7 +1015,7 @@
 				1BB29C722544AF4600ECC074 /* CustomTabBarController.swift in Sources */,
 				1BE2B05D2852A649007A1A2E /* DeviceRegistrationRequestDeviceDto.swift in Sources */,
 				1BB29C5225449FE900ECC074 /* BaseCollectionViewCell.swift in Sources */,
-				1BFB1558280214C4001FB3DA /* FairPlayManager.swift in Sources */,
+				1BFB1558280214C4001FB3DA /* FairPlayer.swift in Sources */,
 				1BE7BA8A26E3FD2F008AFDDC /* APIStreamType.swift in Sources */,
 				1B19AE97269119B40008049C /* M3U8Manager.swift in Sources */,
 				1BB29C8E2544BE6500ECC074 /* DataManager.swift in Sources */,
@@ -1252,7 +1252,7 @@
 				CODE_SIGN_ENTITLEMENTS = "F1A-TV/F1A-TV.entitlements";
 				CODE_SIGN_IDENTITY = "Apple Development";
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 22.0611.1;
+				CURRENT_PROJECT_VERSION = 22.0730.1;
 				DEVELOPMENT_TEAM = 8SW735FL99;
 				INFOPLIST_FILE = "$(SRCROOT)/F1A-TV/Info.plist";
 				INFOPLIST_KEY_CFBundleDisplayName = "Vroom TV";
@@ -1281,7 +1281,7 @@
 				CODE_SIGN_ENTITLEMENTS = "F1A-TV/F1A-TV.entitlements";
 				CODE_SIGN_IDENTITY = "Apple Development";
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 22.0611.1;
+				CURRENT_PROJECT_VERSION = 22.0730.1;
 				DEVELOPMENT_TEAM = 8SW735FL99;
 				INFOPLIST_FILE = "$(SRCROOT)/F1A-TV/Info.plist";
 				INFOPLIST_KEY_CFBundleDisplayName = "Vroom TV";

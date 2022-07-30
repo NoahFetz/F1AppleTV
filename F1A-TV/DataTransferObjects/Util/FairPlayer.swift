@@ -1,5 +1,5 @@
 //
-//  FairPlayManager.swift
+//  FairPlayer.swift
 //  F1A-TV
 //
 //  Created by Noah Fetz on 09.04.22.
@@ -8,25 +8,29 @@
 import Foundation
 import AVKit
 
-class FairPlayManager: NSObject, AVAssetResourceLoaderDelegate {
-    var streamEntitlement: StreamEntitlementDto
+class FairPlayer: AVPlayer {
+    var streamEntitlement: StreamEntitlementDto?
     var fairPlayAsset: AVURLAsset?
     
-    init(streamEntitlement: StreamEntitlementDto) {
+    let vroomQueue = DispatchQueue(label: "VroomFairPlayer")
+    
+    func playStream(streamEntitlement: StreamEntitlementDto) {
         self.streamEntitlement = streamEntitlement
     }
     
     func makeFairPlayReady() -> AVURLAsset? {
-        if let url = URL(string: self.streamEntitlement.url) {
+        if let urlString = self.streamEntitlement?.url, let url = URL(string: urlString) {
             self.fairPlayAsset = AVURLAsset(url: url)
-            self.fairPlayAsset?.resourceLoader.setDelegate(self, queue: DispatchQueue(label: "VroomFairPlayManager"))
+            self.fairPlayAsset?.resourceLoader.setDelegate(self, queue: self.vroomQueue)
         }
         
         return self.fairPlayAsset
     }
-    
+}
+
+extension FairPlayer: AVAssetResourceLoaderDelegate {
     func resourceLoader(_ resourceLoader: AVAssetResourceLoader, shouldWaitForLoadingOfRequestedResource loadingRequest: AVAssetResourceLoadingRequest) -> Bool {
-        if let dataRequest = loadingRequest.dataRequest, let fairPlayCertificate = DataManager.instance.fairPlayCertificate, let loadingRequestHost = loadingRequest.request.url?.host, let contentIdData = loadingRequestHost.dropFirst(2).data(using: .utf8), let laUrl = self.streamEntitlement.laUrl {
+        if let dataRequest = loadingRequest.dataRequest, let fairPlayCertificate = DataManager.instance.fairPlayCertificate, let loadingRequestHost = loadingRequest.request.url?.host, let contentIdData = loadingRequestHost.dropFirst(2).data(using: .utf8), let laUrl = self.streamEntitlement?.laUrl {
             
             guard let spcData = try? loadingRequest.streamingContentKeyRequestData(forApp: fairPlayCertificate, contentIdentifier: contentIdData, options: nil)
             else {
