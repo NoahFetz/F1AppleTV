@@ -13,8 +13,8 @@ class DataManager: RequestInterceptor {
     static let instance = DataManager()
     var alamofireSession = Session.default
     
-    var apiStreamType = APIStreamType()
-    var apiLanguage = APILanguageType()
+    var apiStreamType = APIStreamType.BigScreenHLS
+    var apiLanguage = APILanguageType.fromAPIKey(apiKey: "api_endpoing_language_id".localizedString)
     var apiVersion = APIVersionType.V3
     let sessionId = "WEB-\(UUID().uuidString)"
     
@@ -25,35 +25,8 @@ class DataManager: RequestInterceptor {
         let configuration = URLSessionConfiguration.af.default
         configuration.httpAdditionalHeaders = ["User-Agent" : "F1TV-tvOS Darwin"]
         self.alamofireSession = Session(configuration: configuration)
-        
-        self.apiStreamType = CredentialHelper.getPlayerSettings().preferredCdn
-        self.apiLanguage = CredentialHelper.getPlayerSettings().preferredApiLanguage
-        
         self.loadFairPlayCertificate()
     }
-    
-    /**
-     This gets replaced by Device Registration
-     */
-    /*func loadAuthData(authRequest: AuthRequestDto, authDataLoadedProtocol: AuthDataLoadedProtocol) {
-        self.alamofireSession.request(ConstantsUtil.authenticateUrl,
-                                      method: .post,
-                                      parameters: authRequest,
-                                      encoder: JSONParameterEncoder.default,
-                                      headers: [HTTPHeader(name: "apikey", value: ConstantsUtil.apiKey), HTTPHeader(name: "cookie", value: "reese84=\(self.challengeToken);")])
-            .validate()
-            .responseDecodable(of: AuthResultDto.self) { response in
-            switch response.result {
-            case .success(let apiResponse):
-                DispatchQueue.main.async {
-                    authDataLoadedProtocol.didLoadAuthData(authResult: apiResponse)
-                }
-                
-            case .failure(let afError):
-                self.handleAFError(afError: afError)
-            }
-        }
-    }*/
     
     /**
      TODO: Check for device limit  -> json looks like this

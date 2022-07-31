@@ -37,19 +37,6 @@
 
 //Settings
 "settings_title" = "Instellingen";
-"settings_cdn_header" = "Content Delivery Network";
-"settings_cdn_footer" = "Als u buffering of slechte kwaliteit ervaart bij het ene CDN, kunt u het andere uitproberen.";
-"settings_cdn_big_screen_hls_provider_displayname" = "Akamai (Standaard)";
-"settings_cdn_web_hls_provider_displayname" = "CloudFront";
-
-"settings_language_header" = "Inhoud taal";
-"settings_language_footer" = "*Bij gebruik van tvOS 15 selecteert dit ook de audiotaal. Momenteel geen selectie in de speler beschikbaar";
-"settings_language_english_displayname" = "Engels";
-"settings_language_german_displayname" = "Duitse";
-"settings_language_spanish_displayname" = "Spaans";
-"settings_language_french_displayname" = "Frans";
-"settings_language_dutch_displayname" = "Nederlands";
-"settings_language_portuguese_displayname" = "Portugees";
 
 "settings_show_fun_names_title" = "Toon namen uit een parallel universum waar de sport Formula Juan heet";
 "settings_fun_header" = "Alleen voor r/FormulaDank-gebruikers";

@@ -36,19 +36,6 @@
 
 //Settings
 "settings_title" = "Ajustes";
-"settings_cdn_header" = "Content Delivery Network";
-"settings_cdn_footer" = "Si experimenta almacenamiento en búfer o mala calidad con una CDN, puede probar la otra.";
-"settings_cdn_big_screen_hls_provider_displayname" = "Akamai (Defecto)";
-"settings_cdn_web_hls_provider_displayname" = "CloudFront";
-
-"settings_language_header" = "Idioma del contenido";
-"settings_language_footer" = "*Al usar tvOS 15, esto también selecciona el idioma de audio. No hay selección en el reproductor disponible en este momento";
-"settings_language_english_displayname" = "Inglés";
-"settings_language_german_displayname" = "Alemán";
-"settings_language_spanish_displayname" = "Español";
-"settings_language_french_displayname" = "Francés";
-"settings_language_dutch_displayname" = "Holandés";
-"settings_language_portuguese_displayname" = "Portugués";
 
 "settings_show_fun_names_title" = "Mostrar nombres de un universo paralelo donde el deporte se llama Fórmula Juan";
 "settings_fun_header" = "Solo para usuarios de r/FormulaDank";

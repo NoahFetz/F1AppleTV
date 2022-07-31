@@ -19,6 +19,15 @@ enum APILanguageType: Int, CaseIterable, Codable {
         self = .English
     }
     
+    static func fromAPIKey(apiKey: String) -> APILanguageType {
+        for type in APILanguageType.allCases {
+            if(type.getAPIKey() == apiKey) {
+                return type
+            }
+        }
+        return .English
+    }
+    
     func getAPIKey() -> String {
         switch self {
         case .English:
