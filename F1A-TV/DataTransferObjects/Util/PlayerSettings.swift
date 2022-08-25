@@ -13,6 +13,7 @@ struct PlayerSettings: Codable, Identifiable {
     var preferredChannelCaptions: [Int:String?]
     var preferredChannelVolume: [Int:Float]
     var preferredChannelMute: [Int:Bool]
+    var driverChannelSorting: DriverChannelSortType
     var showFunNames: Bool
     
     init() {
@@ -21,6 +22,7 @@ struct PlayerSettings: Codable, Identifiable {
         self.preferredChannelCaptions = [Int:String]()
         self.preferredChannelVolume = [Int:Float]()
         self.preferredChannelMute = [Int:Bool]()
+        self.driverChannelSorting = DriverChannelSortType()
         self.showFunNames = false
         
         for channelType in ChannelType.allCases {
@@ -31,12 +33,13 @@ struct PlayerSettings: Codable, Identifiable {
         }
     }
     
-    init(id: String, preferredChannelLanguage: [Int:String?], preferredChannelCaptions: [Int:String?], preferredChannelVolume: [Int:Float], preferredChannelMute: [Int:Bool], showFunNames: Bool) {
+    init(id: String, preferredChannelLanguage: [Int:String?], preferredChannelCaptions: [Int:String?], preferredChannelVolume: [Int:Float], preferredChannelMute: [Int:Bool], driverChannelSorting: DriverChannelSortType, showFunNames: Bool) {
         self.id = id
         self.preferredChannelLanguage = preferredChannelLanguage
         self.preferredChannelCaptions = preferredChannelCaptions
         self.preferredChannelVolume = preferredChannelVolume
         self.preferredChannelMute = preferredChannelMute
+        self.driverChannelSorting = driverChannelSorting
         self.showFunNames = showFunNames
     }
     

@@ -40,6 +40,10 @@
 "settings_show_fun_names_title" = "Show names from a parallel universe where the sport is called Formula Juan";
 "settings_fun_header" = "Only for r/FormulaDank users";
 
+"settings_driver_channel_sorting_title" = "Select what the driver channels should be sorted by";
+"settings_driver_channel_sorting_driver_number_title" = "Driver Number";
+"settings_driver_channel_sorting_alphabetical_title" = "Alphabetical";
+
 //Pages
 "view_all" = "View All";
 "featured_title" = "Featured";

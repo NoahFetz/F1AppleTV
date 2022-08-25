@@ -26,13 +26,16 @@ class SettingsOverviewTableViewController: BaseTableViewController {
     // MARK: - Table view data source
 
     override func numberOfSections(in tableView: UITableView) -> Int {
-        return 1
+        return 2
     }
 
     override func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
         switch section {
         case 0:
             return 1
+            
+        case 1:
+            return DriverChannelSortType.allCases.count
             
         default:
             return 0
@@ -71,6 +74,34 @@ class SettingsOverviewTableViewController: BaseTableViewController {
             
             return cell
             
+        case 1:
+            let cell = tableView.dequeueReusableCell(withIdentifier: ConstantsUtil.templateTableViewCell, for: indexPath) as! TemplateTableViewCell
+            
+            cell.contentStackView.arrangedSubviews.forEach({$0.removeFromSuperview()})
+            
+            cell.unselectedBackgroundColor = .clear
+            cell.userInterfaceStyleChanged()
+            
+            let currentType = DriverChannelSortType.init(rawValue: indexPath.row)
+            
+            let titleLabel = UILabel()
+            titleLabel.font = UIFont(name: "Formula1-Display-Regular", size: 28)
+            titleLabel.textColor = .white
+            titleLabel.text = currentType?.getDisplayName()
+            
+            if(currentType == self.playerSettings.driverChannelSorting) {
+                let selectedImage = UIImageView()
+                selectedImage.image = UIImage(systemName: "checkmark.circle.fill")
+                selectedImage.tintColor = .systemBlue
+                selectedImage.contentMode = .scaleAspectFit
+                
+                cell.addViewsToStackView(views: [titleLabel, selectedImage])
+            }else{
+                cell.addViewsToStackView(views: [titleLabel])
+            }
+            
+            return cell
+            
         default:
             return self.getDefaultNoContentTableViewCell(tableView, cellForRowAt: indexPath)
             
@@ -83,10 +114,14 @@ class SettingsOverviewTableViewController: BaseTableViewController {
             self.playerSettings.showFunNames = !self.playerSettings.showFunNames
             
             CredentialHelper.setPlayerSettings(playerSettings: self.playerSettings)
+            self.tableView.reloadDataWithDissolve()
             
-            //self.tableView.reloadData()
-            //self.tableView.scrollToRow(at: indexPath, at: .none, animated: true)
-            self.tableView.reloadSections(IndexSet(arrayLiteral: indexPath.section), with: .none)
+        case 1:
+            let selectedType = DriverChannelSortType.init(rawValue: indexPath.row) ?? DriverChannelSortType()
+            self.playerSettings.driverChannelSorting = selectedType
+            
+            CredentialHelper.setPlayerSettings(playerSettings: self.playerSettings)
+            self.tableView.reloadDataWithDissolve()
             
         default:
             print("No action")
@@ -98,6 +133,9 @@ class SettingsOverviewTableViewController: BaseTableViewController {
         switch section {
         case 0:
             return "settings_fun_header".localizedString
+            
+        case 1:
+            return "settings_driver_channel_sorting_title".localizedString
             
         default:
             return nil

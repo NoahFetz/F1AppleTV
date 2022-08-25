@@ -40,6 +40,10 @@
 "settings_show_fun_names_title" = "Zeigt Namen aus einem Paralleluniversum, in welchem der Sport Formel Juan genannt wird";
 "settings_fun_header" = "Nur für r/FormulaDank User";
 
+"settings_driver_channel_sorting_title" = "Sortierung der Fahrerkameras";
+"settings_driver_channel_sorting_driver_number_title" = "Fahrernummer";
+"settings_driver_channel_sorting_alphabetical_title" = "Alphabetisch";
+
 //Pages
 "view_all" = "Alle ansehen";
 "featured_title" = "Featured";

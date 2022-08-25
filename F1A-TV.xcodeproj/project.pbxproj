@@ -28,6 +28,8 @@
 		1B3493242626E2A300AB2C3F /* Alamofire in Frameworks */ = {isa = PBXBuildFile; productRef = 1B3493232626E2A300AB2C3F /* Alamofire */; };
 		1B34C5F32545F614008325CC /* F1ATV.xcdatamodeld in Sources */ = {isa = PBXBuildFile; fileRef = 1B34C5F12545F614008325CC /* F1ATV.xcdatamodeld */; };
 		1B36C7B025F781E6005533F9 /* SideBarInfoViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1B36C7AF25F781E6005533F9 /* SideBarInfoViewController.swift */; };
+		1B39C9B328B8000100A8967C /* DriverChannelSortType.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1B39C9B228B8000100A8967C /* DriverChannelSortType.swift */; };
+		1B39C9B528B8026400A8967C /* UITableViewExtension.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1B39C9B428B8026400A8967C /* UITableViewExtension.swift */; };
 		1B3A52D4267E9CDE007199E3 /* SkeletonView in Frameworks */ = {isa = PBXBuildFile; productRef = 1B3A52D3267E9CDE007199E3 /* SkeletonView */; };
 		1B3A52D7267E9D91007199E3 /* SPAlert in Frameworks */ = {isa = PBXBuildFile; productRef = 1B3A52D6267E9D91007199E3 /* SPAlert */; };
 		1B43FB09267CDA8C00F22345 /* FullscreenPlayerDismissedProtocol.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1B43FB08267CDA8C00F22345 /* FullscreenPlayerDismissedProtocol.swift */; };
@@ -204,6 +206,8 @@
 		1B24741E27E4C52F00BBA9AC /* APIVersionType.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = APIVersionType.swift; sourceTree = "<group>"; };
 		1B34C5F22545F614008325CC /* F1ATV.xcdatamodel */ = {isa = PBXFileReference; lastKnownFileType = wrapper.xcdatamodel; path = F1ATV.xcdatamodel; sourceTree = "<group>"; };
 		1B36C7AF25F781E6005533F9 /* SideBarInfoViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SideBarInfoViewController.swift; sourceTree = "<group>"; };
+		1B39C9B228B8000100A8967C /* DriverChannelSortType.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DriverChannelSortType.swift; sourceTree = "<group>"; };
+		1B39C9B428B8026400A8967C /* UITableViewExtension.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UITableViewExtension.swift; sourceTree = "<group>"; };
 		1B43FB08267CDA8C00F22345 /* FullscreenPlayerDismissedProtocol.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FullscreenPlayerDismissedProtocol.swift; sourceTree = "<group>"; };
 		1B4F98D42618A927008FCE4A /* PlayerItem.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PlayerItem.swift; sourceTree = "<group>"; };
 		1B4F98D6261B40A4008FCE4A /* AVPlayerViewControllerExtension.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AVPlayerViewControllerExtension.swift; sourceTree = "<group>"; };
@@ -534,6 +538,7 @@
 				1B6B6FB52735A9E2005A855D /* AlternateUniverseDrivers.swift */,
 				1B24741C27E4A4F000BBA9AC /* MenuPageType.swift */,
 				1B24741E27E4C52F00BBA9AC /* APIVersionType.swift */,
+				1B39C9B228B8000100A8967C /* DriverChannelSortType.swift */,
 			);
 			path = Enum;
 			sourceTree = "<group>";
@@ -677,6 +682,7 @@
 				1B1734F625FAAD4C00ACAB0E /* FontAdjustedUILabel.swift */,
 				1B4F98D6261B40A4008FCE4A /* AVPlayerViewControllerExtension.swift */,
 				1B93FDFB26222B680017AC97 /* AVPlayerItemExtension.swift */,
+				1B39C9B428B8026400A8967C /* UITableViewExtension.swift */,
 			);
 			path = Extensions;
 			sourceTree = "<group>";
@@ -1012,6 +1018,7 @@
 				1BB29C2D254479FE00ECC074 /* TokenResultDto.swift in Sources */,
 				1BB29BE4254465BF00ECC074 /* KeyValueRepository.swift in Sources */,
 				1BBE401E2615FEDE00FD552E /* MosaicObject.swift in Sources */,
+				1B39C9B328B8000100A8967C /* DriverChannelSortType.swift in Sources */,
 				1BB29C722544AF4600ECC074 /* CustomTabBarController.swift in Sources */,
 				1BE2B05D2852A649007A1A2E /* DeviceRegistrationRequestDeviceDto.swift in Sources */,
 				1BB29C5225449FE900ECC074 /* BaseCollectionViewCell.swift in Sources */,
@@ -1043,6 +1050,7 @@
 				1B8DEEFC25FC0EDA004780B9 /* NewEpisodeDto.swift in Sources */,
 				1BAF9BA826271BF000321D95 /* AuthDataLoadedProtocol.swift in Sources */,
 				1B36C7B025F781E6005533F9 /* SideBarInfoViewController.swift in Sources */,
+				1B39C9B528B8026400A8967C /* UITableViewExtension.swift in Sources */,
 				1BFED8F5262443FA00540511 /* PlayerSettings.swift in Sources */,
 				1BD5FE6E2544CF6900CA03B4 /* UIViewExtension.swift in Sources */,
 				1B19AE9E269119B40008049C /* PlaylistOperation.swift in Sources */,

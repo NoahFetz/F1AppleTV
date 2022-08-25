@@ -41,6 +41,10 @@
 "settings_show_fun_names_title" = "Toon namen uit een parallel universum waar de sport Formula Juan heet";
 "settings_fun_header" = "Alleen voor r/FormulaDank-gebruikers";
 
+"settings_driver_channel_sorting_title" = "Selecteer waarop de driverkanalen moeten worden gesorteerd";
+"settings_driver_channel_sorting_driver_number_title" = "Bestuurdersnummer";
+"settings_driver_channel_sorting_alphabetical_title" = "Alfabetisch";
+
 //Pages
 "view_all" = "Bekijk alles";
 "featured_title" = "Aanbevolen";

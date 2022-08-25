@@ -15,7 +15,7 @@
       "location" : "https://github.com/onevcat/Kingfisher.git",
       "state" : {
         "branch" : "master",
-        "revision" : "7046ecf52f1b8481709d896bafc8f53f18e39dcb"
+        "revision" : "13f842e18fbbde0093390b58591e99aa2c7800d3"
       }
     },
     {
@@ -24,7 +24,7 @@
       "location" : "https://github.com/Juanpe/SkeletonView.git",
       "state" : {
         "branch" : "main",
-        "revision" : "00394e0b9f1626680b817f3d24daba68adbe378d"
+        "revision" : "2ac515b97ebe3ce923e7cbe82bf0cdb47f9b1002"
       }
     },
     {

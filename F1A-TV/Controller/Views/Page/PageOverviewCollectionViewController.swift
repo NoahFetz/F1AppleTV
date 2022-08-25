@@ -426,7 +426,7 @@ class PageOverviewCollectionViewController: BaseCollectionViewController, UIColl
         }
         
         let playerVc = self.getViewControllerWith(viewIdentifier: ConstantsUtil.playerCollectionViewController) as! PlayerCollectionViewController
-        let playerChannelItems = channelItems.sorted(by: {($0.container.metadata?.channelType ?? ChannelType()).getIdentifier() < ($1.container.metadata?.channelType ?? ChannelType()).getIdentifier()}).sorted(by: {($0.container.metadata?.additionalStreams?.first?.racingNumber ?? 0) < ($1.container.metadata?.additionalStreams?.first?.racingNumber ?? 0)})
+        let playerChannelItems = self.sortDriverChannels(channelItems: channelItems).sorted(by: {($0.container.metadata?.channelType ?? ChannelType()).getIdentifier() < ($1.container.metadata?.channelType ?? ChannelType()).getIdentifier()})
         playerVc.initialize(channelItems: playerChannelItems, playFromStart: playFromStart)
         
         self.presentFullscreen(viewController: playerVc)
@@ -568,5 +568,15 @@ class PageOverviewCollectionViewController: BaseCollectionViewController, UIColl
         }
         
         return height
+    }
+    
+    func sortDriverChannels(channelItems: [ContentItem]) -> [ContentItem] {
+        switch CredentialHelper.getPlayerSettings().driverChannelSorting {
+        case .DriverNumber:
+            return channelItems.sorted(by: {($0.container.metadata?.additionalStreams?.first?.racingNumber ?? 0) < ($1.container.metadata?.additionalStreams?.first?.racingNumber ?? 0)})
+            
+        case .Alphabetical:
+            return channelItems.sorted(by: {($0.container.metadata?.additionalStreams?.first?.title ?? "") < $1.container.metadata?.additionalStreams?.first?.title ?? ""})
+        }
     }
 }

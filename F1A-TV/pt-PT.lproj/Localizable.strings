@@ -36,22 +36,13 @@
 
 //Settings
 "settings_title" = "Definições";
-"settings_cdn_header" = "Content Delivery Network";
-"settings_cdn_footer" = "Se você tiver buffer ou qualidade ruim em um CDN, experimente o outro.";
-"settings_cdn_big_screen_hls_provider_displayname" = "Akamai (Predefinição)";
-"settings_cdn_web_hls_provider_displayname" = "CloudFront";
-
-"settings_language_header" = "Idioma do conteúdo";
-"settings_language_footer" = "*Ao usar o tvOS 15, também seleciona o idioma do áudio. Nenhuma seleção no player disponível no momento";
-"settings_language_english_displayname" = "Inglês";
-"settings_language_german_displayname" = "Alemão";
-"settings_language_spanish_displayname" = "Espanhol";
-"settings_language_french_displayname" = "Francês";
-"settings_language_dutch_displayname" = "holandês";
-"settings_language_portuguese_displayname" = "Português";
 
 "settings_show_fun_names_title" = "Mostra nomes de um universo paralelo onde o esporte se chama Fórmula Juan";
 "settings_fun_header" = "Apenas para usuários r/FormulaDank";
+
+"settings_driver_channel_sorting_title" = "Selecione quais canais de driver devem ser classificados por";
+"settings_driver_channel_sorting_driver_number_title" = "Número do motorista";
+"settings_driver_channel_sorting_alphabetical_title" = "Alfabética";
 
 //Pages
 "view_all" = "Ver tudo";

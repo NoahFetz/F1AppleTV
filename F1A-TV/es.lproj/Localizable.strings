@@ -40,6 +40,10 @@
 "settings_show_fun_names_title" = "Mostrar nombres de un universo paralelo donde el deporte se llama Fórmula Juan";
 "settings_fun_header" = "Solo para usuarios de r/FormulaDank";
 
+"settings_driver_channel_sorting_title" = "Seleccione por qué se deben ordenar los canales del controlador";
+"settings_driver_channel_sorting_driver_number_title" = "Número de conductor";
+"settings_driver_channel_sorting_alphabetical_title" = "Alfabética";
+
 //Pages
 "view_all" = "Ver todo";
 "featured_title" = "Destacado";
