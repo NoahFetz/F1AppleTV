@@ -40,6 +40,8 @@ class LoginViewController: BaseViewController, AuthDataLoadedProtocol, DeviceReg
     }
     
     func fetchCookieFromBrowserWindow() {
+        HTTPCookieStorage.shared.cookies?.forEach(HTTPCookieStorage.shared.deleteCookie)
+        
         let webViewClassType : AnyObject.Type = NSClassFromString("UIWebView")!
         let webViewObject : NSObject.Type = webViewClassType as! NSObject.Type
         let tempWebview: AnyObject = webViewObject.init()
@@ -51,35 +53,49 @@ class LoginViewController: BaseViewController, AuthDataLoadedProtocol, DeviceReg
         uiview.alpha = 0
         self.view.addSubview(uiview)
         
-        let seconds = 5.0
-        DispatchQueue.main.asyncAfter(deadline: .now() + seconds) {
+        let seconds = 2.0
+        var retries = 0
+        
+        Timer.scheduledTimer(withTimeInterval: seconds, repeats: true) { timer in
             uiview.removeFromSuperview()
             guard let cookies = HTTPCookieStorage.shared.cookies else {
                 return
             }
             
             for cookie in cookies {
-                if(cookie.name != "reese84") {
+                if(cookie.name != "reese84" || cookie.value.isEmpty) {
                     continue
                 }
                 
                 DataManager.instance.challengeToken = cookie.value
                 print("New reese84 token: \(DataManager.instance.challengeToken)")
+                timer.invalidate()
+                return
             }
+            
+            if(retries > 10) {
+                self.navigationController?.popViewController(animated: true)
+                UserInteractionHelper.instance.showError(title: "Bot protection error", message: "Reese84 could not be loaded")
+                timer.invalidate()
+                return
+            }
+            
+            retries += 1
+            print("Will attempt reese84 retry. Retry attempt: \(retries)")
         }
     }
     
     @objc func loginButtonPressed() {
+        if(DataManager.instance.challengeToken.isEmpty) {
+            UserInteractionHelper.instance.showAlert(title: "Bot protection error", message: "Reese84 token not present")
+            return
+        }
+        
         var deviceRegistration = DeviceRegistrationRequestDto()
         deviceRegistration.login = self.emailTextField.text ?? ""
         deviceRegistration.password = self.passwordTextField.text ?? ""
         
         DataManager.instance.performDeviceRegistration(deviceRegistrationRequest: deviceRegistration, deviceRegistrationLoadedProtocol: self)
-        
-        //let authObject = AuthRequestDto(login: self.emailTextField.text ?? "", password: self.passwordTextField.text ?? "")
-        //print("Login pressed with: " + authObject.login + " and " + authObject.password)
-        
-        //DataManager.instance.loadAuthData(authRequest: authObject, authDataLoadedProtocol: self)
     }
     
     func didPerformDeviceRegistration(deviceRegistration: DeviceRegistrationResultDto) {

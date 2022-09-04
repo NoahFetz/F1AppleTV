@@ -67,6 +67,11 @@ class SettingsOverviewTableViewController: BaseTableViewController {
                 selectedImage.tintColor = .systemBlue
                 selectedImage.contentMode = .scaleAspectFit
                 
+                NSLayoutConstraint.activate([
+                    selectedImage.widthAnchor.constraint(equalToConstant: 50),
+                    selectedImage.heightAnchor.constraint(equalToConstant: 50)
+                ])
+                
                 cell.addViewsToStackView(views: [titleLabel, selectedImage])
             }else{
                 cell.addViewsToStackView(views: [titleLabel])
@@ -94,6 +99,11 @@ class SettingsOverviewTableViewController: BaseTableViewController {
                 selectedImage.image = UIImage(systemName: "checkmark.circle.fill")
                 selectedImage.tintColor = .systemBlue
                 selectedImage.contentMode = .scaleAspectFit
+                
+                NSLayoutConstraint.activate([
+                    selectedImage.widthAnchor.constraint(equalToConstant: 50),
+                    selectedImage.heightAnchor.constraint(equalToConstant: 50)
+                ])
                 
                 cell.addViewsToStackView(views: [titleLabel, selectedImage])
             }else{
