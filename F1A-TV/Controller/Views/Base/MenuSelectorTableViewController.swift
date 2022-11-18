@@ -176,18 +176,26 @@ class MenuSelectorTableViewController: BaseTableViewController {
     }
     
     override func tableView(_ tableView: UITableView, viewForFooterInSection section: Int) -> UIView? {
+        let footerStackView = UIStackView()
+        footerStackView.axis = .vertical
+        
+        let sebView = UIImageView(image: UIImage(named: "thx_seb"))
+        sebView.contentMode = .scaleAspectFit
+        footerStackView.addArrangedSubview(sebView)
+        
         let disclaimerLabel = FontAdjustedUILabel()
         disclaimerLabel.font = UIFont(name: "Formula1-Display-Regular", size: 12)
         disclaimerLabel.text = "disclaimer".localizedString
         disclaimerLabel.numberOfLines = 0
         disclaimerLabel.textAlignment = .center
         disclaimerLabel.backgroundShadow()
+        footerStackView.addArrangedSubview(disclaimerLabel)
         
-        return disclaimerLabel
+        return footerStackView
     }
     
     override func tableView(_ tableView: UITableView, heightForFooterInSection section: Int) -> CGFloat {
-        return 600
+        return 300
     }
     
     func buildPageUri(pageId: String) -> String {

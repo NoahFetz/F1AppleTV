@@ -122,7 +122,7 @@ enum AlternateUniverseDrivers: CaseIterable, Codable {
             return "twitch.tv/landonorris"
             
         case .SebastianVettel:
-            return "Inspector Seb 🧐"
+            return "#DankeSeb"
             
         case .NicholasLatifi:
             return "Nicholas GOATifi"

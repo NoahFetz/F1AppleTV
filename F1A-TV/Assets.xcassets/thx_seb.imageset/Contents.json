@@ -1,0 +1,12 @@
+{
+  "images" : [
+    {
+      "filename" : "thx_seb.png",
+      "idiom" : "universal"
+    }
+  ],
+  "info" : {
+    "author" : "xcode",
+    "version" : 1
+  }
+}
