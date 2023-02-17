@@ -179,10 +179,6 @@ class MenuSelectorTableViewController: BaseTableViewController {
         let footerStackView = UIStackView()
         footerStackView.axis = .vertical
         
-        let sebView = UIImageView(image: UIImage(named: "thx_seb"))
-        sebView.contentMode = .scaleAspectFit
-        footerStackView.addArrangedSubview(sebView)
-        
         let disclaimerLabel = FontAdjustedUILabel()
         disclaimerLabel.font = UIFont(name: "Formula1-Display-Regular", size: 12)
         disclaimerLabel.text = "disclaimer".localizedString

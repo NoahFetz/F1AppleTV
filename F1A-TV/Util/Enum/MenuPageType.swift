@@ -9,7 +9,7 @@ import Foundation
 
 enum MenuPageType: String, CaseIterable, Codable {
     case Home = "395"
-    case CurrentSeason = "4319"
+    case CurrentSeason = "6603"
     case Archive = "493"
     case Shows = "410"
     case Docs = "413"
