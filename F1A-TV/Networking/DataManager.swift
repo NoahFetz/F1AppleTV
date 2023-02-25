@@ -122,7 +122,7 @@ class DataManager: RequestInterceptor {
     func loadStreamEntitlement(contentId: String, playerId: String = "", streamEntitlementLoadedProtocol: StreamEntitlementLoadedProtocol) {
         self.alamofireSession.request("\(ConstantsUtil.apiUrl)/\(APIVersionType.V2.getVersionType())/R/\(self.apiLanguage.getAPIKey())/\(self.apiStreamType.getAPIKey())/ALL/\(contentId)",
                                       method: .get,
-                                      headers: [HTTPHeader(name: "sessionid", value: self.sessionId), HTTPHeader(name: "entitlementtoken", value: CredentialHelper.instance.getDeviceRegistration().sessionId), HTTPHeader(name: "ascendontoken", value: CredentialHelper.instance.getDeviceRegistration().data.subscriptionToken)],
+                                      headers: [HTTPHeader(name: "sessionid", value: self.sessionId), HTTPHeader(name: "entitlementtoken", value: CredentialHelper.instance.getDeviceRegistration().sessionId), HTTPHeader(name: "ascendontoken", value: CredentialHelper.instance.getDeviceRegistration().data.subscriptionToken), HTTPHeader(name: "x-f1-device-info", value: "device=tvos;screen=bigscreen;os=tvos;model=appletv14.1;osVersion=16.4;appVersion=2.11.0;playerVersion=3.16.0")],
                                       interceptor: self)
             .validate()
             .responseDecodable(of: StreamEntitlementResultDto.self) { response in
