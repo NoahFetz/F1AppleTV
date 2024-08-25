@@ -1,4 +1,5 @@
 {
+  "originHash" : "ac1417f0ddb78fa120aece51b9e81c761fc457256a786b5779e7efcd9a41fb82",
   "pins" : [
     {
       "identity" : "alamofire",
@@ -6,7 +7,7 @@
       "location" : "https://github.com/Alamofire/Alamofire.git",
       "state" : {
         "branch" : "master",
-        "revision" : "827a879ae2dcc473dfcae8ae188b992f66cd07d6"
+        "revision" : "9b5bd5be3c2d451006ca16b286cf1ed30f434b9c"
       }
     },
     {
@@ -15,7 +16,7 @@
       "location" : "https://github.com/onevcat/Kingfisher.git",
       "state" : {
         "branch" : "master",
-        "revision" : "277f1ab2c6664b19b4a412e32b094b201e2d5757"
+        "revision" : "6fd05f7d8c0bc70fd5eaac93d239f186688fbf9a"
       }
     },
     {
@@ -24,7 +25,7 @@
       "location" : "https://github.com/Juanpe/SkeletonView.git",
       "state" : {
         "branch" : "main",
-        "revision" : "0f5eaf82e82441690d38abfc4118c961f113881c"
+        "revision" : "30c92f0992888e7b249e788405ac31e2103f5c69"
       }
     },
     {
@@ -37,5 +38,5 @@
       }
     }
   ],
-  "version" : 2
+  "version" : 3
 }

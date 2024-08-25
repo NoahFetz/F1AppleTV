@@ -12,21 +12,21 @@ struct PlatformVariantDto: Codable {
     var cpId: Int?
     var videoType: String?
     var pictureUrl: String?
-    var technicalPackages: [TechnicalPackageDto]
+    //var technicalPackages: [TechnicalPackageDto]? //Seems to be optional now but we're not even using this property at the moment
     var trailerUrl: String?
     var hasTrailer: Bool?
     
     init() {
         self.audioLanguages = [AudioLanguageDto]()
-        self.technicalPackages = [TechnicalPackageDto]()
+        //self.technicalPackages = [TechnicalPackageDto]()
     }
     
-    init(audioLanguages: [AudioLanguageDto], cpId: Int?, videoType: String?, pictureUrl: String?, technicalPackages: [TechnicalPackageDto], trailerUrl: String?, hasTrailer: Bool?) {
+    init(audioLanguages: [AudioLanguageDto], cpId: Int?, videoType: String?, pictureUrl: String?, trailerUrl: String?, hasTrailer: Bool?) {
         self.audioLanguages = audioLanguages
         self.cpId = cpId
         self.videoType = videoType
         self.pictureUrl = pictureUrl
-        self.technicalPackages = technicalPackages
+        //self.technicalPackages = technicalPackages
         self.trailerUrl = trailerUrl
         self.hasTrailer = hasTrailer
     }
@@ -36,7 +36,7 @@ struct PlatformVariantDto: Codable {
         case cpId = "cpId"
         case videoType = "videoType"
         case pictureUrl = "pictureUrl"
-        case technicalPackages = "technicalPackages"
+        //case technicalPackages = "technicalPackages"
         case trailerUrl = "trailerUrl"
         case hasTrailer = "hasTrailer"
     }
