@@ -58,7 +58,7 @@ enum ContainerLayoutType: CaseIterable {
             return "CONTENT_ITEM"
             
         case .Schedule:
-            return "schedule"
+            return "interactive_schedule"
             
         }
     }

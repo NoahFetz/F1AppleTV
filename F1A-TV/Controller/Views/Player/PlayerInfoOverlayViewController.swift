@@ -68,8 +68,8 @@ class PlayerInfoOverlayViewController: BaseViewController {
     }
     
     func applyImage(pictureId: String, imageView: UIImageView) {
-        let width = UIScreen.main.nativeBounds.width
-        let height = UIScreen.main.nativeBounds.height
+        let width = Int(UIScreen.main.nativeBounds.width)
+        let height = Int(UIScreen.main.nativeBounds.height)
         
         let imageUrl = "\(ConstantsUtil.imageResizerUrl)/\(pictureId)?w=\(width)&h=\(height)&q=HI&o=L"
         self.applyImage(imageUrl: imageUrl, imageView: imageView)
