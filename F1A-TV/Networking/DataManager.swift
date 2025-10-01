@@ -9,7 +9,7 @@ import Foundation
 import Alamofire
 import SPAlert
 
-class DataManager: RequestInterceptor {
+class DataManager: RequestInterceptor, @unchecked Sendable {
     static let instance = DataManager()
     var alamofireSession = Session.default
     

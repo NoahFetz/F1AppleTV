@@ -18,6 +18,8 @@ class CustomTabBarController: UITabBarController {
             ConstantsUtil.darkStyle = false
         }
         
+        self.registerForTraitCollectionChange()
+        
         self.setupTabItems()
     }
     
@@ -27,20 +29,15 @@ class CustomTabBarController: UITabBarController {
         self.tabBar.items?[2].title = "account_title".localizedString
     }
     
-    override func traitCollectionDidChange(_ previousTraitCollection: UITraitCollection?) {
-        super.traitCollectionDidChange(previousTraitCollection)
-        
-        if #available(iOS 13.0, *) {
-            let hasUserInterfaceStyleChanged = previousTraitCollection?.hasDifferentColorAppearance(comparedTo: traitCollection) ?? false
-            if(hasUserInterfaceStyleChanged){
-                if(traitCollection.userInterfaceStyle == .dark){
-                    ConstantsUtil.darkStyle = true
-                }else{
-                    ConstantsUtil.darkStyle = false
-                }
-                NotificationCenter.default.post(name: .userInterfaceStyleChanged, object: nil)
+    func registerForTraitCollectionChange() {
+        self.registerForTraitChanges([UITraitUserInterfaceStyle.self], handler: { (self: Self, previousTraitCollection: UITraitCollection) in
+            if (self.traitCollection.userInterfaceStyle == .dark) {
+                ConstantsUtil.darkStyle = true
+            } else {
+                ConstantsUtil.darkStyle = false
             }
-        }
+            NotificationCenter.default.post(name: .userInterfaceStyleChanged, object: nil)
+        })
     }
     
     deinit {

@@ -18,7 +18,7 @@
 import Foundation
 
 /// `PlaylistOperation` operation handles fetching and parsing a single playlist object.
-public class PlaylistOperation: Operation {
+public class PlaylistOperation: Operation, @unchecked Sendable {
     
     /// `PlaylistOperation` required params
     public struct Params {

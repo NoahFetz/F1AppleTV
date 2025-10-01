@@ -79,7 +79,7 @@ class PageOverviewCollectionViewController: BaseCollectionViewController, UIColl
             
             return heroSection
             
-        case .HorizontalThumbnail, .VerticalThumbnail:
+        case .HorizontalThumbnail, .VerticalThumbnail, .VerticalSimplePoster:
             var thumbnailSection = ContentSection()
             
             thumbnailSection.layoutType = ContainerLayoutType.fromIdentifier(identifier: contentContainer.layout ?? "")

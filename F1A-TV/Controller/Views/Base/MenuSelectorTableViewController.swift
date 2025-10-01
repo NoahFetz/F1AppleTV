@@ -28,6 +28,8 @@ class MenuSelectorTableViewController: BaseTableViewController {
             ConstantsUtil.darkStyle = false
         }
         
+        self.registerForTraitCollectionChange()
+        
         self.setupTableView()
     }
     
@@ -55,15 +57,16 @@ class MenuSelectorTableViewController: BaseTableViewController {
         
         backgroundImageView.image = UIImage(named: "thumb_placeholder")
     }
-
-    override func traitCollectionDidChange(_ previousTraitCollection: UITraitCollection?) {
-        super.traitCollectionDidChange(previousTraitCollection)
-        
-        let hasUserInterfaceStyleChanged = previousTraitCollection?.hasDifferentColorAppearance(comparedTo: traitCollection) ?? false
-        if(hasUserInterfaceStyleChanged){
-            ConstantsUtil.darkStyle = traitCollection.userInterfaceStyle == .dark
+    
+    func registerForTraitCollectionChange() {
+        self.registerForTraitChanges([UITraitUserInterfaceStyle.self], handler: { (self: Self, previousTraitCollection: UITraitCollection) in
+            if (self.traitCollection.userInterfaceStyle == .dark) {
+                ConstantsUtil.darkStyle = true
+            } else {
+                ConstantsUtil.darkStyle = false
+            }
             NotificationCenter.default.post(name: .userInterfaceStyleChanged, object: nil)
-        }
+        })
     }
     
     // MARK: - Table view data source
