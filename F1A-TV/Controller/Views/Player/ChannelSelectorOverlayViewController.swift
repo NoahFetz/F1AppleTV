@@ -27,6 +27,11 @@ class ChannelSelectorOverlayViewController: BaseViewController {
         swipeRightRecognizer.direction = .right
         self.view.addGestureRecognizer(swipeRightRecognizer)
         
+        // Add menu button gesture to dismiss (useful in simulator)
+        let menuGesture = UITapGestureRecognizer(target: self, action: #selector(self.menuPressed))
+        menuGesture.allowedPressTypes = [NSNumber(value: UIPress.PressType.menu.rawValue)]
+        self.view.addGestureRecognizer(menuGesture)
+        
         self.setupSideBar()
         self.addContentToSideBar()
     }
@@ -81,6 +86,10 @@ class ChannelSelectorOverlayViewController: BaseViewController {
     }
     
     @objc func swipeRightRegognized() {
+        self.dismiss(animated: true)
+    }
+    
+    @objc func menuPressed() {
         self.dismiss(animated: true)
     }
 }

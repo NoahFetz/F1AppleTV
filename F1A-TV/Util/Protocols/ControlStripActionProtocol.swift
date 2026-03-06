@@ -14,4 +14,5 @@ protocol ControlStripActionProtocol {
     func rewindPlayer()
     func forwardPlayer()
     func showChannelSelectorOverlay()
+    func swapToMainPlayer()  // New: Swap focused player to main position
 }

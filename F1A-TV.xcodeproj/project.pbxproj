@@ -170,6 +170,12 @@
 		1BFB1558280214C4001FB3DA /* FairPlayer.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1BFB1557280214C4001FB3DA /* FairPlayer.swift */; };
 		1BFED8F5262443FA00540511 /* PlayerSettings.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1BFED8F4262443FA00540511 /* PlayerSettings.swift */; };
 		1BFFAB7825F901C600EADC99 /* SeriesType.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1BFFAB7725F901C600EADC99 /* SeriesType.swift */; };
+		DEADDB352EE9FD0700D418EA /* REFACTOR_SUMMARY.md in Resources */ = {isa = PBXBuildFile; fileRef = DEADDB342EE9FD0700D418EA /* REFACTOR_SUMMARY.md */; };
+		DEADDB372EEA0B5200D418EA /* PlayerLayoutConfiguration.swift in Sources */ = {isa = PBXBuildFile; fileRef = DEADDB362EEA0B5200D418EA /* PlayerLayoutConfiguration.swift */; };
+		DEADDB392EEA0B5500D418EA /* PlayerCollectionViewController+Actions.swift in Sources */ = {isa = PBXBuildFile; fileRef = DEADDB382EEA0B5500D418EA /* PlayerCollectionViewController+Actions.swift */; };
+		DEADDB3B2EEA0B5800D418EA /* PlayerCollectionViewController+PlayerManagement.swift in Sources */ = {isa = PBXBuildFile; fileRef = DEADDB3A2EEA0B5800D418EA /* PlayerCollectionViewController+PlayerManagement.swift */; };
+		DEADDB3D2EEA0B5B00D418EA /* PlayerCollectionViewController+Overlays.swift in Sources */ = {isa = PBXBuildFile; fileRef = DEADDB3C2EEA0B5B00D418EA /* PlayerCollectionViewController+Overlays.swift */; };
+		DEADDB3F2EEA120600D418EA /* SWAP_TO_MAIN_FEATURE.md in Resources */ = {isa = PBXBuildFile; fileRef = DEADDB3E2EEA120600D418EA /* SWAP_TO_MAIN_FEATURE.md */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXCopyFilesBuildPhase section */
@@ -353,6 +359,13 @@
 		1BFB1557280214C4001FB3DA /* FairPlayer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FairPlayer.swift; sourceTree = "<group>"; };
 		1BFED8F4262443FA00540511 /* PlayerSettings.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PlayerSettings.swift; sourceTree = "<group>"; };
 		1BFFAB7725F901C600EADC99 /* SeriesType.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SeriesType.swift; sourceTree = "<group>"; };
+		DEADDB332EE9FC2B00D418EA /* PlayerLayoutManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PlayerLayoutManager.swift; sourceTree = "<group>"; };
+		DEADDB342EE9FD0700D418EA /* REFACTOR_SUMMARY.md */ = {isa = PBXFileReference; lastKnownFileType = net.daringfireball.markdown; path = REFACTOR_SUMMARY.md; sourceTree = "<group>"; };
+		DEADDB362EEA0B5200D418EA /* PlayerLayoutConfiguration.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PlayerLayoutConfiguration.swift; sourceTree = "<group>"; };
+		DEADDB382EEA0B5500D418EA /* PlayerCollectionViewController+Actions.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "PlayerCollectionViewController+Actions.swift"; sourceTree = "<group>"; };
+		DEADDB3A2EEA0B5800D418EA /* PlayerCollectionViewController+PlayerManagement.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "PlayerCollectionViewController+PlayerManagement.swift"; sourceTree = "<group>"; };
+		DEADDB3C2EEA0B5B00D418EA /* PlayerCollectionViewController+Overlays.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "PlayerCollectionViewController+Overlays.swift"; sourceTree = "<group>"; };
+		DEADDB3E2EEA120600D418EA /* SWAP_TO_MAIN_FEATURE.md */ = {isa = PBXFileReference; lastKnownFileType = net.daringfireball.markdown; path = SWAP_TO_MAIN_FEATURE.md; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -549,6 +562,7 @@
 				1BB29B9025445D6C00ECC074 /* F1A-TV */,
 				1BB29B8F25445D6C00ECC074 /* Products */,
 				188309F9CE9671FEA1E5B358 /* Frameworks */,
+				DEADDB332EE9FC2B00D418EA /* PlayerLayoutManager.swift */,
 			);
 			sourceTree = "<group>";
 		};
@@ -796,6 +810,12 @@
 				1B4F98D8261C85CE008FCE4A /* PlayerInfoOverlayViewController.swift */,
 				1B9F8B67261C9E000020AC55 /* ChannelSelectorOverlayViewController.swift */,
 				1B7CCA5A261E0AB600FB25C2 /* ControlStripOverlayViewController.swift */,
+				DEADDB342EE9FD0700D418EA /* REFACTOR_SUMMARY.md */,
+				DEADDB362EEA0B5200D418EA /* PlayerLayoutConfiguration.swift */,
+				DEADDB382EEA0B5500D418EA /* PlayerCollectionViewController+Actions.swift */,
+				DEADDB3A2EEA0B5800D418EA /* PlayerCollectionViewController+PlayerManagement.swift */,
+				DEADDB3C2EEA0B5B00D418EA /* PlayerCollectionViewController+Overlays.swift */,
+				DEADDB3E2EEA120600D418EA /* SWAP_TO_MAIN_FEATURE.md */,
 			);
 			path = Player;
 			sourceTree = "<group>";
@@ -930,6 +950,7 @@
 			files = (
 				1B85213025F8C5F900B3356B /* Titillium-RegularUpright.otf in Resources */,
 				1B85212925F8C5F900B3356B /* Titillium-BoldItalic.otf in Resources */,
+				DEADDB3F2EEA120600D418EA /* SWAP_TO_MAIN_FEATURE.md in Resources */,
 				1B85213725F8C5F900B3356B /* Titillium-ThinItalic.otf in Resources */,
 				1B9F8B7B261D0B810020AC55 /* TemplateTableViewCell.xib in Resources */,
 				1B85211425F8C5EB00B3356B /* Formula1-Black.ttf in Resources */,
@@ -950,6 +971,7 @@
 				1BDAED3E26122D66003361F8 /* ChannelPlayerCollectionViewCell.xib in Resources */,
 				1B85211625F8C5EB00B3356B /* Formula1-Bold.ttf in Resources */,
 				1B85211525F8C5EB00B3356B /* Formula1-Regular.ttf in Resources */,
+				DEADDB352EE9FD0700D418EA /* REFACTOR_SUMMARY.md in Resources */,
 				1B85211725F8C5EB00B3356B /* Formula1-Wide.ttf in Resources */,
 				1B85213225F8C5F900B3356B /* Titillium-LightUpright.otf in Resources */,
 				1BC656B325F6C7660025CA1D /* NoContentCollectionViewCell.xib in Resources */,
@@ -970,6 +992,7 @@
 			files = (
 				1B9F8B70261CE5640020AC55 /* NoContentTableViewCell.swift in Sources */,
 				1B64ACF626B99295000AA985 /* ResumeDto.swift in Sources */,
+				DEADDB3B2EEA0B5800D418EA /* PlayerCollectionViewController+PlayerManagement.swift in Sources */,
 				1B85210C25F7CCA800B3356B /* IsoCountries.swift in Sources */,
 				1BB29BF22544690500ECC074 /* LoginViewController.swift in Sources */,
 				1B8DEF0025FC11C1004780B9 /* MetadataDto.swift in Sources */,
@@ -979,6 +1002,7 @@
 				1B8DEF0825FC1F43004780B9 /* ResultObjectDto.swift in Sources */,
 				1BB29C282544790D00ECC074 /* TokenRequestDto.swift in Sources */,
 				1BB29C3325449A8800ECC074 /* UIViewControllerExtension.swift in Sources */,
+				DEADDB3D2EEA0B5B00D418EA /* PlayerCollectionViewController+Overlays.swift in Sources */,
 				1B9A429E26FE0B86008049B2 /* APILanguageType.swift in Sources */,
 				1BC656AC25F6B0FC0025CA1D /* ThumbnailTitleSubtitleCollectionViewCell.swift in Sources */,
 				1BC3458C25FC058E00496671 /* CategoryDto.swift in Sources */,
@@ -1067,6 +1091,7 @@
 				1B8DEF0E25FC2257004780B9 /* TechnicalPackageDto.swift in Sources */,
 				1BC656B225F6C7660025CA1D /* NoContentCollectionViewCell.swift in Sources */,
 				1BB29BD1254464BB00ECC074 /* AuthRequestDto.swift in Sources */,
+				DEADDB392EEA0B5500D418EA /* PlayerCollectionViewController+Actions.swift in Sources */,
 				1BCDE426261E5A4D0091C183 /* DPadState.swift in Sources */,
 				1BCC9B2C260E2AC9002B4E95 /* F1TVsImSometimesAnIntAndSometimesAStringDto.swift in Sources */,
 				1B20CB2C25FB5691002F39D8 /* StreamEntitlementResultDto.swift in Sources */,
@@ -1074,6 +1099,7 @@
 				1BDAED3A261212C0003361F8 /* PlayerCollectionViewController.swift in Sources */,
 				1B9F8B77261CF3D80020AC55 /* ChannelSelectionProtocol.swift in Sources */,
 				1BB29BEC254465FA00ECC074 /* KeyValueStoreObject.swift in Sources */,
+				DEADDB372EEA0B5200D418EA /* PlayerLayoutConfiguration.swift in Sources */,
 				1BC3458025FBFCBD00496671 /* AdditionalStreamDto.swift in Sources */,
 				1B77BD2126E4DF7F0025A9EA /* SettingsOverviewTableViewController.swift in Sources */,
 				1B8DEF0425FC1573004780B9 /* PlatformVariantDto.swift in Sources */,

@@ -13,9 +13,11 @@ class ControlStripOverlayViewController: BaseViewController {
     
     var controlStripActionProtocol: ControlStripActionProtocol?
     var playerItem: PlayerItem?
+    var playerCount: Int = 1
     
     var removeChannelButton: UIButton?
     var addChannelButton: UIButton?
+    var swapToMainButton: UIButton?
     var muteChannelButton: UIButton?
     var volumeSlider: TvOSSlider?
     var enterFullScreenButton: UIButton?
@@ -30,9 +32,10 @@ class ControlStripOverlayViewController: BaseViewController {
         self.setupViewController()
     }
     
-    func initialize(playerItem: PlayerItem, controlStripActionProtocol: ControlStripActionProtocol) {
+    func initialize(playerItem: PlayerItem, playerCount: Int, controlStripActionProtocol: ControlStripActionProtocol) {
         self.controlStripActionProtocol = controlStripActionProtocol
         self.playerItem = playerItem
+        self.playerCount = playerCount
     }
     
     func setupViewController() {
@@ -79,8 +82,26 @@ class ControlStripOverlayViewController: BaseViewController {
     func addContentToControlsBar() {
         self.controlsBarView?.arrangedSubviews.forEach({$0.removeFromSuperview()})
         
-        self.setupRemoveChannelButton()
-        self.setupAddChannelButton()
+        let layoutMode = PlayerLayoutMode.mode(for: self.playerCount)
+        
+        // Button order depends on layout mode and position
+        if layoutMode == .single {
+            // Single player: Add first (no remove, fullscreen, or swap buttons)
+            self.setupAddChannelButton()
+            
+        } else if layoutMode == .mainWithSidebar && self.playerItem?.position != 0 {
+            // Sidebar/bottom player in mainWithSidebar: Swap, Fullscreen, Add, Remove
+            self.setupSwapToMainButton()
+            self.setupFullScreenButton()
+            self.setupAddChannelButton()
+            self.setupRemoveChannelButton()
+            
+        } else {
+            // Main player in mainWithSidebar or any player in grid mode: Fullscreen, Add, Remove
+            self.setupFullScreenButton()
+            self.setupAddChannelButton()
+            self.setupRemoveChannelButton()
+        }
         
         self.setupSpacerView()
         
@@ -93,11 +114,6 @@ class ControlStripOverlayViewController: BaseViewController {
         self.setupMuteButton()
         self.setupVolumeSlider()
         self.setupLanguageSelectorButton()
-//        self.setupCaptionSelectorButton()
-        
-        self.setupSpacerView()
-        
-        self.setupFullScreenButton()
     }
     
     func setupSpacerView() {
@@ -196,6 +212,24 @@ class ControlStripOverlayViewController: BaseViewController {
         self.controlsBarView?.addArrangedSubview(self.addChannelButton ?? UIView())
     }
     
+    func setupSwapToMainButton() {
+        self.swapToMainButton = UIButton(type: .custom)
+        self.swapToMainButton?.setBackgroundImage(UIImage(systemName: "arrow.up.arrow.down.circle.fill")?.withTintColor(.white, renderingMode: .alwaysOriginal), for: .focused)
+        self.swapToMainButton?.setBackgroundImage(UIImage(systemName: "arrow.up.arrow.down.circle")?.withTintColor(.white, renderingMode: .alwaysOriginal), for: .normal)
+        
+        let iconScaleMultiplier = (self.swapToMainButton?.backgroundImage(for: .normal)?.size.height ?? 1)/(self.swapToMainButton?.backgroundImage(for: .normal)?.size.width ?? 1)
+        
+        NSLayoutConstraint.activate([
+            NSLayoutConstraint(item: self.swapToMainButton ?? UIView(), attribute: .height, relatedBy: .equal, toItem: self.swapToMainButton ?? UIView(), attribute: .width, multiplier: iconScaleMultiplier, constant: 0)
+        ])
+        
+        self.swapToMainButton?.layoutIfNeeded()
+        self.swapToMainButton?.subviews.first?.contentMode = .scaleAspectFit
+        
+        self.swapToMainButton?.addTarget(self, action: #selector(self.swapToMainPressed), for: .primaryActionTriggered)
+        self.controlsBarView?.addArrangedSubview(self.swapToMainButton ?? UIView())
+    }
+    
     func setupMuteButton() {
         self.muteChannelButton = UIButton(type: .custom)
         self.updateMuteButtonStatus()
@@ -288,6 +322,11 @@ class ControlStripOverlayViewController: BaseViewController {
     @objc func addChannelPressed() {
         self.swipeDownRegognized()
         self.controlStripActionProtocol?.showChannelSelectorOverlay()
+    }
+    
+    @objc func swapToMainPressed() {
+        self.controlStripActionProtocol?.swapToMainPlayer()
+        self.swipeDownRegognized()
     }
     
     @objc func muteChannelPressed() {

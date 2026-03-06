@@ -58,6 +58,10 @@ class ChannelPlayerCollectionViewCell: BaseCollectionViewCell {
         
         self.playerLayer = AVPlayerLayer(player: player)
         
+        // Force layout update before setting frame
+        self.playerContainerView.setNeedsLayout()
+        self.playerContainerView.layoutIfNeeded()
+        
         self.playerLayer?.frame = self.playerContainerView.bounds
         self.playerLayer?.videoGravity = .resizeAspect
         self.playerContainerView.layer.insertSublayer(self.playerLayer ?? CALayer(), at: 0)
