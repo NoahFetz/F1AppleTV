@@ -78,7 +78,7 @@ class AccountOverviewViewController: BaseViewController, DeviceRegistrationLoade
     }
     
     func didPerformDeviceUnregistration() {
-        CredentialHelper.instance.setDeviceRegistration(deviceRegistration: DeviceRegistrationResultDto())
+        CredentialHelper.instance.clearCredentials()
         self.setupView()
     }
 }
