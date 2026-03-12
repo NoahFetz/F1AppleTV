@@ -38,6 +38,10 @@ struct ConstantsUtil {
     static let playerSettingsKeyValueStorageKey = "F1ATV_PlayerSettingsKVSKey"
     static let deviceRegistrationKeyValueStorageKey = "F1ATV_DeviceRegistrationKVSKey"
 
+    //KeychainKeys
+    static let keychainPasswordKey = "F1ATV_Password"
+    static let keychainDeviceRegistrationKey = "F1ATV_DeviceRegistration"
+
     
     //Controller
     static let accountOverviewViewController = "AccountOverviewViewController"
