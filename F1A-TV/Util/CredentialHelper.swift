@@ -7,118 +7,87 @@
 
 import Foundation
 
-class CredentialHelper: AuthDataLoadedProtocol {
+class CredentialHelper {
     static let instance = CredentialHelper()
-    
+
+    private init() {
+        migrateFromCoreDataIfNeeded()
+    }
+
     func isLoginInformationCached() -> Bool {
         return !self.getDeviceRegistration().sessionId.isEmpty
     }
-    
+
+    // MARK: - Password (Keychain)
+
     func setPassword(password: String) {
-        DataSource.instance.addKeyValue(keyValuePair: KeyValueStoreObject(id: UUID().uuidString.lowercased(), key: ConstantsUtil.passwordKeyValueStorageKey, value: password))
+        try? KeychainHelper.saveString(password, forKey: ConstantsUtil.keychainPasswordKey)
     }
-    
+
     func getPassword() -> String {
-        let object = DataSource.instance.getKeyValuePair(keyString: ConstantsUtil.passwordKeyValueStorageKey)
-        if(object.key != ConstantsUtil.passwordKeyValueStorageKey){
-            self.setPassword(password: "")
-            return self.getPassword()
-        }
-        return object.value
+        return KeychainHelper.readString(forKey: ConstantsUtil.keychainPasswordKey) ?? ""
     }
-    
+
+    // MARK: - Device Registration (Keychain)
+
     func getDeviceRegistration() -> DeviceRegistrationResultDto {
-        let object = DataSource.instance.getKeyValuePair(keyString: ConstantsUtil.deviceRegistrationKeyValueStorageKey)
-        if(object.key != ConstantsUtil.deviceRegistrationKeyValueStorageKey){
-            self.setDeviceRegistration(deviceRegistration: DeviceRegistrationResultDto())
-            return self.getDeviceRegistration()
-        }
-        let decoder = JSONDecoder()
-//        print(object.value)
-        do {
-            return try decoder.decode(DeviceRegistrationResultDto.self, from: object.value.data(using: .utf8)!)
-        }catch{
-            return DeviceRegistrationResultDto()
-        }
+        return KeychainHelper.readCodable(DeviceRegistrationResultDto.self, forKey: ConstantsUtil.keychainDeviceRegistrationKey) ?? DeviceRegistrationResultDto()
     }
-    
+
     func setDeviceRegistration(deviceRegistration: DeviceRegistrationResultDto) {
-        var dataString = ""
-        do{
-            let encoder = JSONEncoder()
-            let data = try encoder.encode(deviceRegistration)
-            dataString = String(data: data, encoding: .utf8) ?? ""
-//            print(dataString)
-        }catch{
-            print("Encoding failed")
-            return
-        }
-        DataSource.instance.addKeyValue(keyValuePair: KeyValueStoreObject(id: UUID().uuidString.lowercased(), key: ConstantsUtil.deviceRegistrationKeyValueStorageKey, value: dataString))
+        try? KeychainHelper.saveCodable(deviceRegistration, forKey: ConstantsUtil.keychainDeviceRegistrationKey)
     }
-    
-    /*func getUserInfo() -> AuthResultDto {
-        let object = DataSource.instance.getKeyValuePair(keyString: ConstantsUtil.userInfoKeyValueStorageKey)
-        if(object.key != ConstantsUtil.userInfoKeyValueStorageKey){
-            self.setUserInfo(userInfo: AuthResultDto())
-            return self.getUserInfo()
-        }
-        let decoder = JSONDecoder()
-//        print(object.value)
-        do {
-            return try decoder.decode(AuthResultDto.self, from: object.value.data(using: .utf8)!)
-        }catch{
-            return AuthResultDto()
-        }
-    }
-    
-    func setUserInfo(userInfo: AuthResultDto) {
-        var dataString = ""
-        do{
-            let encoder = JSONEncoder()
-            let data = try encoder.encode(userInfo)
-            dataString = String(data: data, encoding: .utf8) ?? ""
-//            print(dataString)
-        }catch{
-            print("Encoding failed")
-            return
-        }
-        DataSource.instance.addKeyValue(keyValuePair: KeyValueStoreObject(id: UUID().uuidString.lowercased(), key: ConstantsUtil.userInfoKeyValueStorageKey, value: dataString))
-    }*/
-    
+
+    // MARK: - Player Settings (CoreData — not sensitive)
+
     class func getPlayerSettings() -> PlayerSettings {
         let object = DataSource.instance.getKeyValuePair(keyString: ConstantsUtil.playerSettingsKeyValueStorageKey)
-        if(object.key != ConstantsUtil.playerSettingsKeyValueStorageKey){
+        if object.key != ConstantsUtil.playerSettingsKeyValueStorageKey {
             self.setPlayerSettings(playerSettings: PlayerSettings())
-            return self.getPlayerSettings()
+            return PlayerSettings()
         }
-        let decoder = JSONDecoder()
-//        print(object.value)
+        guard let data = object.value.data(using: .utf8) else {
+            return PlayerSettings()
+        }
         do {
-            return try decoder.decode(PlayerSettings.self, from: object.value.data(using: .utf8)!)
-        }catch{
+            return try JSONDecoder().decode(PlayerSettings.self, from: data)
+        } catch {
             return PlayerSettings()
         }
     }
-    
+
     class func setPlayerSettings(playerSettings: PlayerSettings) {
-        var dataString = ""
-        do{
-            let encoder = JSONEncoder()
-            let data = try encoder.encode(playerSettings)
-            dataString = String(data: data, encoding: .utf8) ?? ""
-//            print(dataString)
-        }catch{
+        do {
+            let data = try JSONEncoder().encode(playerSettings)
+            let dataString = String(data: data, encoding: .utf8) ?? ""
+            DataSource.instance.addKeyValue(keyValuePair: KeyValueStoreObject(id: UUID().uuidString.lowercased(), key: ConstantsUtil.playerSettingsKeyValueStorageKey, value: dataString))
+        } catch {
             print("Encoding failed")
-            return
         }
-        DataSource.instance.addKeyValue(keyValuePair: KeyValueStoreObject(id: UUID().uuidString.lowercased(), key: ConstantsUtil.playerSettingsKeyValueStorageKey, value: dataString))
     }
-    
-    /*func performAuthRequest(authRequest: AuthRequestDto) {
-        DataManager.instance.loadAuthData(authRequest: authRequest, authDataLoadedProtocol: self)
-    }*/
-    
-    func didLoadAuthData(authResult: AuthResultDto) {
-        //CredentialHelper.instance.setUserInfo(userInfo: authResult)
+
+    // MARK: - Logout
+
+    func clearCredentials() {
+        try? KeychainHelper.deleteAll()
+    }
+
+    // MARK: - One-time migration from CoreData to Keychain
+
+    private func migrateFromCoreDataIfNeeded() {
+        let passwordObject = DataSource.instance.getKeyValuePair(keyString: ConstantsUtil.passwordKeyValueStorageKey)
+        if passwordObject.key == ConstantsUtil.passwordKeyValueStorageKey, !passwordObject.value.isEmpty {
+            try? KeychainHelper.saveString(passwordObject.value, forKey: ConstantsUtil.keychainPasswordKey)
+            DataSource.instance.addKeyValue(keyValuePair: KeyValueStoreObject(id: UUID().uuidString.lowercased(), key: ConstantsUtil.passwordKeyValueStorageKey, value: ""))
+        }
+
+        let regObject = DataSource.instance.getKeyValuePair(keyString: ConstantsUtil.deviceRegistrationKeyValueStorageKey)
+        if regObject.key == ConstantsUtil.deviceRegistrationKeyValueStorageKey, !regObject.value.isEmpty {
+            if let data = regObject.value.data(using: .utf8),
+               let registration = try? JSONDecoder().decode(DeviceRegistrationResultDto.self, from: data) {
+                try? KeychainHelper.saveCodable(registration, forKey: ConstantsUtil.keychainDeviceRegistrationKey)
+                DataSource.instance.addKeyValue(keyValuePair: KeyValueStoreObject(id: UUID().uuidString.lowercased(), key: ConstantsUtil.deviceRegistrationKeyValueStorageKey, value: ""))
+            }
+        }
     }
 }
