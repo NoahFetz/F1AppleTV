@@ -7,7 +7,7 @@
       "location" : "https://github.com/Alamofire/Alamofire.git",
       "state" : {
         "branch" : "master",
-        "revision" : "f73a2fcb60198ef2b92dc3b6074b18f98ccee875"
+        "revision" : "7595cbcf59809f9977c5f6378500de2ad73b7ddb"
       }
     },
     {
@@ -16,7 +16,7 @@
       "location" : "https://github.com/onevcat/Kingfisher.git",
       "state" : {
         "branch" : "master",
-        "revision" : "3fe88ce2de62528b9ed5d88df9d9af0494826fdd"
+        "revision" : "9f4ac2bccbe03858228f59dd77bc43bb1d317bbf"
       }
     },
     {

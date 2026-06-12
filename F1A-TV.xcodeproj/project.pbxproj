@@ -170,6 +170,7 @@
 		1BFB1558280214C4001FB3DA /* FairPlayer.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1BFB1557280214C4001FB3DA /* FairPlayer.swift */; };
 		1BFED8F5262443FA00540511 /* PlayerSettings.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1BFED8F4262443FA00540511 /* PlayerSettings.swift */; };
 		1BFFAB7825F901C600EADC99 /* SeriesType.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1BFFAB7725F901C600EADC99 /* SeriesType.swift */; };
+		C0DE5CE22EEB000000000001 /* SceneDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = C0DE5CE12EEB000000000001 /* SceneDelegate.swift */; };
 		DEADDB352EE9FD0700D418EA /* REFACTOR_SUMMARY.md in Resources */ = {isa = PBXBuildFile; fileRef = DEADDB342EE9FD0700D418EA /* REFACTOR_SUMMARY.md */; };
 		DEADDB372EEA0B5200D418EA /* PlayerLayoutConfiguration.swift in Sources */ = {isa = PBXBuildFile; fileRef = DEADDB362EEA0B5200D418EA /* PlayerLayoutConfiguration.swift */; };
 		DEADDB392EEA0B5500D418EA /* PlayerCollectionViewController+Actions.swift in Sources */ = {isa = PBXBuildFile; fileRef = DEADDB382EEA0B5500D418EA /* PlayerCollectionViewController+Actions.swift */; };
@@ -359,6 +360,7 @@
 		1BFB1557280214C4001FB3DA /* FairPlayer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FairPlayer.swift; sourceTree = "<group>"; };
 		1BFED8F4262443FA00540511 /* PlayerSettings.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PlayerSettings.swift; sourceTree = "<group>"; };
 		1BFFAB7725F901C600EADC99 /* SeriesType.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SeriesType.swift; sourceTree = "<group>"; };
+		C0DE5CE12EEB000000000001 /* SceneDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SceneDelegate.swift; sourceTree = "<group>"; };
 		DEADDB332EE9FC2B00D418EA /* PlayerLayoutManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PlayerLayoutManager.swift; sourceTree = "<group>"; };
 		DEADDB342EE9FD0700D418EA /* REFACTOR_SUMMARY.md */ = {isa = PBXFileReference; lastKnownFileType = net.daringfireball.markdown; path = REFACTOR_SUMMARY.md; sourceTree = "<group>"; };
 		DEADDB362EEA0B5200D418EA /* PlayerLayoutConfiguration.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PlayerLayoutConfiguration.swift; sourceTree = "<group>"; };
@@ -586,6 +588,7 @@
 				1BB29C0A25446D9B00ECC074 /* Util */,
 				1B85210F25F8C5C900B3356B /* Fonts */,
 				1BB29B9125445D6C00ECC074 /* AppDelegate.swift */,
+				C0DE5CE12EEB000000000001 /* SceneDelegate.swift */,
 				1BB29B9525445D6C00ECC074 /* Main.storyboard */,
 				1BB29B9B25445D6F00ECC074 /* Assets.xcassets */,
 				1BB29B9D25445D6F00ECC074 /* LaunchScreen.storyboard */,
@@ -1096,6 +1099,7 @@
 				1BCC9B2C260E2AC9002B4E95 /* F1TVsImSometimesAnIntAndSometimesAStringDto.swift in Sources */,
 				1B20CB2C25FB5691002F39D8 /* StreamEntitlementResultDto.swift in Sources */,
 				1BB29B9225445D6C00ECC074 /* AppDelegate.swift in Sources */,
+				C0DE5CE22EEB000000000001 /* SceneDelegate.swift in Sources */,
 				1BDAED3A261212C0003361F8 /* PlayerCollectionViewController.swift in Sources */,
 				1B9F8B77261CF3D80020AC55 /* ChannelSelectionProtocol.swift in Sources */,
 				1BB29BEC254465FA00ECC074 /* KeyValueStoreObject.swift in Sources */,
@@ -1295,7 +1299,7 @@
 				CODE_SIGN_ENTITLEMENTS = "F1A-TV/F1A-TV.entitlements";
 				CODE_SIGN_IDENTITY = "Apple Development";
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 26.0306.1;
+				CURRENT_PROJECT_VERSION = 26.0612.2;
 				INFOPLIST_FILE = "$(SRCROOT)/F1A-TV/Info.plist";
 				INFOPLIST_KEY_CFBundleDisplayName = "Vroom TV";
 				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.entertainment";
@@ -1323,7 +1327,7 @@
 				CODE_SIGN_ENTITLEMENTS = "F1A-TV/F1A-TV.entitlements";
 				CODE_SIGN_IDENTITY = "Apple Development";
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 26.0306.1;
+				CURRENT_PROJECT_VERSION = 26.0612.2;
 				INFOPLIST_FILE = "$(SRCROOT)/F1A-TV/Info.plist";
 				INFOPLIST_KEY_CFBundleDisplayName = "Vroom TV";
 				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.entertainment";
