@@ -46,6 +46,7 @@
 		1B78A79E2586440A007CF57C /* PlayerController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1B78A79D2586440A007CF57C /* PlayerController.swift */; };
 		1B7CCA5B261E0AB600FB25C2 /* ControlStripOverlayViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1B7CCA5A261E0AB600FB25C2 /* ControlStripOverlayViewController.swift */; };
 		1B80954525457D3E00889DFE /* CredentialHelper.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1B80954425457D3E00889DFE /* CredentialHelper.swift */; };
+		CC00000226031200000F1ATV /* KeychainHelper.swift in Sources */ = {isa = PBXBuildFile; fileRef = CC00000126031200000F1ATV /* KeychainHelper.swift */; };
 		1B85210C25F7CCA800B3356B /* IsoCountries.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1B85210B25F7CCA800B3356B /* IsoCountries.swift */; };
 		1B85210E25F7CCC400B3356B /* IsoCountryCodes.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1B85210D25F7CCC400B3356B /* IsoCountryCodes.swift */; };
 		1B85211425F8C5EB00B3356B /* Formula1-Black.ttf in Resources */ = {isa = PBXBuildFile; fileRef = 1B85211025F8C5EB00B3356B /* Formula1-Black.ttf */; };
@@ -232,6 +233,7 @@
 		1B78A79D2586440A007CF57C /* PlayerController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PlayerController.swift; sourceTree = "<group>"; };
 		1B7CCA5A261E0AB600FB25C2 /* ControlStripOverlayViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ControlStripOverlayViewController.swift; sourceTree = "<group>"; };
 		1B80954425457D3E00889DFE /* CredentialHelper.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CredentialHelper.swift; sourceTree = "<group>"; };
+		CC00000126031200000F1ATV /* KeychainHelper.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = KeychainHelper.swift; sourceTree = "<group>"; };
 		1B85210B25F7CCA800B3356B /* IsoCountries.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = IsoCountries.swift; sourceTree = "<group>"; };
 		1B85210D25F7CCC400B3356B /* IsoCountryCodes.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = IsoCountryCodes.swift; sourceTree = "<group>"; };
 		1B85211025F8C5EB00B3356B /* Formula1-Black.ttf */ = {isa = PBXFileReference; lastKnownFileType = file; path = "Formula1-Black.ttf"; sourceTree = "<group>"; };
@@ -680,6 +682,7 @@
 				1BB23D022544EB0A00D0CC71 /* Protocols */,
 				1BB29C0B25446DC000ECC074 /* ConstantsUtil.swift */,
 				1B80954425457D3E00889DFE /* CredentialHelper.swift */,
+				CC00000126031200000F1ATV /* KeychainHelper.swift */,
 				1BF95A3E25EFAE3300A7C7C6 /* UserInteractionHelper.swift */,
 			);
 			path = Util;
@@ -1116,6 +1119,7 @@
 				1B9F8B73261CE6420020AC55 /* BaseTableViewCell.swift in Sources */,
 				1BE2B06628535F52007A1A2E /* DeviceRegistrationSessionSummaryDto.swift in Sources */,
 				1B80954525457D3E00889DFE /* CredentialHelper.swift in Sources */,
+				CC00000226031200000F1ATV /* KeychainHelper.swift in Sources */,
 				1B4F98D9261C85CE008FCE4A /* PlayerInfoOverlayViewController.swift in Sources */,
 				1BB29C0C25446DC000ECC074 /* ConstantsUtil.swift in Sources */,
 				1BB23CF42544E3C800D0CC71 /* DateExtension.swift in Sources */,

@@ -224,8 +224,13 @@ class DataManager: RequestInterceptor, @unchecked Sendable {
                     deviceRegistration.sessionSummary.email = apiResponse.subscriber.email
                     deviceRegistration.sessionSummary.login = apiResponse.subscriber.login
                     
-                    CredentialHelper.instance.setDeviceRegistration(deviceRegistration: deviceRegistration)
-                    completion(true)
+                    do {
+                        try CredentialHelper.instance.setDeviceRegistration(deviceRegistration: deviceRegistration)
+                        completion(true)
+                    } catch {
+                        print("Unable to store refreshed credentials.")
+                        completion(false)
+                    }
                     
                 case .failure(let afError):
                     self.handleAFError(afError: afError)
