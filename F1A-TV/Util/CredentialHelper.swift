@@ -11,7 +11,12 @@ class CredentialHelper {
     static let instance = CredentialHelper()
 
     private init() {
-        migrateFromCoreDataIfNeeded()
+        do {
+            try migrateFromCoreDataIfNeeded()
+        } catch {
+            // Leave legacy values intact so migration can be retried next launch.
+            print("Credential migration failed; legacy values retained.")
+        }
     }
 
     func isLoginInformationCached() -> Bool {
@@ -20,22 +25,22 @@ class CredentialHelper {
 
     // MARK: - Password (Keychain)
 
-    func setPassword(password: String) {
-        try? KeychainHelper.saveString(password, forKey: ConstantsUtil.keychainPasswordKey)
+    func setPassword(password: String) throws {
+        try KeychainHelper.saveString(password, forKey: ConstantsUtil.keychainPasswordKey)
     }
 
     func getPassword() -> String {
-        return KeychainHelper.readString(forKey: ConstantsUtil.keychainPasswordKey) ?? ""
+        return (try? KeychainHelper.readString(forKey: ConstantsUtil.keychainPasswordKey)) ?? ""
     }
 
     // MARK: - Device Registration (Keychain)
 
     func getDeviceRegistration() -> DeviceRegistrationResultDto {
-        return KeychainHelper.readCodable(DeviceRegistrationResultDto.self, forKey: ConstantsUtil.keychainDeviceRegistrationKey) ?? DeviceRegistrationResultDto()
+        return (try? KeychainHelper.readCodable(DeviceRegistrationResultDto.self, forKey: ConstantsUtil.keychainDeviceRegistrationKey)) ?? DeviceRegistrationResultDto()
     }
 
-    func setDeviceRegistration(deviceRegistration: DeviceRegistrationResultDto) {
-        try? KeychainHelper.saveCodable(deviceRegistration, forKey: ConstantsUtil.keychainDeviceRegistrationKey)
+    func setDeviceRegistration(deviceRegistration: DeviceRegistrationResultDto) throws {
+        try KeychainHelper.saveCodable(deviceRegistration, forKey: ConstantsUtil.keychainDeviceRegistrationKey)
     }
 
     // MARK: - Player Settings (CoreData — not sensitive)
@@ -68,26 +73,35 @@ class CredentialHelper {
 
     // MARK: - Logout
 
-    func clearCredentials() {
-        try? KeychainHelper.deleteAll()
+    func clearCredentials() throws {
+        // Remove any legacy leftovers first, or next launch could migrate them back.
+        try DataSource.instance.clearCredentialValues(keys: [
+            ConstantsUtil.passwordKeyValueStorageKey,
+            ConstantsUtil.deviceRegistrationKeyValueStorageKey
+        ])
+        try KeychainHelper.deleteAll()
     }
 
     // MARK: - One-time migration from CoreData to Keychain
 
-    private func migrateFromCoreDataIfNeeded() {
+    // Internal for regression tests; production invokes this during initialization.
+    func migrateFromCoreDataIfNeeded() throws {
         let passwordObject = DataSource.instance.getKeyValuePair(keyString: ConstantsUtil.passwordKeyValueStorageKey)
         if passwordObject.key == ConstantsUtil.passwordKeyValueStorageKey, !passwordObject.value.isEmpty {
-            try? KeychainHelper.saveString(passwordObject.value, forKey: ConstantsUtil.keychainPasswordKey)
-            DataSource.instance.addKeyValue(keyValuePair: KeyValueStoreObject(id: UUID().uuidString.lowercased(), key: ConstantsUtil.passwordKeyValueStorageKey, value: ""))
+            // A previous run may have saved successfully but failed to clear CoreData.
+            if try KeychainHelper.readString(forKey: ConstantsUtil.keychainPasswordKey) == nil {
+                try KeychainHelper.saveString(passwordObject.value, forKey: ConstantsUtil.keychainPasswordKey)
+            }
+            try DataSource.instance.clearCredentialValues(keys: [ConstantsUtil.passwordKeyValueStorageKey])
         }
 
         let regObject = DataSource.instance.getKeyValuePair(keyString: ConstantsUtil.deviceRegistrationKeyValueStorageKey)
         if regObject.key == ConstantsUtil.deviceRegistrationKeyValueStorageKey, !regObject.value.isEmpty {
-            if let data = regObject.value.data(using: .utf8),
-               let registration = try? JSONDecoder().decode(DeviceRegistrationResultDto.self, from: data) {
-                try? KeychainHelper.saveCodable(registration, forKey: ConstantsUtil.keychainDeviceRegistrationKey)
-                DataSource.instance.addKeyValue(keyValuePair: KeyValueStoreObject(id: UUID().uuidString.lowercased(), key: ConstantsUtil.deviceRegistrationKeyValueStorageKey, value: ""))
+            if try KeychainHelper.readCodable(DeviceRegistrationResultDto.self, forKey: ConstantsUtil.keychainDeviceRegistrationKey) == nil {
+                let registration = try JSONDecoder().decode(DeviceRegistrationResultDto.self, from: Data(regObject.value.utf8))
+                try KeychainHelper.saveCodable(registration, forKey: ConstantsUtil.keychainDeviceRegistrationKey)
             }
+            try DataSource.instance.clearCredentialValues(keys: [ConstantsUtil.deviceRegistrationKeyValueStorageKey])
         }
     }
 }

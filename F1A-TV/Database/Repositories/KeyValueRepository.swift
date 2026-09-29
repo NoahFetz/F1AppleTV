@@ -27,6 +27,25 @@ class KeyValueRepository {
         return items
     }
     
+    // Unlike the general setters, migration and logout must observe save failures.
+    func clearValues(keys: [String]) throws {
+        let ctx = DatabaseController.instance.managedObjectContext
+        try ctx.performAndWait {
+            let request = NSFetchRequest<KeyValueStoreEntity>(entityName: self.entityNameKey)
+            request.predicate = NSPredicate(format: "key IN %@", keys)
+            let items = try ctx.fetch(request)
+            let previousValues = items.map { ($0, $0.value) }
+            for item in items { item.value = "" }
+            do {
+                try ctx.save()
+            } catch {
+                // Do not leave a failed cleanup visible as successful in this context.
+                for (item, value) in previousValues { item.value = value }
+                throw error
+            }
+        }
+    }
+
     func clear() {
         let ctx = DatabaseController.instance.managedObjectContext
         let fetchRequest = NSFetchRequest<KeyValueStoreEntity>(entityName: self.entityNameKey)

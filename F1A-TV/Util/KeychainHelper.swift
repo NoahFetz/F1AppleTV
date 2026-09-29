@@ -11,6 +11,7 @@ import Security
 enum KeychainError: Error {
     case saveFailed(OSStatus)
     case deleteFailed(OSStatus)
+    case readFailed(OSStatus)
     case encodingFailed
 }
 
@@ -26,8 +27,8 @@ struct KeychainHelper {
         try saveData(data, forKey: key)
     }
 
-    static func readString(forKey key: String) -> String? {
-        guard let data = readData(forKey: key) else { return nil }
+    static func readString(forKey key: String) throws -> String? {
+        guard let data = try readData(forKey: key) else { return nil }
         return String(data: data, encoding: .utf8)
     }
 
@@ -38,9 +39,9 @@ struct KeychainHelper {
         try saveData(data, forKey: key)
     }
 
-    static func readCodable<T: Decodable>(_ type: T.Type, forKey key: String) -> T? {
-        guard let data = readData(forKey: key) else { return nil }
-        return try? JSONDecoder().decode(type, from: data)
+    static func readCodable<T: Decodable>(_ type: T.Type, forKey key: String) throws -> T? {
+        guard let data = try readData(forKey: key) else { return nil }
+        return try JSONDecoder().decode(type, from: data)
     }
 
     // MARK: - Delete operations
@@ -71,23 +72,35 @@ struct KeychainHelper {
     // MARK: - Private
 
     private static func saveData(_ data: Data, forKey key: String) throws {
-        // Delete existing item first
-        try? delete(forKey: key)
-
         let query: [String: Any] = [
             kSecClass as String: kSecClassGenericPassword,
             kSecAttrService as String: service,
-            kSecAttrAccount as String: key,
+            kSecAttrAccount as String: key
+        ]
+        let attributes: [String: Any] = [
             kSecValueData as String: data,
             kSecAttrAccessible as String: kSecAttrAccessibleWhenUnlockedThisDeviceOnly
         ]
-        let status = SecItemAdd(query as CFDictionary, nil)
-        guard status == errSecSuccess else {
+        let status = SecItemUpdate(query as CFDictionary, attributes as CFDictionary)
+        if status == errSecItemNotFound {
+            var newItem = query
+            newItem.merge(attributes) { _, new in new }
+            let addStatus = SecItemAdd(newItem as CFDictionary, nil)
+            // Another caller may have inserted the item after our update attempt.
+            if addStatus == errSecDuplicateItem {
+                let retryStatus = SecItemUpdate(query as CFDictionary, attributes as CFDictionary)
+                guard retryStatus == errSecSuccess else {
+                    throw KeychainError.saveFailed(retryStatus)
+                }
+            } else if addStatus != errSecSuccess {
+                throw KeychainError.saveFailed(addStatus)
+            }
+        } else if status != errSecSuccess {
             throw KeychainError.saveFailed(status)
         }
     }
 
-    private static func readData(forKey key: String) -> Data? {
+    private static func readData(forKey key: String) throws -> Data? {
         let query: [String: Any] = [
             kSecClass as String: kSecClassGenericPassword,
             kSecAttrService as String: service,
@@ -97,7 +110,9 @@ struct KeychainHelper {
         ]
         var result: AnyObject?
         let status = SecItemCopyMatching(query as CFDictionary, &result)
-        guard status == errSecSuccess else { return nil }
-        return result as? Data
+        if status == errSecItemNotFound { return nil }
+        guard status == errSecSuccess else { throw KeychainError.readFailed(status) }
+        guard let data = result as? Data else { throw KeychainError.readFailed(errSecDecode) }
+        return data
     }
 }

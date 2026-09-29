@@ -20,6 +20,7 @@ class AccountOverviewViewController: BaseViewController, DeviceRegistrationLoade
     @IBOutlet weak var subscriptionTitleLabel: UILabel!
     @IBOutlet weak var subscriptionValueLabel: UILabel!
     @IBOutlet weak var logoutButton: UIButton!
+    private var needsLocalLogoutCleanup = false
     
     override func viewDidLoad() {
         super.viewDidLoad()
@@ -62,7 +63,11 @@ class AccountOverviewViewController: BaseViewController, DeviceRegistrationLoade
     }
     
     @objc func logoutPressed() {
-        DataManager.instance.performDeviceUnregistration(deviceRegistrationLoadedProtocol: self)
+        if needsLocalLogoutCleanup {
+            didPerformDeviceUnregistration()
+        } else {
+            DataManager.instance.performDeviceUnregistration(deviceRegistrationLoadedProtocol: self)
+        }
         
         //CredentialHelper.instance.setUserInfo(userInfo: AuthResultDto())
         //CredentialHelper.instance.setPassword(password: "")
@@ -78,7 +83,13 @@ class AccountOverviewViewController: BaseViewController, DeviceRegistrationLoade
     }
     
     func didPerformDeviceUnregistration() {
-        CredentialHelper.instance.clearCredentials()
-        self.setupView()
+        needsLocalLogoutCleanup = true
+        do {
+            try CredentialHelper.instance.clearCredentials()
+            needsLocalLogoutCleanup = false
+            self.setupView()
+        } catch {
+            UserInteractionHelper.instance.showAlert(title: "Unable to clear login", message: "The saved login could not be removed from this device. Please try logging out again.")
+        }
     }
 }

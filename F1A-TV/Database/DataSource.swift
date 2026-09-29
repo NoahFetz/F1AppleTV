@@ -23,6 +23,10 @@ class DataSource {
         }
     }
     
+    func clearCredentialValues(keys: [String]) throws {
+        try keyValueRepository.clearValues(keys: keys)
+    }
+
     func deleteKeyValue(keyValuePair: KeyValueStoreObject) {
         keyValueRepository.delete(id: UUID(uuidString: keyValuePair.id)!)
     }

@@ -1,0 +1,24 @@
+name: Validate tvOS
+
+on:
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    runs-on: macos-26
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          persist-credentials: false
+      - name: Credential storage regression tests
+        run: bash Tests/Credentials/run.sh
+      - name: Build tvOS app without signing
+        run: >-
+          xcodebuild -project F1A-TV.xcodeproj -scheme F1A-TV
+          -configuration Debug -destination 'generic/platform=tvOS Simulator'
+          CODE_SIGNING_ALLOWED=NO build

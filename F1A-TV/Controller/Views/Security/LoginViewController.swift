@@ -99,8 +99,12 @@ class LoginViewController: BaseViewController, AuthDataLoadedProtocol, DeviceReg
     }
     
     func didPerformDeviceRegistration(deviceRegistration: DeviceRegistrationResultDto) {
-        CredentialHelper.instance.setDeviceRegistration(deviceRegistration: deviceRegistration)
-        self.dismiss(animated: true)
+        do {
+            try CredentialHelper.instance.setDeviceRegistration(deviceRegistration: deviceRegistration)
+            self.dismiss(animated: true)
+        } catch {
+            UserInteractionHelper.instance.showAlert(title: "Unable to save login", message: "Your login could not be stored securely. Please try again.")
+        }
     }
     
     /**
@@ -108,8 +112,12 @@ class LoginViewController: BaseViewController, AuthDataLoadedProtocol, DeviceReg
      */
     func didLoadAuthData(authResult: AuthResultDto) {
         //CredentialHelper.instance.setUserInfo(userInfo: authResult)
-        CredentialHelper.instance.setPassword(password: self.passwordTextField.text ?? "")
-        self.dismiss(animated: true)
+        do {
+            try CredentialHelper.instance.setPassword(password: self.passwordTextField.text ?? "")
+            self.dismiss(animated: true)
+        } catch {
+            UserInteractionHelper.instance.showAlert(title: "Unable to save login", message: "Your login could not be stored securely. Please try again.")
+        }
     }
     
     func didPerformDeviceUnregistration() {
