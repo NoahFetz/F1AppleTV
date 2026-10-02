@@ -14,8 +14,8 @@ class CredentialHelper {
         do {
             try migrateFromCoreDataIfNeeded()
         } catch {
-            // Leave legacy values intact so migration can be retried next launch.
-            print("Credential migration failed; legacy values retained.")
+            // Keep legacy values intact. The session storage adapter retries migration
+            // and delivers its final failure to the owning account operation.
         }
     }
 
@@ -30,13 +30,15 @@ class CredentialHelper {
     }
 
     func getPassword() -> String {
-        return (try? KeychainHelper.readString(forKey: ConstantsUtil.keychainPasswordKey)) ?? ""
+        do { return try KeychainHelper.readString(forKey: ConstantsUtil.keychainPasswordKey) ?? "" }
+        catch { AppErrorStore.shared.record(error, operation: .credentials); return "" }
     }
 
     // MARK: - Device Registration (Keychain)
 
     func getDeviceRegistration() -> DeviceRegistrationResultDto {
-        return (try? KeychainHelper.readCodable(DeviceRegistrationResultDto.self, forKey: ConstantsUtil.keychainDeviceRegistrationKey)) ?? DeviceRegistrationResultDto()
+        do { return try KeychainHelper.readCodable(DeviceRegistrationResultDto.self, forKey: ConstantsUtil.keychainDeviceRegistrationKey) ?? DeviceRegistrationResultDto() }
+        catch { AppErrorStore.shared.record(error, operation: .credentials); return DeviceRegistrationResultDto() }
     }
 
     func setDeviceRegistration(deviceRegistration: DeviceRegistrationResultDto) throws {

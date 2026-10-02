@@ -8,11 +8,20 @@
 import Foundation
 import Security
 
-enum KeychainError: Error {
+enum KeychainError: Error, CustomNSError {
     case saveFailed(OSStatus)
     case deleteFailed(OSStatus)
     case readFailed(OSStatus)
     case encodingFailed
+    static var errorDomain: String { NSOSStatusErrorDomain }
+    var errorCode: Int {
+        switch self {
+        case .saveFailed(let status), .deleteFailed(let status), .readFailed(let status): return Int(status)
+        case .encodingFailed: return Int(errSecDecode)
+        }
+    }
+    var errorUserInfo: [String: Any] { [:] }
+
 }
 
 struct KeychainHelper {

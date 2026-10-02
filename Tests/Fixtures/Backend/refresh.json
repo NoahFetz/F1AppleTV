@@ -1,0 +1,11 @@
+{
+  "AuthenticationKey": "session-new",
+  "Subscriber": {
+    "Id": "123",
+    "FirstName": "Fixture"
+  },
+  "data": {
+    "subscriptionToken": "subscription-new",
+    "subscriptionStatus": "active"
+  }
+}

@@ -1,158 +1,149 @@
-//
-//  ChannelSelectorOverlayViewController.swift
-//  F1A-TV
-//
-//  Created by Noah Fetz on 06.04.21.
-//
-
 import UIKit
+import AVKit
 
 class ChannelSelectorOverlayViewController: BaseViewController {
     @IBOutlet weak var contentStackView: UIStackView!
-    var sideBarView: UIStackView?
     var channelsTableView: UITableView?
-    
     var channelItems = [ContentItem]()
     var selectionReturnProtocol: ChannelSelectionProtocol?
-    
+    var activeChannelKeys = Set<String>()
+    weak var referencePlayer: AVPlayer?
+    var referencePlayerProvider: (() -> AVPlayer?)?
+    var services: AppServices!
+    private lazy var previews = StreamPreviewCoordinator(makeSession: { [services = self.services!] in StreamPreviewSession(services: services) })
+    private var previewUpdate: DispatchWorkItem?
+
+    override var preferredFocusEnvironments: [UIFocusEnvironment] {
+        channelsTableView.map { [$0] } ?? super.preferredFocusEnvironments
+    }
+
     override func viewDidLoad() {
         super.viewDidLoad()
-        self.setupViewController()
+        view.backgroundColor = .clear
+        let swipe = UISwipeGestureRecognizer(target: self, action: #selector(closePicker))
+        swipe.direction = .right
+        view.addGestureRecognizer(swipe)
+        let menu = UITapGestureRecognizer(target: self, action: #selector(closePicker))
+        menu.allowedPressTypes = [NSNumber(value: UIPress.PressType.menu.rawValue)]
+        view.addGestureRecognizer(menu)
+        setupSidebar()
     }
-    
-    func setupViewController() {
-        self.view.backgroundColor = .clear
-        
-        let swipeRightRecognizer = UISwipeGestureRecognizer(target: self, action: #selector(self.swipeRightRegognized))
-        swipeRightRecognizer.direction = .right
-        self.view.addGestureRecognizer(swipeRightRecognizer)
-        
-        // Add menu button gesture to dismiss (useful in simulator)
-        let menuGesture = UITapGestureRecognizer(target: self, action: #selector(self.menuPressed))
-        menuGesture.allowedPressTypes = [NSNumber(value: UIPress.PressType.menu.rawValue)]
-        self.view.addGestureRecognizer(menuGesture)
-        
-        self.setupSideBar()
-        self.addContentToSideBar()
+
+    override func viewWillDisappear(_ animated: Bool) {
+        super.viewWillDisappear(animated)
+        stopPreview()
+
     }
-    
+
+    override func viewWillAppear(_ animated: Bool) {
+        super.viewWillAppear(animated)
+        channelsTableView?.reloadData()
+    }
+
+    override func viewDidAppear(_ animated: Bool) {
+        super.viewDidAppear(animated)
+        let settings = CredentialHelper.getPlayerSettings()
+        if settings.livePreviews {
+            previews.configure(items: channelItems, reference: referencePlayer, maximumHeight: settings.previewHeight, referenceProvider: referencePlayerProvider)
+            previews.onReady = { [weak self] _, _ in self?.attachPreviews() }
+            updatePreviews()
+        }
+    }
+
     func initialize(channelItems: [ContentItem], selectionReturnProtocol: ChannelSelectionProtocol) {
         self.channelItems = channelItems
         self.selectionReturnProtocol = selectionReturnProtocol
     }
-    
-    func setupSideBar() {
-        self.contentStackView.arrangedSubviews.forEach({$0.removeFromSuperview()})
-        
-        let spaceTakingView = UIView()
-        spaceTakingView.backgroundColor = .clear
-        self.contentStackView.addArrangedSubview(spaceTakingView)
-        
-        let blurBackgroundView = UIVisualEffectView(effect: UIBlurEffect(style: .regular))
-        blurBackgroundView.layer.cornerRadius = 20
-        blurBackgroundView.clipsToBounds = true
+
+    private func setupSidebar() {
+        contentStackView.arrangedSubviews.forEach { $0.removeFromSuperview() }
+        contentStackView.axis = .horizontal
+        contentStackView.alignment = .fill
+        contentStackView.layoutMargins = UIEdgeInsets(top: 36, left: 48, bottom: 36, right: 48)
+        contentStackView.isLayoutMarginsRelativeArrangement = true
+        let spacer = UIView()
+        spacer.setContentHuggingPriority(.defaultLow, for: .horizontal)
+        contentStackView.addArrangedSubview(spacer)
+        let material = PlayerMaterial.makeView(cornerRadius: 28)
+        material.translatesAutoresizingMaskIntoConstraints = false
+        material.widthAnchor.constraint(equalToConstant: 520).isActive = true
+        contentStackView.addArrangedSubview(material)
+        let title = UILabel()
+        title.text = "multiplayer_channel_selector_add_channel_title".localizedString
+        title.font = .systemFont(ofSize: 34, weight: .bold)
+        title.textColor = .white
+        title.numberOfLines = 2
+        let table = UITableView(frame: .zero, style: .plain)
+        table.backgroundColor = .clear
+        table.contentInset = UIEdgeInsets(top: 0, left: 0, bottom: 20, right: 0)
+        table.rowHeight = UITableView.automaticDimension
+        table.estimatedRowHeight = 294
+        table.remembersLastFocusedIndexPath = true
+        table.register(ChannelPreviewCell.self, forCellReuseIdentifier: ChannelPreviewCell.reuseIdentifier)
+        table.delegate = self
+        table.dataSource = self
+        channelsTableView = table
+        [title, table].forEach { $0.translatesAutoresizingMaskIntoConstraints = false; material.contentView.addSubview($0) }
         NSLayoutConstraint.activate([
-            blurBackgroundView.widthAnchor.constraint(equalToConstant: 500)
+            title.leadingAnchor.constraint(equalTo: material.contentView.leadingAnchor, constant: 28),
+            title.trailingAnchor.constraint(equalTo: material.contentView.trailingAnchor, constant: -28),
+            title.topAnchor.constraint(equalTo: material.contentView.topAnchor, constant: 24),
+            table.topAnchor.constraint(equalTo: title.bottomAnchor, constant: 18),
+            table.leadingAnchor.constraint(equalTo: material.contentView.leadingAnchor, constant: 16),
+            table.trailingAnchor.constraint(equalTo: material.contentView.trailingAnchor, constant: -16),
+            table.bottomAnchor.constraint(equalTo: material.contentView.bottomAnchor)
         ])
-        
-        self.sideBarView = UIStackView()
-        self.sideBarView?.axis = .vertical
-        self.sideBarView?.spacing = 8
-        self.sideBarView?.autoresizingMask = [.flexibleWidth, .flexibleHeight]
-        self.sideBarView?.layoutMargins = UIEdgeInsets(top: 16, left: 16, bottom: 16, right: 16)
-        self.sideBarView?.isLayoutMarginsRelativeArrangement = true
-        self.sideBarView?.backgroundShadow()
-        
-        blurBackgroundView.contentView.addSubview(self.sideBarView ?? UIView())
-        self.contentStackView.addArrangedSubview(blurBackgroundView)
     }
-    
-    func addContentToSideBar() {
-        self.sideBarView?.arrangedSubviews.forEach({$0.removeFromSuperview()})
-        
-        let titleLabel = UILabel()
-        titleLabel.font = UIFont(name: "Formula1-Display-Bold", size: 40)
-        titleLabel.numberOfLines = 0
-        titleLabel.textAlignment = .center
-        titleLabel.text = "multiplayer_channel_selector_add_channel_title".localizedString
-        titleLabel.textColor = .white
-        self.sideBarView?.addArrangedSubview(titleLabel)
-        
-        self.channelsTableView = UITableView(frame: .zero, style: .plain)
-        self.channelsTableView?.delegate = self
-        self.channelsTableView?.dataSource = self
-        self.channelsTableView?.register(UINib(nibName: ConstantsUtil.templateTableViewCell, bundle: nil), forCellReuseIdentifier: ConstantsUtil.templateTableViewCell)
-        self.sideBarView?.addArrangedSubview(self.channelsTableView ?? UIView())
+
+    private func stopPreview() {
+        previewUpdate?.cancel(); previewUpdate = nil
+        previews.stop()
+        channelsTableView?.visibleCells.compactMap { $0 as? ChannelPreviewCell }.forEach { $0.setPreviewPlayer(nil) }
     }
-    
-    @objc func swipeRightRegognized() {
-        self.dismiss(animated: true)
+    private func updatePreviews() {
+        guard view.window != nil, CredentialHelper.getPlayerSettings().livePreviews else { return }
+        let indices = Set((channelsTableView?.indexPathsForVisibleRows ?? []).map(\.row))
+        previews.update(visibleIndices: indices)
+        attachPreviews()
     }
-    
-    @objc func menuPressed() {
-        self.dismiss(animated: true)
+    private func attachPreviews() {
+        guard let table = channelsTableView else { return }
+        for index in table.indexPathsForVisibleRows ?? [] {
+            let key = ChannelPreviewCell.channelKey(channelItems[index.row])
+            (table.cellForRow(at: index) as? ChannelPreviewCell)?.setPreviewPlayer(previews.player(for: key))
+        }
     }
+    private func schedulePreviewUpdate() {
+        previewUpdate?.cancel()
+        let update = DispatchWorkItem { [weak self] in self?.updatePreviews() }
+        previewUpdate = update
+        DispatchQueue.main.async(execute: update)
+    }
+    @objc private func closePicker() { dismiss(animated: true) }
 }
 
 extension ChannelSelectorOverlayViewController: UITableViewDelegate, UITableViewDataSource {
-    func numberOfSections(in tableView: UITableView) -> Int {
-        return 1
-    }
-    
-    func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
-        return self.channelItems.count
-    }
-    
+    func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int { channelItems.count }
+
     func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
-        let cell = tableView.dequeueReusableCell(withIdentifier: ConstantsUtil.templateTableViewCell, for: indexPath) as! TemplateTableViewCell
-        
-        cell.contentStackView.arrangedSubviews.forEach({$0.removeFromSuperview()})
-        
-        cell.unselectedBackgroundColor = .clear
-        cell.userInterfaceStyleChanged()
-        
-        let currentItem = self.channelItems[indexPath.row]
-        
-        switch currentItem.container.metadata?.channelType {
-        case .MainFeed, .AdditionalFeed:
-            let feedTitleLabel = UILabel()
-            feedTitleLabel.font = UIFont(name: "Formula1-Display-Bold", size: 32)
-            feedTitleLabel.textColor = .white
-            feedTitleLabel.text = currentItem.container.metadata?.title
-            
-            cell.addViewsToStackView(views: [feedTitleLabel])
-            
-        case .OnBoardCamera:
-            let onBoardStream = currentItem.container.metadata?.additionalStreams?.first ?? AdditionalStreamDto()
-            
-            let racingNumberTitleLabel = UILabel()
-            racingNumberTitleLabel.font = UIFont(name: "Formula1-Display-Bold", size: 32)
-            racingNumberTitleLabel.textColor = .white
-            racingNumberTitleLabel.text = String(onBoardStream.racingNumber)
-            racingNumberTitleLabel.setContentHuggingPriority(UILayoutPriority(rawValue: 251), for: .horizontal)
-            
-            let racingColorView = UIView()
-            racingColorView.backgroundColor = UIColor(rgb: onBoardStream.hex ?? "#00000000")
-            NSLayoutConstraint.activate([
-                racingColorView.widthAnchor.constraint(equalToConstant: 16)
-            ])
-            
-            let driverTitleLabel = UILabel()
-            driverTitleLabel.font = UIFont(name: "Formula1-Display-Bold", size: 32)
-            driverTitleLabel.textColor = .white
-            driverTitleLabel.text = String(onBoardStream.title)
-            
-            cell.addViewsToStackView(views: [racingNumberTitleLabel, racingColorView, driverTitleLabel], spacing: 16)
-            
-        default:
-            print("Shouldn't happen (Hopefully ^^)")
-        }
-        
+        let cell = tableView.dequeueReusableCell(withIdentifier: ChannelPreviewCell.reuseIdentifier, for: indexPath) as! ChannelPreviewCell
+        let item = channelItems[indexPath.row]
+        cell.configure(item: item, added: activeChannelKeys.contains(ChannelPreviewCell.channelKey(item)))
         return cell
     }
-    
+
+    func scrollViewDidScroll(_ scrollView: UIScrollView) { schedulePreviewUpdate() }
+    func tableView(_ tableView: UITableView, willDisplay cell: UITableViewCell, forRowAt indexPath: IndexPath) { schedulePreviewUpdate() }
+
     func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
-        let selectedItem = self.channelItems[indexPath.row]
-        self.selectionReturnProtocol?.didSelectChannel(channelItem: selectedItem)
+        let item = channelItems[indexPath.row]
+        guard activeChannelKeys.insert(ChannelPreviewCell.channelKey(item)).inserted else { return }
+        (tableView.cellForRow(at: indexPath) as? ChannelPreviewCell)?.setAdded(true)
+        selectionReturnProtocol?.didSelectChannel(channelItem: item)
+    }
+
+    func tableView(_ tableView: UITableView, didEndDisplaying cell: UITableViewCell, forRowAt indexPath: IndexPath) {
+        (cell as? ChannelPreviewCell)?.setPreviewPlayer(nil)
+        schedulePreviewUpdate()
     }
 }

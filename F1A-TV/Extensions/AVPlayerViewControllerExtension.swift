@@ -11,9 +11,10 @@ extension AVPlayerViewController {
     open override func viewDidDisappear(_ animated: Bool) {
         super.viewDidDisappear(animated)
         if(self.player != nil) {
+            (self.player as? FairPlayer)?.cancelResolutionSwitch()
             self.player?.pause()
             self.player = nil
         }
-        NotificationCenter.default.post(name: .avPlayerDidDismiss, object: nil, userInfo: nil)
+        NotificationCenter.default.post(name: .avPlayerDidDismiss, object: self, userInfo: nil)
     }
 }

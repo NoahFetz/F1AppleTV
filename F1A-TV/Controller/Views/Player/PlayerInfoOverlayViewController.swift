@@ -37,7 +37,7 @@ class PlayerInfoOverlayViewController: BaseViewController {
     }
     
     override func viewDidAppear(_ animated: Bool) {
-        self.applyImage(pictureId: self.contentItem?.container.metadata?.pictureUrl ?? "", imageView: self.backgroundImageView ?? UIImageView())
+        self.applyImage(pictureId: self.contentItem?.pictureUrl ?? "", imageView: self.backgroundImageView ?? UIImageView())
     }
     
     func setupTopBar() {
@@ -68,8 +68,11 @@ class PlayerInfoOverlayViewController: BaseViewController {
     }
     
     func applyImage(pictureId: String, imageView: UIImageView) {
-        let width = Int(UIScreen.main.nativeBounds.width)
-        let height = Int(UIScreen.main.nativeBounds.height)
+        let scale = imageView.traitCollection.displayScale
+        let size = imageView.window?.windowScene?.screen.nativeBounds.size
+            ?? CGSize(width: view.bounds.width * scale, height: view.bounds.height * scale)
+        let width = Int(size.width)
+        let height = Int(size.height)
         
         let imageUrl = "\(ConstantsUtil.imageResizerUrl)/\(pictureId)?w=\(width)&h=\(height)&q=HI&o=L"
         self.applyImage(imageUrl: imageUrl, imageView: imageView)
@@ -83,7 +86,7 @@ class PlayerInfoOverlayViewController: BaseViewController {
                 with: url,
                 options: [
                     .processor(processor),
-                    .scaleFactor(UIScreen.main.scale),
+                    .scaleFactor(imageView.traitCollection.displayScale),
                     .transition(.fade(0.2)),
                     .cacheOriginalImage
                 ], completionHandler:

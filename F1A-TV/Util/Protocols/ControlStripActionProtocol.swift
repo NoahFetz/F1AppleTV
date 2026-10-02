@@ -8,11 +8,13 @@
 import Foundation
 
 protocol ControlStripActionProtocol {
-    func willCloseFocusedPlayer()
-    func enterFullScreenPlayer()
+    func willClosePlayer(id: String)
+    func enterFullScreenPlayer(id: String)
     func playPausePlayer()
     func rewindPlayer()
     func forwardPlayer()
+    func seekPlayersTo(time: Float64)
+    func didFinishSeeking()
     func showChannelSelectorOverlay()
-    func swapToMainPlayer()  // New: Swap focused player to main position
+    func swapToMainPlayer(id: String)
 }

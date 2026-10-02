@@ -48,7 +48,8 @@ class SideBarInfoViewController: BaseViewController {
         self.subtitleLabel.backgroundShadow()
         
         self.disclaimerLabel.font = UIFont(name: "Formula1-Display-Regular", size: 12)
-        self.disclaimerLabel.text = "disclaimer".localizedString
+        self.disclaimerLabel.text = ""
+        self.disclaimerLabel.isHidden = true
         self.disclaimerLabel.backgroundShadow()
         
         self.setupContentInfo()
@@ -61,71 +62,25 @@ class SideBarInfoViewController: BaseViewController {
     func setupContentInfo() {
         let contentItem = self.contentItem ?? ContentItem()
         
-        self.titleLabel.text = contentItem.container.metadata?.title
+        self.titleLabel.text = contentItem.title
         
         //Load flags and stuff if bundle seems to be a race session in a country
-        if((contentItem.container.metadata?.emfAttributes?.meetingCountryKey?.isEmpty) ?? true) {
-            self.headerLabel.text = contentItem.container.metadata?.emfAttributes?.globalMeetingName?.uppercased()
+        if((contentItem.race?.meetingCountryKey?.isEmpty) ?? true) {
+            self.headerLabel.text = contentItem.race?.globalMeetingName?.uppercased()
         }else{
-            self.headerLabel.text = contentItem.container.metadata?.emfAttributes?.meetingCountryName?.uppercased()
-            self.applyImage(countryId: contentItem.container.metadata?.emfAttributes?.meetingCountryKey ?? "", imageView: self.topAccessoryImageView)
-            self.subtitleLabel.text = contentItem.container.metadata?.emfAttributes?.meetingDisplayDate ?? ""
+            self.headerLabel.text = contentItem.race?.meetingCountryName?.uppercased()
+            self.applyImage(countryId: contentItem.race?.meetingCountryKey ?? "", imageView: self.topAccessoryImageView)
+            self.subtitleLabel.text = contentItem.race?.meetingDisplayDate ?? ""
         }
         
-        if((contentItem.container.metadata?.pictureUrl?.isEmpty) ?? true) {
-            self.thumbnailImageView.image = UIImage(named: "thumb_placeholder")
+        if((contentItem.pictureUrl?.isEmpty) ?? true) {
+            self.thumbnailImageView.image = CatalogBackdropArtwork.placeholder
         }else{
-            self.applyImage(pictureId: contentItem.container.metadata?.pictureUrl ?? "", imageView: self.thumbnailImageView)
+            self.applyImage(pictureId: contentItem.pictureUrl ?? "", imageView: self.thumbnailImageView)
         }
     }
     
-    func setSchedule(container: ContainerDto) {
-        self.bottomContentStackView.arrangedSubviews.forEach({$0.removeFromSuperview()})
-        
-        for scheduleContainer in container.retrieveItems?.resultObj.containers ?? [ContainerDto]() {
-            if(scheduleContainer.eventName != "ALL") {
-                continue
-            }
-            
-            for event in scheduleContainer.events?.sorted(by: {$0.metadata?.emfAttributes?.sessionStartDate?.value ?? 0 < $1.metadata?.emfAttributes?.sessionEndDate?.value ?? 0}) ?? [ContainerDto]() {
-                
-                let startDate = Date(milliseconds: event.metadata?.emfAttributes?.sessionStartDate?.value ?? Date().millisecondsSince1970)
-                let endDate = Date(milliseconds: event.metadata?.emfAttributes?.sessionEndDate?.value ?? Date().millisecondsSince1970)
-                let series = SeriesType.fromCapitalDisplayName(capitalDisplayName: event.properties?.first?.series ?? SeriesType().getCapitalDisplayName())
-                
-                let seriesLabel = UILabel()
-                seriesLabel.font = UIFont(name: "Titillium-Bold", size: 28)
-                seriesLabel.text = series.getShortDisplayName()
-                seriesLabel.textColor = series.getColor()
-                seriesLabel.backgroundShadow()
-                seriesLabel.setContentHuggingPriority(UILayoutPriority(rawValue: 251), for: .horizontal)
-                
-                let scheduleItemTitleLabel = UILabel()
-                scheduleItemTitleLabel.font = UIFont(name: "Titillium-Regular", size: 28)
-                scheduleItemTitleLabel.text = event.metadata?.longDescription?.uppercased()
-                scheduleItemTitleLabel.textColor = .white
-                scheduleItemTitleLabel.backgroundShadow()
-                
-                let scheduleTimesLabel = UILabel()
-                scheduleTimesLabel.font = UIFont(name: "Titillium-Regular", size: 28)
-                var timesString = startDate.getShortDay()
-                timesString.append(" " + startDate.getTimeAsString())
-                timesString.append(" " + endDate.getTimeAsString())
-                scheduleTimesLabel.text = timesString
-                scheduleTimesLabel.textColor = .white
-                scheduleTimesLabel.backgroundShadow()
-                
-                self.addViewsToStackView(views: [seriesLabel, scheduleItemTitleLabel, scheduleTimesLabel])
-            }
-        }
-        
-        //Add a spacer view to the bottom so the content spreads out correctly
-        let spacerView = UIView()
-        spacerView.backgroundColor = .clear
-        spacerView.setContentCompressionResistancePriority(UILayoutPriority(rawValue: 749), for: .horizontal)
-        self.bottomContentStackView.addArrangedSubview(spacerView)
-    }
-    
+
     func addViewsToStackView(views: [UIView], spacing: CGFloat = 8) {
         let horizontalStack = UIStackView()
         horizontalStack.axis = .horizontal
@@ -139,8 +94,11 @@ class SideBarInfoViewController: BaseViewController {
     }
     
     func applyImage(pictureId: String, imageView: UIImageView) {
-        let width = Int(UIScreen.main.nativeBounds.width)
-        let height = Int(UIScreen.main.nativeBounds.height)
+        let scale = imageView.traitCollection.displayScale
+        let size = imageView.window?.windowScene?.screen.nativeBounds.size
+            ?? CGSize(width: view.bounds.width * scale, height: view.bounds.height * scale)
+        let width = Int(size.width)
+        let height = Int(size.height)
         
         let imageUrl = "\(ConstantsUtil.imageResizerUrl)/\(pictureId)?w=\(width)&h=\(height)&q=HI&o=L"
         self.applyImage(imageUrl: imageUrl, imageView: imageView, crop: true)
@@ -169,7 +127,7 @@ class SideBarInfoViewController: BaseViewController {
                     with: url,
                     options: [
                         .processor(processor),
-                        .scaleFactor(UIScreen.main.scale),
+                        .scaleFactor(imageView.traitCollection.displayScale),
                         .transition(.fade(0.2)),
                         .cacheOriginalImage
                     ], completionHandler:

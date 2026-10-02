@@ -17,7 +17,7 @@ class BaseSplitViewController: UISplitViewController {
         super.viewDidLoad()
         
         self.backgroundImageView = UIImageView(frame: self.view.bounds)
-        self.backgroundImageView?.image = UIImage(named: "thumb_placeholder")
+        self.backgroundImageView?.image = CatalogBackdropArtwork.placeholder
         self.backgroundImageView?.contentMode = .scaleAspectFill
         self.view.insertSubview(self.backgroundImageView ?? UIView(), at: 0)
         
@@ -48,8 +48,11 @@ class BaseSplitViewController: UISplitViewController {
     }
     
     func applyImage(pictureId: String, imageView: UIImageView) {
-        let width = Int(UIScreen.main.nativeBounds.width)
-        let height = Int(UIScreen.main.nativeBounds.height)
+        let scale = imageView.traitCollection.displayScale
+        let size = imageView.window?.windowScene?.screen.nativeBounds.size
+            ?? CGSize(width: view.bounds.width * scale, height: view.bounds.height * scale)
+        let width = Int(size.width)
+        let height = Int(size.height)
         
         let imageUrl = "\(ConstantsUtil.imageResizerUrl)/\(pictureId)?w=\(width)&h=\(height)&q=HI&o=L"
         self.applyImage(imageUrl: imageUrl, imageView: imageView)
@@ -63,7 +66,7 @@ class BaseSplitViewController: UISplitViewController {
                 with: url,
                 options: [
                     .processor(processor),
-                    .scaleFactor(UIScreen.main.scale),
+                    .scaleFactor(imageView.traitCollection.displayScale),
                     .transition(.fade(0.2)),
                     .cacheOriginalImage
                 ], completionHandler:

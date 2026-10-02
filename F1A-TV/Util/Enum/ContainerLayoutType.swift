@@ -9,6 +9,7 @@ import Foundation
 
 enum ContainerLayoutType: CaseIterable {
     case Unknown
+    case PageHeader
     case Hero
     case Title
     case Subtitle
@@ -18,6 +19,9 @@ enum ContainerLayoutType: CaseIterable {
     case ContentItem
     case Schedule
     case VerticalSimplePoster
+    case HorizontalSimplePoster
+    case HorizontalSimpleThumbnail
+    case VerticalSimpleThumbnail
     
     init() {
         self = .Unknown
@@ -37,6 +41,8 @@ enum ContainerLayoutType: CaseIterable {
         case .Unknown:
             return ""
         
+        case .PageHeader:
+            return "__page_header"
         case .Hero:
             return "hero"
             
@@ -63,7 +69,24 @@ enum ContainerLayoutType: CaseIterable {
             
         case .VerticalSimplePoster:
             return "vertical_simple_poster"
+
+        case .HorizontalSimplePoster:
+            return "horizontal_simple_poster"
+
+        case .HorizontalSimpleThumbnail:
+            return "horizontal_simple_thumbnail"
+
+        case .VerticalSimpleThumbnail:
+            return "vertical_simple_thumbnail"
             
         }
+    }
+
+    var isPoster: Bool {
+        self == .HorizontalSimplePoster || self == .VerticalSimplePoster
+    }
+
+    var isHorizontal: Bool {
+        [.Hero, .HorizontalThumbnail, .HorizontalSimplePoster, .HorizontalSimpleThumbnail].contains(self)
     }
 }

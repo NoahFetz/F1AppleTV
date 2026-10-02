@@ -1,0 +1,8 @@
+{
+  "resultCode": "OK",
+  "resultObj": {
+    "entitlementToken": "fixture",
+    "url": "https://cdn.example/master.m3u8?token=x%2By",
+    "channelId": "9"
+  }
+}

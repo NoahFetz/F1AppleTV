@@ -107,20 +107,14 @@ extension AttributedTag {
     /// - Returns: The attributes of playlist line. if no attributes found returns nil.
     static func getAttributes(from tagDataText: String, seperatedBy seperator: String, extrasToRemove: [String]? = nil) -> [String: String] {
         var attributes = [String: String]()
-        // a mutable copy of the line tag text value so we can extract data from it.
-        var mutableText = tagDataText
-        // remove extras
-        if let extrasToRemove = extrasToRemove {
-            for extraToRemove in extrasToRemove {
-                mutableText = mutableText.replacingOccurrences(of: extraToRemove, with: "")
-            }
-        }
-        // get the raw attributes that are seperated by the seperator.
-        let rawAttributes = mutableText.components(separatedBy: seperator)
+        let rawAttributes = HLSAttributeList.fields(in: tagDataText, separator: seperator)
         for rawAttribute in rawAttributes {
             guard let equationRange = rawAttribute.range(of: "=") else { continue }
-            let attributeKey = String(rawAttribute[..<equationRange.lowerBound])
-            let attributeValue = String(rawAttribute[equationRange.upperBound...])
+            let attributeKey = rawAttribute[..<equationRange.lowerBound].trimmingCharacters(in: .whitespaces)
+            var attributeValue = rawAttribute[equationRange.upperBound...].trimmingCharacters(in: .whitespaces)
+            for extra in extrasToRemove ?? [] {
+                attributeValue = attributeValue.replacingOccurrences(of: extra, with: "")
+            }
             attributes[attributeKey] = attributeValue
         }
         
@@ -133,6 +127,26 @@ extension AttributedTag {
                 throw TagError.missingAttributes
             }
         }
+    }
+}
+
+enum HLSAttributeList {
+    // Attribute values such as CODECS and signed URLs may contain quoted commas.
+    static func fields(in text: String, separator: String = ",") -> [String] {
+        var fields = [String]()
+        var field = ""
+        var quoted = false
+        for character in text {
+            if character == "\"" { quoted.toggle() }
+            if String(character) == separator && !quoted {
+                fields.append(field)
+                field = ""
+            } else {
+                field.append(character)
+            }
+        }
+        fields.append(field)
+        return fields
     }
 }
 

@@ -1,0 +1,15 @@
+{
+  "PhysicalDevice": {
+    "AuthenticationKey": "device-old",
+    "DeviceId": "fixture-device"
+  },
+  "SessionId": "session-old",
+  "SessionSummary": {
+    "FirstName": "Fixture",
+    "SubscriberId": "123"
+  },
+  "data": {
+    "subscriptionToken": "subscription-old",
+    "subscriptionStatus": "active"
+  }
+}

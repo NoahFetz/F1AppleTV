@@ -113,9 +113,21 @@ extension PlayerCollectionViewController {
         }
     }
     
+    func updatePreferredDisplayCriteria(for player: FairPlayer) {
+        displayCriteriaTask?.cancel()
+        guard let asset = player.fairPlayAsset else { return }
+        displayCriteriaTask = Task { @MainActor [weak self, weak player] in
+            let criteria = try? await asset.load(.preferredDisplayCriteria)
+            guard let self, let player, !Task.isCancelled,
+                  self.playerItems.contains(where: { $0.player === player }),
+                  player.currentItem?.asset === asset, self.viewIfLoaded?.window != nil else { return }
+            self.setPreferredDisplayCriteria(displayCriteria: criteria)
+        }
+    }
+
     func setPreferredDisplayCriteria(displayCriteria: AVDisplayCriteria?) {
-        let displayNamager = UserInteractionHelper.instance.getKeyWindow().avDisplayManager
-        displayNamager.preferredDisplayCriteria = displayCriteria
+        let displayNamager = (view.window ?? UserInteractionHelper.instance.getKeyWindow())?.avDisplayManager
+        displayNamager?.preferredDisplayCriteria = displayCriteria
     }
 }
 
@@ -145,11 +157,11 @@ extension PlayerCollectionViewController {
         // Apply the layout update
         self.applyLayoutUpdate(strategy: strategy, changedIndex: newCount - 1, isAdding: true)
         
-        if let id = channelItem.container.metadata?.contentId {
-            if let additionalStream = channelItem.container.metadata?.additionalStreams?.first {
+        if let id = channelItem.contentId {
+            if let additionalStream = channelItem.channel {
                 
                 
-                self.loadStreamEntitlement(playerId: playerItem.id, contentId: additionalStream.playbackUrl)
+                self.loadStreamEntitlement(playerId: playerItem.id, contentId: additionalStream.target.uri)
                 return
             }
             
@@ -158,32 +170,37 @@ extension PlayerCollectionViewController {
     }
     
     func loadStreamEntitlement(playerId: String, contentId: String) {
-        var contentUrl = contentId
-        if(!contentUrl.starts(with: "CONTENT")){
-            contentUrl = "CONTENT/PLAY?contentId=" + contentId
+        entitlementTasks[playerId]?.cancel()
+        let playback = services.playback
+        let generation = UUID(); entitlementGenerations[playerId] = generation
+        entitlementTasks[playerId] = Task { [weak self] in
+            do {
+                let entitlement = try await playback.entitlement(PlaybackTarget(uri: contentId, requiresVideoDetails: false))
+                try Task.checkCancellation()
+                guard let self, self.entitlementGenerations[playerId] == generation, !Task.isCancelled, self.playerItems.contains(where: { $0.id == playerId }) else { return }
+                self.entitlementTasks.removeValue(forKey: playerId)
+                self.didLoadStreamEntitlement(playerId: playerId, streamEntitlement: entitlement)
+            } catch {
+                guard let self, self.entitlementGenerations[playerId] == generation, !Task.isCancelled, self.playerItems.contains(where: { $0.id == playerId }), !(error is CancellationError) else { return }
+                self.entitlementTasks.removeValue(forKey: playerId)
+                recordServiceFailure(error, operation: .entitlement)
+                UserInteractionHelper.instance.showError(title: "error".localizedString, message: "diagnostics_summary_operation".localizedString, recordsError: false, retry: { [weak self] in self?.loadStreamEntitlement(playerId: playerId, contentId: contentId) })
+            }
         }
-        DataManager.instance.loadStreamEntitlement(contentId: contentUrl, playerId: playerId, streamEntitlementLoadedProtocol: self)
     }
-    
-    func didLoadStreamEntitlement(playerId: String, streamEntitlement: StreamEntitlementDto) {
+
+    func didLoadStreamEntitlement(playerId: String, streamEntitlement: PlaybackEntitlement) {
         if let index = self.playerItems.firstIndex(where: {$0.id == playerId}) {
             var playerItem = self.playerItems[index]
             
             playerItem.entitlement = streamEntitlement
             
             playerItem.player = FairPlayer()
+            playerItem.player?.fairPlayService = services.fairPlay
             playerItem.player?.playStream(streamEntitlement: streamEntitlement)
-            playerItem.playerAsset = playerItem.player?.makeFairPlayReady()
-            playerItem.playerItem = AVPlayerItem(asset: playerItem.playerAsset ?? AVAsset())
-            playerItem.player?.replaceCurrentItem(with: playerItem.playerItem)
             playerItem.player?.appliesMediaSelectionCriteriaAutomatically = false
-            
-            if(self.playFromStart) {
-                playerItem.player?.seek(to: CMTimeMakeWithSeconds(Float64(1), preferredTimescale: 1))
-                self.playFromStart = false
-            }
-            
-            self.setPreferredDisplayCriteria(displayCriteria: playerItem.playerAsset?.preferredDisplayCriteria)
+            let fromStart = self.playFromStart
+            self.playFromStart = false
             
             // Mute sidebar/bottom players (all players except the main player at index 0)
             if index != 0 {
@@ -193,8 +210,13 @@ extension PlayerCollectionViewController {
             }
             
             self.playerItems[index] = playerItem
-            
-            self.collectionView.reloadItems(at: [IndexPath(item: playerItem.position, section: 0)])
+            playerItem.player?.prepareStream(startupMaximumHeight: CredentialHelper.getPlayerSettings().startupMaximumHeight) { [weak self, weak player = playerItem.player] _ in
+                guard let self = self, let player = player,
+                      let currentIndex = self.playerItems.firstIndex(where: { $0.id == playerId && $0.player === player }) else { return }
+                if fromStart { player.seek(to: CMTimeMakeWithSeconds(1, preferredTimescale: 1)) }
+                if currentIndex == 0 { self.updatePreferredDisplayCriteria(for: player) }
+                self.collectionView.reloadItems(at: [IndexPath(item: currentIndex, section: 0)])
+            }
         }
     }
     
@@ -215,9 +237,9 @@ extension PlayerCollectionViewController {
                 print("Now ready to play")
                 usleep(500000)
                 
-                self.setPreferredChannelSettings(playerItem: playerItem)
+                DispatchQueue.main.async { self.setPreferredChannelSettings(playerItem: playerItem) }
                 
-                if let resumePlayHeadPosition = playerItem.contentItem.container.user?.resume?.playHeadPosition, self.isFirstPlayer {
+                if let resumePlayHeadPosition = playerItem.contentItem.resumePosition, self.isFirstPlayer {
                     self.seekAllPlayersTo(time: Float64(resumePlayHeadPosition))
                     self.isFirstPlayer = false
                 }else{
@@ -229,18 +251,18 @@ extension PlayerCollectionViewController {
     
     func setPreferredChannelSettings(playerItem: PlayerItem) {
         let playerSettings = CredentialHelper.getPlayerSettings()
-        let channelType = playerItem.contentItem.container.metadata?.channelType ?? ChannelType()
+        let channelType = playerItem.contentItem.channelType ?? ChannelType()
         
-        if let preferredLanguage = playerSettings.getPreferredLanguage(for: channelType) {
-            let setLanguageResult = playerItem.playerItem?.select(type: .audio, languageDisplayName: preferredLanguage)
-            print("Setting preferred language: " + String(setLanguageResult ?? false))
+        if let item = playerItem.playerItem, defaultsAppliedPlayerIDs.insert(playerItem.id).inserted {
+            defaultsTasks[playerItem.id]?.cancel()
+            defaultsTasks[playerItem.id] = Task { @MainActor [weak self, weak player = playerItem.player] in
+                await PlaybackDefaults.apply(to: item, channel: channelType, settings: playerSettings) {
+                    guard let self, let player else { return false }
+                    return self.playerItems.contains { $0.id == playerItem.id && $0.player === player } && player.currentItem === item
+                }
+            }
         }
 
-        if let preferredCaptions = playerSettings.getPreferredCaptions(for: channelType) {
-            let setCaptionResult = playerItem.playerItem?.select(type: .subtitle, languageDisplayName: preferredCaptions)
-            print("Setting preferred caption: " + String(setCaptionResult ?? false))
-        }
-        
         // Only apply volume/mute preferences for the main player (position 0)
         // Sidebar/bottom players should remain muted with volume at 0
         if playerItem.position == 0 {
@@ -260,12 +282,12 @@ extension PlayerCollectionViewController {
 extension PlayerCollectionViewController {
     
     func reportCurrentPlayTime() {
-        if let firstItem = self.playerItems.first ,let contentId = firstItem.contentItem.container.contentId, let contentSubType = firstItem.contentItem.container.metadata?.contentSubtype, let playerDuration = firstItem.player?.currentTime() {
-            DataManager.instance.reportContentPlayTime(reportingItem: PlayTimeReportingDto(contentId: contentId, contentSubType: contentSubType, playHeadPosition: Int(CMTimeGetSeconds(playerDuration)), timestamp: Int(Date().timeIntervalSince1970)), playTimeReportingProtocol: self)
+        guard reportingTask == nil, let first = playerItems.first, let id = first.contentItem.contentId, let subtype = first.contentItem.contentSubtype, let seconds = first.player?.currentTime().seconds, seconds.isFinite else { return }
+        let playback = services.playback
+        reportingTask = Task { [weak self] in
+            defer { self?.reportingTask = nil }
+            do { try await playback.report(contentID: id, subtype: subtype, position: Int(seconds), timestamp: Int(Date().timeIntervalSince1970)) }
+            catch { guard !(error is CancellationError) else { return }; recordServiceFailure(error, operation: .action) }
         }
-    }
-    
-    func didReportPlayTime() {
-        print("Successfully reported current play time")
     }
 }

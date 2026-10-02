@@ -6,15 +6,18 @@
 //
 
 import UIKit
+import AVKit
 
 class ControlStripOverlayViewController: BaseViewController {
     @IBOutlet weak var contentStackView: UIStackView!
+
     var controlsBarView: UIStackView?
-    
+
     var controlStripActionProtocol: ControlStripActionProtocol?
     var playerItem: PlayerItem?
     var playerCount: Int = 1
-    
+    var onDismiss: (() -> Void)?
+
     var removeChannelButton: UIButton?
     var addChannelButton: UIButton?
     var swapToMainButton: UIButton?
@@ -26,401 +29,792 @@ class ControlStripOverlayViewController: BaseViewController {
     var forwardButton: UIButton?
     var languageSelectorButton: UIButton?
     var captionSelectorButton: UIButton?
-    
+    var resolutionSelectorButton: UIButton?
+    private var resolutionObserver: NSObjectProtocol?
+    private var mediaMenuTask: Task<Void, Never>?
+
+    private var titleLabel: UILabel?
+    private var subtitleLabel: UILabel?
+    private var editingLabel: UILabel?
+    private var elapsedTimeLabel: UILabel?
+    private var remainingTimeLabel: UILabel?
+    private var timelineSlider: TvOSSlider?
+    private var timelineStackView: UIStackView?
+    private var scrubPreviewView: UIView?
+    private var scrubPreviewImageView: UIImageView?
+    private var scrubPreviewTimeLabel: UILabel?
+    private var scrubPreviewCenterXConstraint: NSLayoutConstraint?
+    private var scrubPreviewHideTimer: Timer?
+    private var thumbnailProvider: StreamThumbnailProvider?
+    private var previewImageRequestId: UUID?
+    private var timeObserverToken: Any?
+    private var timelineStartTime: Float64 = 0
+    private var timelineDuration: Float64 = 0
+    private var hasNotifiedDismissal = false
+
+    override var preferredFocusEnvironments: [UIFocusEnvironment] {
+        if let timelineSlider = timelineSlider {
+            return [timelineSlider]
+        }
+
+        if let playPauseButton = playPauseButton {
+            return [playPauseButton]
+        }
+
+        return super.preferredFocusEnvironments
+    }
+
     override func viewDidLoad() {
         super.viewDidLoad()
         self.setupViewController()
     }
-    
-    func initialize(playerItem: PlayerItem, playerCount: Int, controlStripActionProtocol: ControlStripActionProtocol) {
+
+    override func viewWillDisappear(_ animated: Bool) {
+        super.viewWillDisappear(animated)
+        self.removeTimeObserver()
+        self.thumbnailProvider?.cancel()
+        self.scrubPreviewHideTimer?.invalidate()
+    }
+
+    override func viewDidDisappear(_ animated: Bool) {
+        super.viewDidDisappear(animated)
+
+        if self.isBeingDismissed {
+            self.notifyDismissal()
+        }
+    }
+
+    deinit {
+        mediaMenuTask?.cancel()
+        if let observer = resolutionObserver { NotificationCenter.default.removeObserver(observer) }
+        self.removeTimeObserver()
+    }
+
+    func initialize(playerItem: PlayerItem, playerCount: Int, controlStripActionProtocol: ControlStripActionProtocol, onDismiss: @escaping () -> Void) {
         self.controlStripActionProtocol = controlStripActionProtocol
         self.playerItem = playerItem
         self.playerCount = playerCount
+        self.onDismiss = onDismiss
     }
-    
+
     func setupViewController() {
-        self.view.backgroundColor = .clear
-        
+        self.view.backgroundColor = UIColor.black.withAlphaComponent(0.12)
+
         let swipeDownRecognizer = UISwipeGestureRecognizer(target: self, action: #selector(self.swipeDownRegognized))
         swipeDownRecognizer.direction = .down
         self.view.addGestureRecognizer(swipeDownRecognizer)
-        
+
         let playPauseGesture = UITapGestureRecognizer(target: self, action: #selector(self.playPausePressed))
         playPauseGesture.allowedPressTypes = [NSNumber(value: UIPress.PressType.playPause.rawValue)]
         self.view.addGestureRecognizer(playPauseGesture)
-        
-        self.setupControlBar()
-        self.addContentToControlsBar()
+
+        self.setupOverlayLayout()
+        self.addPeriodicTimeObserver()
+        if let player = self.playerItem?.player {
+            self.thumbnailProvider = StreamThumbnailProvider(player: player)
+            self.resolutionObserver = NotificationCenter.default.addObserver(forName: FairPlayer.resolutionDidChange, object: player, queue: .main) { [weak self] _ in
+                MainActor.assumeIsolated {
+                    guard let self = self else { return }
+                    self.updateResolutionMenu()
+                    self.thumbnailProvider?.cancel()
+                    self.previewImageRequestId = nil
+                    self.scrubPreviewImageView?.image = nil
+                    self.scrubPreviewImageView?.isHidden = true
+                    self.hideScrubPreview()
+                    self.updateTimeline()
+                }
+            }
+        }
     }
-    
-    func setupControlBar() {
-        self.contentStackView.arrangedSubviews.forEach({$0.removeFromSuperview()})
-        
+
+    func setupOverlayLayout() {
+        self.contentStackView.arrangedSubviews.forEach({ $0.removeFromSuperview() })
+        self.contentStackView.axis = .vertical
+        self.contentStackView.alignment = .fill
+        self.contentStackView.distribution = .fill
+        self.contentStackView.spacing = 22
+        self.contentStackView.layoutMargins = UIEdgeInsets(top: 42, left: 64, bottom: 42, right: 64)
+        self.contentStackView.isLayoutMarginsRelativeArrangement = true
+
+        self.setupMetadataHeader()
+
         let spaceTakingView = UIView()
         spaceTakingView.backgroundColor = .clear
         self.contentStackView.addArrangedSubview(spaceTakingView)
-        
-        let blurBackgroundView = UIVisualEffectView(effect: UIBlurEffect(style: .regular))
-        blurBackgroundView.layer.cornerRadius = 20
+
+        self.setupControlPanel()
+        self.updateTimeline()
+    }
+
+    func setupMetadataHeader() {
+        let headerStackView = UIStackView()
+        headerStackView.axis = .vertical
+        headerStackView.alignment = .leading
+        headerStackView.spacing = 6
+
+        let editingLabel = UILabel()
+        editingLabel.text = "EDITING SELECTED STREAM"
+        editingLabel.textColor = ConstantsUtil.brandingRed
+        editingLabel.font = UIFont.systemFont(ofSize: 20, weight: .bold)
+        editingLabel.backgroundShadow()
+
+        let channelTitleLabel = UILabel()
+        channelTitleLabel.text = self.playerItem?.contentItem.title
+        channelTitleLabel.textColor = .white
+        channelTitleLabel.font = UIFont.preferredFont(forTextStyle: .title1)
+        channelTitleLabel.adjustsFontForContentSizeCategory = true
+        channelTitleLabel.backgroundShadow()
+
+        let channelSubtitleLabel = UILabel()
+        channelSubtitleLabel.text = self.channelSubtitle()
+        channelSubtitleLabel.textColor = UIColor.white.withAlphaComponent(0.78)
+        channelSubtitleLabel.font = UIFont.preferredFont(forTextStyle: .headline)
+        channelSubtitleLabel.adjustsFontForContentSizeCategory = true
+        channelSubtitleLabel.backgroundShadow()
+        channelSubtitleLabel.isHidden = channelSubtitleLabel.text?.isEmpty ?? true
+
+        self.titleLabel = channelTitleLabel
+        self.subtitleLabel = channelSubtitleLabel
+        self.editingLabel = editingLabel
+
+        headerStackView.addArrangedSubview(editingLabel)
+        headerStackView.addArrangedSubview(channelTitleLabel)
+        headerStackView.addArrangedSubview(channelSubtitleLabel)
+        self.contentStackView.addArrangedSubview(headerStackView)
+    }
+
+    func setupControlPanel() {
+        let blurBackgroundView = PlayerMaterial.makeView(cornerRadius: 28)
+        blurBackgroundView.translatesAutoresizingMaskIntoConstraints = false
+        blurBackgroundView.layer.cornerRadius = 28
         blurBackgroundView.clipsToBounds = true
+        blurBackgroundView.backgroundShadow()
+
         NSLayoutConstraint.activate([
-            blurBackgroundView.heightAnchor.constraint(equalToConstant: 150)
+            blurBackgroundView.heightAnchor.constraint(equalToConstant: 214)
         ])
-        
+
+        let panelStackView = UIStackView()
+        panelStackView.axis = .vertical
+        panelStackView.alignment = .fill
+        panelStackView.distribution = .fill
+        panelStackView.spacing = 18
+        panelStackView.translatesAutoresizingMaskIntoConstraints = false
+
+        blurBackgroundView.contentView.addSubview(panelStackView)
+        NSLayoutConstraint.activate([
+            panelStackView.leadingAnchor.constraint(equalTo: blurBackgroundView.contentView.leadingAnchor, constant: 36),
+            panelStackView.trailingAnchor.constraint(equalTo: blurBackgroundView.contentView.trailingAnchor, constant: -36),
+            panelStackView.topAnchor.constraint(equalTo: blurBackgroundView.contentView.topAnchor, constant: 26),
+            panelStackView.bottomAnchor.constraint(equalTo: blurBackgroundView.contentView.bottomAnchor, constant: -26)
+        ])
+
+        panelStackView.addArrangedSubview(self.makeTimelineStackView())
+
         self.controlsBarView = UIStackView()
         self.controlsBarView?.axis = .horizontal
-        self.controlsBarView?.distribution = .equalSpacing
-        self.controlsBarView?.autoresizingMask = [.flexibleWidth, .flexibleHeight]
-        self.controlsBarView?.layoutMargins = UIEdgeInsets(top: 32, left: 32, bottom: 32, right: 32)
-        self.controlsBarView?.isLayoutMarginsRelativeArrangement = true
-        self.controlsBarView?.backgroundShadow()
-        
-        blurBackgroundView.contentView.addSubview(self.controlsBarView ?? UIView())
+        self.controlsBarView?.alignment = .center
+        self.controlsBarView?.distribution = .fill
+        self.controlsBarView?.spacing = 18
+
+        panelStackView.addArrangedSubview(self.controlsBarView ?? UIView())
+        self.addContentToControlsBar()
+
         self.contentStackView.addArrangedSubview(blurBackgroundView)
+        self.setupScrubPreview(above: blurBackgroundView)
     }
-    
+
+    func makeTimelineStackView() -> UIStackView {
+        let timelineStackView = UIStackView()
+        timelineStackView.axis = .horizontal
+        timelineStackView.alignment = .center
+        timelineStackView.distribution = .fill
+        timelineStackView.spacing = 18
+
+        let elapsedLabel = self.makeTimeLabel(text: "--:--", alignment: .left)
+        let remainingLabel = self.makeTimeLabel(text: "--:--", alignment: .right)
+
+        let slider = TvOSSlider()
+        slider.translatesAutoresizingMaskIntoConstraints = false
+        slider.minimumValue = 0
+        slider.maximumValue = 1
+        slider.value = 0
+        slider.expectedLayoutWidth = 1200
+        slider.stepValue = 1 / 120
+        slider.focusScaleFactor = 1.04
+        slider.minimumTrackTintColor = .white
+        slider.maximumTrackTintColor = UIColor.white.withAlphaComponent(0.28)
+        slider.thumbTintColor = .white
+        slider.addTarget(self, action: #selector(self.timelineSliderChanged), for: .valueChanged)
+        slider.addTarget(self, action: #selector(self.timelineSeekingFinished), for: .editingDidEnd)
+
+        NSLayoutConstraint.activate([
+            elapsedLabel.widthAnchor.constraint(equalToConstant: 112),
+            remainingLabel.widthAnchor.constraint(equalToConstant: 112),
+            slider.heightAnchor.constraint(equalToConstant: 44)
+        ])
+
+        self.elapsedTimeLabel = elapsedLabel
+        self.remainingTimeLabel = remainingLabel
+        self.timelineSlider = slider
+        self.timelineStackView = timelineStackView
+
+        timelineStackView.addArrangedSubview(elapsedLabel)
+        timelineStackView.addArrangedSubview(slider)
+        timelineStackView.addArrangedSubview(remainingLabel)
+
+        return timelineStackView
+    }
+
     func addContentToControlsBar() {
-        self.controlsBarView?.arrangedSubviews.forEach({$0.removeFromSuperview()})
-        
+        self.controlsBarView?.arrangedSubviews.forEach({ $0.removeFromSuperview() })
+
         let layoutMode = PlayerLayoutMode.mode(for: self.playerCount)
-        
-        // Button order depends on layout mode and position
+
         if layoutMode == .single {
-            // Single player: Add first (no remove, fullscreen, or swap buttons)
             self.setupAddChannelButton()
-            
         } else if layoutMode == .mainWithSidebar && self.playerItem?.position != 0 {
-            // Sidebar/bottom player in mainWithSidebar: Swap, Fullscreen, Add, Remove
             self.setupSwapToMainButton()
             self.setupFullScreenButton()
             self.setupAddChannelButton()
             self.setupRemoveChannelButton()
-            
         } else {
-            // Main player in mainWithSidebar or any player in grid mode: Fullscreen, Add, Remove
             self.setupFullScreenButton()
             self.setupAddChannelButton()
             self.setupRemoveChannelButton()
         }
-        
-        self.setupSpacerView()
-        
+
+        self.setupFlexibleSpacerView()
+
         self.setupRewindButton()
         self.setupPlayPauseButton()
         self.setupForwardButton()
-        
-        self.setupSpacerView()
-        
+
+        self.setupFlexibleSpacerView()
+
         self.setupMuteButton()
         self.setupVolumeSlider()
         self.setupLanguageSelectorButton()
+        self.setupCaptionSelectorButton()
+        self.setupResolutionSelectorButton()
     }
-    
-    func setupSpacerView() {
+
+    func setupFlexibleSpacerView() {
         let spacerView = UIView()
         spacerView.backgroundColor = .clear
-        NSLayoutConstraint.activate([
-            spacerView.widthAnchor.constraint(equalToConstant: 150)
-        ])
+        spacerView.setContentHuggingPriority(.defaultLow, for: .horizontal)
+        spacerView.setContentCompressionResistancePriority(.defaultLow, for: .horizontal)
         self.controlsBarView?.addArrangedSubview(spacerView)
     }
-    
+
     func setupRewindButton() {
-        self.rewindButton = UIButton(type: .custom)
-        self.rewindButton?.setBackgroundImage(UIImage(systemName: "backward.fill")?.withTintColor(.white, renderingMode: .alwaysOriginal), for: .focused)
-        self.rewindButton?.setBackgroundImage(UIImage(systemName: "backward")?.withTintColor(.white, renderingMode: .alwaysOriginal), for: .normal)
-        
-        let iconScaleMultiplier = (self.rewindButton?.backgroundImage(for: .normal)?.size.height ?? 1)/(self.rewindButton?.backgroundImage(for: .normal)?.size.width ?? 1)
-        
-        NSLayoutConstraint.activate([
-            NSLayoutConstraint(item: self.rewindButton ?? UIView(), attribute: .height, relatedBy: .equal, toItem: self.rewindButton ?? UIView(), attribute: .width, multiplier: iconScaleMultiplier, constant: 0)
-        ])
-        
+        self.rewindButton = self.makeControlButton(normalSymbolName: "gobackward.15", focusedSymbolName: "gobackward.15", accessibilityLabel: "Rewind 15 seconds")
         self.rewindButton?.addTarget(self, action: #selector(self.rewindPressed), for: .primaryActionTriggered)
         self.controlsBarView?.addArrangedSubview(self.rewindButton ?? UIView())
     }
-    
+
     func setupPlayPauseButton() {
-        self.playPauseButton = UIButton(type: .custom)
+        self.playPauseButton = self.makeControlButton(normalSymbolName: "pause.fill", focusedSymbolName: "pause.fill", accessibilityLabel: "Play or pause", pointSize: 38)
         self.updatePlayPauseButtonStatus(paused: self.playerItem?.player?.timeControlStatus == .paused)
-        
-        let iconScaleMultiplier = (self.playPauseButton?.backgroundImage(for: .normal)?.size.height ?? 1)/(self.playPauseButton?.backgroundImage(for: .normal)?.size.width ?? 1)
-        
-        NSLayoutConstraint.activate([
-            NSLayoutConstraint(item: self.playPauseButton ?? UIView(), attribute: .height, relatedBy: .equal, toItem: self.playPauseButton ?? UIView(), attribute: .width, multiplier: iconScaleMultiplier, constant: 0)
-        ])
-        
         self.playPauseButton?.addTarget(self, action: #selector(self.playPausePressed), for: .primaryActionTriggered)
         self.controlsBarView?.addArrangedSubview(self.playPauseButton ?? UIView())
     }
-    
+
     func updatePlayPauseButtonStatus(paused: Bool) {
-        if(paused) {
-            self.playPauseButton?.setBackgroundImage(UIImage(systemName: "play.circle.fill")?.withTintColor(.white, renderingMode: .alwaysOriginal), for: .focused)
-            self.playPauseButton?.setBackgroundImage(UIImage(systemName: "play.circle")?.withTintColor(.white, renderingMode: .alwaysOriginal), for: .normal)
-        }else{
-            self.playPauseButton?.setBackgroundImage(UIImage(systemName: "pause.circle.fill")?.withTintColor(.white, renderingMode: .alwaysOriginal), for: .focused)
-            self.playPauseButton?.setBackgroundImage(UIImage(systemName: "pause.circle")?.withTintColor(.white, renderingMode: .alwaysOriginal), for: .normal)
-            
-        }
-        self.playPauseButton?.layoutIfNeeded()
-        self.playPauseButton?.subviews.first?.contentMode = .scaleAspectFit
+        let symbolName = paused ? "play.fill" : "pause.fill"
+        let image = UIImage(systemName: symbolName, withConfiguration: UIImage.SymbolConfiguration(pointSize: 38, weight: .semibold))
+        self.playPauseButton?.setImage(image, for: .normal)
+        self.playPauseButton?.setImage(image, for: .focused)
     }
-    
+
     func setupForwardButton() {
-        self.forwardButton = UIButton(type: .custom)
-        self.forwardButton?.setBackgroundImage(UIImage(systemName: "forward.fill")?.withTintColor(.white, renderingMode: .alwaysOriginal), for: .focused)
-        self.forwardButton?.setBackgroundImage(UIImage(systemName: "forward")?.withTintColor(.white, renderingMode: .alwaysOriginal), for: .normal)
-        
-        let iconScaleMultiplier = (self.forwardButton?.backgroundImage(for: .normal)?.size.height ?? 1)/(self.forwardButton?.backgroundImage(for: .normal)?.size.width ?? 1)
-        
-        NSLayoutConstraint.activate([
-            NSLayoutConstraint(item: self.forwardButton ?? UIView(), attribute: .height, relatedBy: .equal, toItem: self.forwardButton ?? UIView(), attribute: .width, multiplier: iconScaleMultiplier, constant: 0)
-        ])
-        
+        self.forwardButton = self.makeControlButton(normalSymbolName: "goforward.15", focusedSymbolName: "goforward.15", accessibilityLabel: "Forward 15 seconds")
         self.forwardButton?.addTarget(self, action: #selector(self.forwardPressed), for: .primaryActionTriggered)
         self.controlsBarView?.addArrangedSubview(self.forwardButton ?? UIView())
     }
-    
+
     func setupRemoveChannelButton() {
-        self.removeChannelButton = UIButton(type: .custom)
-        self.removeChannelButton?.setBackgroundImage(UIImage(systemName: "x.circle.fill")?.withTintColor(.white, renderingMode: .alwaysOriginal), for: .focused)
-        self.removeChannelButton?.setBackgroundImage(UIImage(systemName: "x.circle")?.withTintColor(.white, renderingMode: .alwaysOriginal), for: .normal)
-        
-        let iconScaleMultiplier = (self.removeChannelButton?.backgroundImage(for: .normal)?.size.height ?? 1)/(self.removeChannelButton?.backgroundImage(for: .normal)?.size.width ?? 1)
-        
-        NSLayoutConstraint.activate([
-            NSLayoutConstraint(item: self.removeChannelButton ?? UIView(), attribute: .height, relatedBy: .equal, toItem: self.removeChannelButton ?? UIView(), attribute: .width, multiplier: iconScaleMultiplier, constant: 0)
-        ])
-        
+        self.removeChannelButton = self.makeControlButton(normalSymbolName: "xmark", focusedSymbolName: "xmark", accessibilityLabel: "Remove channel")
         self.removeChannelButton?.addTarget(self, action: #selector(self.removeChannelPressed), for: .primaryActionTriggered)
         self.controlsBarView?.addArrangedSubview(self.removeChannelButton ?? UIView())
     }
-    
+
     func setupAddChannelButton() {
-        self.addChannelButton = UIButton(type: .custom)
-        self.addChannelButton?.setBackgroundImage(UIImage(systemName: "plus.circle.fill")?.withTintColor(.white, renderingMode: .alwaysOriginal), for: .focused)
-        self.addChannelButton?.setBackgroundImage(UIImage(systemName: "plus.circle")?.withTintColor(.white, renderingMode: .alwaysOriginal), for: .normal)
-        
-        let iconScaleMultiplier = (self.addChannelButton?.backgroundImage(for: .normal)?.size.height ?? 1)/(self.addChannelButton?.backgroundImage(for: .normal)?.size.width ?? 1)
-        
-        NSLayoutConstraint.activate([
-            NSLayoutConstraint(item: self.addChannelButton ?? UIView(), attribute: .height, relatedBy: .equal, toItem: self.addChannelButton ?? UIView(), attribute: .width, multiplier: iconScaleMultiplier, constant: 0)
-        ])
-        
+        self.addChannelButton = self.makeControlButton(normalSymbolName: "plus", focusedSymbolName: "plus", accessibilityLabel: "Add channel")
         self.addChannelButton?.addTarget(self, action: #selector(self.addChannelPressed), for: .primaryActionTriggered)
         self.controlsBarView?.addArrangedSubview(self.addChannelButton ?? UIView())
     }
-    
+
     func setupSwapToMainButton() {
-        self.swapToMainButton = UIButton(type: .custom)
-        self.swapToMainButton?.setBackgroundImage(UIImage(systemName: "arrow.up.arrow.down.circle.fill")?.withTintColor(.white, renderingMode: .alwaysOriginal), for: .focused)
-        self.swapToMainButton?.setBackgroundImage(UIImage(systemName: "arrow.up.arrow.down.circle")?.withTintColor(.white, renderingMode: .alwaysOriginal), for: .normal)
-        
-        let iconScaleMultiplier = (self.swapToMainButton?.backgroundImage(for: .normal)?.size.height ?? 1)/(self.swapToMainButton?.backgroundImage(for: .normal)?.size.width ?? 1)
-        
-        NSLayoutConstraint.activate([
-            NSLayoutConstraint(item: self.swapToMainButton ?? UIView(), attribute: .height, relatedBy: .equal, toItem: self.swapToMainButton ?? UIView(), attribute: .width, multiplier: iconScaleMultiplier, constant: 0)
-        ])
-        
-        self.swapToMainButton?.layoutIfNeeded()
-        self.swapToMainButton?.subviews.first?.contentMode = .scaleAspectFit
-        
+        self.swapToMainButton = self.makeControlButton(normalSymbolName: "arrow.up.arrow.down", focusedSymbolName: "arrow.up.arrow.down", accessibilityLabel: "Swap to main")
         self.swapToMainButton?.addTarget(self, action: #selector(self.swapToMainPressed), for: .primaryActionTriggered)
         self.controlsBarView?.addArrangedSubview(self.swapToMainButton ?? UIView())
     }
-    
+
     func setupMuteButton() {
-        self.muteChannelButton = UIButton(type: .custom)
+        self.muteChannelButton = self.makeControlButton(normalSymbolName: "speaker.wave.2.fill", focusedSymbolName: "speaker.wave.2.fill", accessibilityLabel: "Mute channel")
         self.updateMuteButtonStatus()
-        
-        let iconScaleMultiplier = (self.muteChannelButton?.backgroundImage(for: .normal)?.size.height ?? 1)/(self.muteChannelButton?.backgroundImage(for: .normal)?.size.width ?? 1)
-        
-        NSLayoutConstraint.activate([
-            NSLayoutConstraint(item: self.muteChannelButton ?? UIView(), attribute: .height, relatedBy: .equal, toItem: self.muteChannelButton ?? UIView(), attribute: .width, multiplier: iconScaleMultiplier, constant: 0)
-        ])
-        
         self.muteChannelButton?.addTarget(self, action: #selector(self.muteChannelPressed), for: .primaryActionTriggered)
         self.controlsBarView?.addArrangedSubview(self.muteChannelButton ?? UIView())
     }
-    
+
     func setupVolumeSlider() {
-        let sliderWidth: CGFloat = 200
-        
+        let sliderWidth: CGFloat = 220
+
         self.volumeSlider = TvOSSlider()
-        self.volumeSlider?.stepValue = 1/16
-        self.volumeSlider?.minimumTrackTintColor = ConstantsUtil.brandingRed
-        self.volumeSlider?.expectedLayoutWidth = sliderWidth //We set this to 200 to calculate the the x before we actually have the frame
+        self.volumeSlider?.translatesAutoresizingMaskIntoConstraints = false
+        self.volumeSlider?.requiresSelectToAdjust = true
+        self.volumeSlider?.stepValue = 1 / 16
+        self.volumeSlider?.focusScaleFactor = 1.04
+        self.volumeSlider?.minimumTrackTintColor = .white
+        self.volumeSlider?.maximumTrackTintColor = UIColor.white.withAlphaComponent(0.28)
+        self.volumeSlider?.thumbTintColor = .white
+        self.volumeSlider?.expectedLayoutWidth = sliderWidth
         self.volumeSlider?.value = self.playerItem?.player?.volume ?? 0
+
         NSLayoutConstraint.activate([
-            (self.volumeSlider ?? UIView()).widthAnchor.constraint(equalToConstant: sliderWidth)
+            (self.volumeSlider ?? UIView()).widthAnchor.constraint(equalToConstant: sliderWidth),
+            (self.volumeSlider ?? UIView()).heightAnchor.constraint(equalToConstant: 44)
         ])
+
         self.volumeSlider?.addTarget(self, action: #selector(self.volumeSliderChanged), for: .valueChanged)
+        self.volumeSlider?.adjustmentStateDidChange = { [weak self] isAdjusting in
+            self?.updateVolumeAdjustmentPresentation(isAdjusting: isAdjusting)
+        }
         self.controlsBarView?.addArrangedSubview(self.volumeSlider ?? UIView())
     }
-    
-    func updateMuteButtonStatus() {
-        if(self.playerItem?.player?.isMuted ?? true) {
-            self.muteChannelButton?.setBackgroundImage(UIImage(systemName: "speaker.slash.circle.fill")?.withTintColor(.white, renderingMode: .alwaysOriginal), for: .focused)
-            self.muteChannelButton?.setBackgroundImage(UIImage(systemName: "speaker.slash.circle")?.withTintColor(.white, renderingMode: .alwaysOriginal), for: .normal)
-        }else{
-            self.muteChannelButton?.setBackgroundImage(UIImage(systemName: "speaker.wave.2.circle.fill")?.withTintColor(.white, renderingMode: .alwaysOriginal), for: .focused)
-            self.muteChannelButton?.setBackgroundImage(UIImage(systemName: "speaker.wave.2.circle")?.withTintColor(.white, renderingMode: .alwaysOriginal), for: .normal)
+
+    func updateVolumeAdjustmentPresentation(isAdjusting: Bool) {
+        let inactiveAlpha: CGFloat = isAdjusting ? 0.42 : 1
+
+        UIView.animate(withDuration: 0.18) {
+            self.timelineStackView?.alpha = inactiveAlpha
+            self.controlsBarView?.arrangedSubviews.forEach { view in
+                if let volumeSlider = self.volumeSlider, view !== volumeSlider {
+                    view.alpha = inactiveAlpha
+                }
+            }
         }
     }
-    
+
+    func updateMuteButtonStatus() {
+        let symbolName = (self.playerItem?.player?.isMuted ?? true) ? "speaker.slash.fill" : "speaker.wave.2.fill"
+        let image = UIImage(systemName: symbolName, withConfiguration: UIImage.SymbolConfiguration(pointSize: 28, weight: .semibold))
+        self.muteChannelButton?.setImage(image, for: .normal)
+        self.muteChannelButton?.setImage(image, for: .focused)
+    }
+
     func setupLanguageSelectorButton() {
-        self.languageSelectorButton = UIButton(type: .custom)
-        self.languageSelectorButton?.setBackgroundImage(UIImage(systemName: "ear.fill")?.withTintColor(.white, renderingMode: .alwaysOriginal), for: .focused)
-        self.languageSelectorButton?.setBackgroundImage(UIImage(systemName: "ear")?.withTintColor(.white, renderingMode: .alwaysOriginal), for: .normal)
-        
-        let iconScaleMultiplier = (self.languageSelectorButton?.backgroundImage(for: .normal)?.size.height ?? 1)/(self.languageSelectorButton?.backgroundImage(for: .normal)?.size.width ?? 1)
-        
-        NSLayoutConstraint.activate([
-            NSLayoutConstraint(item: self.languageSelectorButton ?? UIView(), attribute: .height, relatedBy: .equal, toItem: self.languageSelectorButton ?? UIView(), attribute: .width, multiplier: iconScaleMultiplier, constant: 0)
-        ])
-        
+        self.languageSelectorButton = self.makeControlButton(normalSymbolName: "ear", focusedSymbolName: "ear.fill", accessibilityLabel: "Audio language")
         self.languageSelectorButton?.addTarget(self, action: #selector(self.languageSelectPressed), for: .primaryActionTriggered)
         self.controlsBarView?.addArrangedSubview(self.languageSelectorButton ?? UIView())
     }
-    
+
     func setupCaptionSelectorButton() {
-        self.captionSelectorButton = UIButton(type: .custom)
-        self.captionSelectorButton?.setBackgroundImage(UIImage(systemName: "captions.bubble.fill")?.withTintColor(.white, renderingMode: .alwaysOriginal), for: .focused)
-        self.captionSelectorButton?.setBackgroundImage(UIImage(systemName: "captions.bubble")?.withTintColor(.white, renderingMode: .alwaysOriginal), for: .normal)
-        
-        let iconScaleMultiplier = (self.captionSelectorButton?.backgroundImage(for: .normal)?.size.height ?? 1)/(self.captionSelectorButton?.backgroundImage(for: .normal)?.size.width ?? 1)
-        
-        NSLayoutConstraint.activate([
-            NSLayoutConstraint(item: self.captionSelectorButton ?? UIView(), attribute: .height, relatedBy: .equal, toItem: self.captionSelectorButton ?? UIView(), attribute: .width, multiplier: iconScaleMultiplier, constant: 0)
-        ])
-        
+        self.captionSelectorButton = self.makeControlButton(normalSymbolName: "captions.bubble", focusedSymbolName: "captions.bubble.fill", accessibilityLabel: "Captions")
         self.captionSelectorButton?.addTarget(self, action: #selector(self.captionSelectPressed), for: .primaryActionTriggered)
         self.controlsBarView?.addArrangedSubview(self.captionSelectorButton ?? UIView())
     }
-    
+
     func setupFullScreenButton() {
-        self.enterFullScreenButton = UIButton(type: .custom)
-        self.enterFullScreenButton?.setBackgroundImage(UIImage(systemName: "arrow.up.left.and.arrow.down.right.circle.fill")?.withTintColor(.white, renderingMode: .alwaysOriginal), for: .focused)
-        self.enterFullScreenButton?.setBackgroundImage(UIImage(systemName: "arrow.up.left.and.arrow.down.right.circle")?.withTintColor(.white, renderingMode: .alwaysOriginal), for: .normal)
-        
-        let iconScaleMultiplier = (self.enterFullScreenButton?.backgroundImage(for: .normal)?.size.height ?? 1)/(self.enterFullScreenButton?.backgroundImage(for: .normal)?.size.width ?? 1)
-        
-        NSLayoutConstraint.activate([
-            NSLayoutConstraint(item: self.enterFullScreenButton ?? UIView(), attribute: .height, relatedBy: .equal, toItem: self.enterFullScreenButton ?? UIView(), attribute: .width, multiplier: iconScaleMultiplier, constant: 0)
-        ])
-        
+        self.enterFullScreenButton = self.makeControlButton(normalSymbolName: "arrow.up.left.and.arrow.down.right", focusedSymbolName: "arrow.up.left.and.arrow.down.right", accessibilityLabel: "Fullscreen")
         self.enterFullScreenButton?.addTarget(self, action: #selector(self.enterFullScreenPressed), for: .primaryActionTriggered)
         self.controlsBarView?.addArrangedSubview(self.enterFullScreenButton ?? UIView())
     }
-    
+
+    func setupResolutionSelectorButton() {
+        let button = self.makeControlButton(normalSymbolName: "slider.horizontal.3", focusedSymbolName: "slider.horizontal.3", accessibilityLabel: "Resolution")
+        button.showsMenuAsPrimaryAction = true
+        self.resolutionSelectorButton = button
+        self.updateResolutionMenu()
+        self.controlsBarView?.addArrangedSubview(button)
+    }
+
+    func updateResolutionMenu() {
+        guard let player = self.playerItem?.player else { return }
+        self.resolutionSelectorButton?.menu = player.resolutionMenu()
+        let value = player.selectedResolution?.label(in: player.availableResolutions) ?? "Default"
+        self.resolutionSelectorButton?.accessibilityValue = value
+    }
+
+    func makeControlButton(normalSymbolName: String, focusedSymbolName: String, accessibilityLabel: String, pointSize: CGFloat = 28) -> UIButton {
+        let button = UIButton(type: .system)
+        button.translatesAutoresizingMaskIntoConstraints = false
+        let configuration = UIImage.SymbolConfiguration(pointSize: pointSize, weight: .semibold)
+        button.setImage(UIImage(systemName: normalSymbolName, withConfiguration: configuration), for: .normal)
+        button.setImage(UIImage(systemName: focusedSymbolName, withConfiguration: configuration), for: .focused)
+        button.tintColor = .white
+        button.backgroundColor = UIColor.white.withAlphaComponent(0.08)
+        button.layer.cornerRadius = 34
+        button.clipsToBounds = true
+        button.accessibilityLabel = accessibilityLabel
+        button.imageView?.contentMode = .scaleAspectFit
+        button.backgroundColor = .clear
+        button.layer.cornerRadius = 0
+        button.clipsToBounds = false
+        var buttonConfiguration = UIButton.Configuration.plain()
+        buttonConfiguration.contentInsets = NSDirectionalEdgeInsets(top: 16, leading: 16, bottom: 16, trailing: 16)
+        buttonConfiguration.baseForegroundColor = .white
+        button.configuration = buttonConfiguration
+        button.setContentHuggingPriority(.required, for: .horizontal)
+        button.setContentCompressionResistancePriority(.required, for: .horizontal)
+
+        NSLayoutConstraint.activate([
+            button.widthAnchor.constraint(equalToConstant: 68),
+            button.heightAnchor.constraint(equalToConstant: 68)
+        ])
+
+        return button
+    }
+
+    func makeTimeLabel(text: String, alignment: NSTextAlignment) -> UILabel {
+        let label = UILabel()
+        label.translatesAutoresizingMaskIntoConstraints = false
+        label.text = text
+        label.textColor = UIColor.white.withAlphaComponent(0.82)
+        label.textAlignment = alignment
+        label.font = UIFont.monospacedDigitSystemFont(ofSize: 26, weight: .medium)
+        label.adjustsFontSizeToFitWidth = true
+        label.minimumScaleFactor = 0.75
+        return label
+    }
+
+    func channelSubtitle() -> String {
+        guard let additionalStream = self.playerItem?.contentItem.channel else {
+            return ""
+        }
+
+        return additionalStream.teamName
+    }
+
     @objc func removeChannelPressed() {
-        self.controlStripActionProtocol?.willCloseFocusedPlayer()
+        if let playerId = self.playerItem?.id {
+            self.controlStripActionProtocol?.willClosePlayer(id: playerId)
+        }
         self.swipeDownRegognized()
     }
-    
+
     @objc func addChannelPressed() {
         self.swipeDownRegognized()
         self.controlStripActionProtocol?.showChannelSelectorOverlay()
     }
-    
+
     @objc func swapToMainPressed() {
-        self.controlStripActionProtocol?.swapToMainPlayer()
+        if let playerId = self.playerItem?.id {
+            self.controlStripActionProtocol?.swapToMainPlayer(id: playerId)
+        }
         self.swipeDownRegognized()
     }
-    
+
     @objc func muteChannelPressed() {
         let muted = !(self.playerItem?.player?.isMuted ?? false)
         self.playerItem?.player?.isMuted = muted
         self.updateMuteButtonStatus()
-        
+
         var playerSettings = CredentialHelper.getPlayerSettings()
-        playerSettings.setPreferredMute(for: self.playerItem?.contentItem.container.metadata?.channelType ?? ChannelType(), mute: muted)
+        playerSettings.setPreferredMute(for: self.playerItem?.contentItem.channelType ?? ChannelType(), mute: muted)
         CredentialHelper.setPlayerSettings(playerSettings: playerSettings)
     }
-    
+
     @objc func volumeSliderChanged(slider: TvOSSlider) {
         let newVolume = slider.value
         self.playerItem?.player?.volume = newVolume
-        
+
         var playerSettings = CredentialHelper.getPlayerSettings()
-        playerSettings.setPreferredVolume(for: self.playerItem?.contentItem.container.metadata?.channelType ?? ChannelType(), volume: newVolume)
+        playerSettings.setPreferredVolume(for: self.playerItem?.contentItem.channelType ?? ChannelType(), volume: newVolume)
         CredentialHelper.setPlayerSettings(playerSettings: playerSettings)
-        
+
         print("Setting player volume to \(newVolume)")
     }
-    
+
+    @objc func timelineSliderChanged(slider: TvOSSlider) {
+        guard self.timelineDuration > 0 else { return }
+
+        let targetTime = self.timelineStartTime + (Float64(slider.value) * self.timelineDuration)
+        self.controlStripActionProtocol?.seekPlayersTo(time: targetTime)
+        self.updateTimelineLabels(currentTime: targetTime)
+        self.showScrubPreview(at: targetTime, sliderValue: slider.value)
+    }
+
+    @objc func timelineSeekingFinished() {
+        self.controlStripActionProtocol?.didFinishSeeking()
+    }
+
     @objc func enterFullScreenPressed() {
-        self.controlStripActionProtocol?.enterFullScreenPlayer()
+        if let playerId = self.playerItem?.id {
+            self.controlStripActionProtocol?.enterFullScreenPlayer(id: playerId)
+        }
         self.swipeDownRegognized()
     }
-    
+
     @objc func rewindPressed() {
         self.controlStripActionProtocol?.rewindPlayer()
+        self.updateTimeline()
     }
-    
+
     @objc func playPausePressed() {
         self.updatePlayPauseButtonStatus(paused: self.playerItem?.player?.timeControlStatus != .paused)
         self.controlStripActionProtocol?.playPausePlayer()
     }
-    
+
     @objc func forwardPressed() {
         self.controlStripActionProtocol?.forwardPlayer()
+        self.updateTimeline()
     }
-    
-    @objc func languageSelectPressed() {
-        print(self.playerItem?.playerItem?.tracks(type: .audio) ?? [String]())
-        print(self.playerItem?.playerItem?.tracks(type: .subtitle) ?? [String]())
-        
-        self.showLanguageSelectMenu()
-    }
-    
-    func showLanguageSelectMenu() {
-        let alertController = UIAlertController(title: "select".localizedString, message: nil, preferredStyle: .alert)
-        
-        for language in self.playerItem?.playerItem?.tracks(type: .audio) ?? [MediaTrackDto]() {
-            alertController.addAction(UIAlertAction(title: language.displayName, style: .default, handler: { (UIAlertAction) in
-                let _ = self.playerItem?.playerItem?.select(type: .audio, item: language)
-                var playerSettings = CredentialHelper.getPlayerSettings()
-                playerSettings.setPreferredLanugage(for: self.playerItem?.contentItem.container.metadata?.channelType ?? ChannelType(), language: language.displayName)
-                CredentialHelper.setPlayerSettings(playerSettings: playerSettings)
-            }))
+
+    @objc func languageSelectPressed() { showMediaSelectMenu(type: .audio) }
+
+    @objc func captionSelectPressed() { showMediaSelectMenu(type: .subtitle) }
+
+    private func showMediaSelectMenu(type: AVPlayerItem.TrackType) {
+        mediaMenuTask?.cancel()
+        guard let item = playerItem?.player?.currentItem else { return }
+        mediaMenuTask = Task { @MainActor [weak self] in
+            do {
+                let tracks = try await item.tracks(type: type)
+                guard let self, !Task.isCancelled, self.playerItem?.player?.currentItem === item,
+                      self.viewIfLoaded?.window != nil else { return }
+                let alert = UIAlertController(title: "select".localizedString, message: nil, preferredStyle: .alert)
+                for track in tracks {
+                    alert.addAction(UIAlertAction(title: track.displayName, style: .default) { [weak self] _ in
+                        guard self?.playerItem?.player?.currentItem === item else { return }
+                        // Overrides affect only this stream, never the startup defaults.
+                        item.select(track: track)
+                    })
+                }
+                alert.addAction(UIAlertAction(title: "cancel".localizedString, style: .cancel))
+                UserInteractionHelper.instance.getPresentingViewController()?.present(alert, animated: true)
+            } catch {
+                guard let self, !Task.isCancelled, !(error is CancellationError),
+                      self.playerItem?.player?.currentItem === item, self.viewIfLoaded?.window != nil else { return }
+                UserInteractionHelper.instance.showError(title: "error".localizedString, message: "diagnostics_summary_operation".localizedString)
+            }
         }
-        
-        alertController.addAction(UIAlertAction(title: "cancel".localizedString, style: .cancel, handler: { (UIAlertAction) in
-            print("Cancelled")
-        }))
-        
-        UserInteractionHelper.instance.getPresentingViewController().present(alertController, animated: true)
     }
-    
-    @objc func captionSelectPressed() {
-        print(self.playerItem?.playerItem?.tracks(type: .audio) ?? [String]())
-        print(self.playerItem?.playerItem?.tracks(type: .subtitle) ?? [String]())
-        
-        self.showCaptionSelectMenu()
-    }
-    
-    func showCaptionSelectMenu() {
-        let alertController = UIAlertController(title: "select".localizedString, message: nil, preferredStyle: .alert)
-        
-        for captions in self.playerItem?.playerItem?.tracks(type: .subtitle) ?? [MediaTrackDto]() {
-            alertController.addAction(UIAlertAction(title: captions.displayName, style: .default, handler: { (UIAlertAction) in
-                let _ = self.playerItem?.playerItem?.select(type: .subtitle, item: captions)
-                var playerSettings = CredentialHelper.getPlayerSettings()
-                playerSettings.setPreferredCaptions(for: self.playerItem?.contentItem.container.metadata?.channelType ?? ChannelType(), captions: captions.displayName)
-                CredentialHelper.setPlayerSettings(playerSettings: playerSettings)
-            }))
-        }
-        
-        alertController.addAction(UIAlertAction(title: "cancel".localizedString, style: .cancel, handler: { (UIAlertAction) in
-            print("Cancelled")
-        }))
-        
-        UserInteractionHelper.instance.getPresentingViewController().present(alertController, animated: true)
-    }
-    
+
     @objc func swipeDownRegognized() {
-        self.dismiss(animated: true)
+        self.dismiss(animated: true) { [weak self] in
+            self?.notifyDismissal()
+        }
+    }
+
+    func notifyDismissal() {
+        mediaMenuTask?.cancel()
+        guard !self.hasNotifiedDismissal else { return }
+        self.hasNotifiedDismissal = true
+        self.onDismiss?()
+    }
+}
+
+// MARK: - Scrub Preview
+extension ControlStripOverlayViewController {
+    func setupScrubPreview(above controlPanel: UIView) {
+        let previewView = UIView()
+        previewView.translatesAutoresizingMaskIntoConstraints = false
+        previewView.backgroundColor = .clear
+        previewView.alpha = 0
+        previewView.isHidden = true
+        previewView.backgroundShadow()
+
+        let imageView = UIImageView()
+        imageView.translatesAutoresizingMaskIntoConstraints = false
+        imageView.backgroundColor = .clear
+        imageView.contentMode = .scaleAspectFill
+        imageView.clipsToBounds = true
+        imageView.layer.cornerRadius = 8
+        imageView.layer.borderColor = UIColor.white.withAlphaComponent(0.3).cgColor
+        imageView.layer.borderWidth = 1
+        imageView.isHidden = true
+
+        let timeMaterial = PlayerMaterial.makeView(cornerRadius: 22)
+        timeMaterial.translatesAutoresizingMaskIntoConstraints = false
+
+        let timeLabel = UILabel()
+        timeLabel.translatesAutoresizingMaskIntoConstraints = false
+        timeLabel.textColor = .white
+        timeLabel.font = UIFont.monospacedDigitSystemFont(ofSize: 22, weight: .bold)
+        timeLabel.textAlignment = .center
+        timeLabel.backgroundColor = .clear
+
+        previewView.addSubview(imageView)
+        previewView.addSubview(timeMaterial)
+        timeMaterial.contentView.addSubview(timeLabel)
+        self.view.addSubview(previewView)
+
+        let centerXConstraint = previewView.centerXAnchor.constraint(equalTo: self.view.leadingAnchor, constant: self.view.bounds.midX)
+        NSLayoutConstraint.activate([
+            previewView.widthAnchor.constraint(equalToConstant: 256),
+            previewView.heightAnchor.constraint(equalToConstant: 196),
+            centerXConstraint,
+            previewView.bottomAnchor.constraint(equalTo: controlPanel.topAnchor, constant: -18),
+            imageView.leadingAnchor.constraint(equalTo: previewView.leadingAnchor),
+            imageView.trailingAnchor.constraint(equalTo: previewView.trailingAnchor),
+            imageView.topAnchor.constraint(equalTo: previewView.topAnchor),
+            imageView.heightAnchor.constraint(equalToConstant: 144),
+            timeMaterial.centerXAnchor.constraint(equalTo: previewView.centerXAnchor),
+            timeMaterial.bottomAnchor.constraint(equalTo: previewView.bottomAnchor),
+            timeMaterial.widthAnchor.constraint(equalToConstant: 140),
+            timeMaterial.heightAnchor.constraint(equalToConstant: 44),
+            timeLabel.leadingAnchor.constraint(equalTo: timeMaterial.contentView.leadingAnchor, constant: 8),
+            timeLabel.trailingAnchor.constraint(equalTo: timeMaterial.contentView.trailingAnchor, constant: -8),
+            timeLabel.topAnchor.constraint(equalTo: timeMaterial.contentView.topAnchor),
+            timeLabel.bottomAnchor.constraint(equalTo: timeMaterial.contentView.bottomAnchor)
+        ])
+
+        self.scrubPreviewView = previewView
+        self.scrubPreviewImageView = imageView
+        self.scrubPreviewTimeLabel = timeLabel
+        self.scrubPreviewCenterXConstraint = centerXConstraint
+    }
+
+    func showScrubPreview(at time: Float64, sliderValue: Float) {
+        guard let scrubPreviewView = self.scrubPreviewView else { return }
+
+        self.scrubPreviewHideTimer?.invalidate()
+        self.scrubPreviewTimeLabel?.text = self.formatTime(max(0, time - self.timelineStartTime))
+        self.updateScrubPreviewPosition(for: sliderValue)
+
+        if scrubPreviewView.isHidden {
+            scrubPreviewView.isHidden = false
+            scrubPreviewView.transform = CGAffineTransform(scaleX: 0.94, y: 0.94)
+            UIView.animate(withDuration: 0.16) {
+                scrubPreviewView.alpha = 1
+                scrubPreviewView.transform = .identity
+            }
+        }
+
+        self.scheduleScrubPreviewHide(after: 18)
+        self.requestScrubPreviewImage(at: time)
+    }
+
+    private func scheduleScrubPreviewHide(after delay: TimeInterval) {
+        self.scrubPreviewHideTimer?.invalidate()
+        self.scrubPreviewHideTimer = Timer.scheduledTimer(withTimeInterval: delay, repeats: false) { [weak self] _ in
+            self?.hideScrubPreview()
+        }
+    }
+
+    func hideScrubPreview() {
+        guard let scrubPreviewView = self.scrubPreviewView, !scrubPreviewView.isHidden else { return }
+
+        self.thumbnailProvider?.cancel()
+        self.previewImageRequestId = nil
+        UIView.animate(withDuration: 0.16, animations: {
+            scrubPreviewView.alpha = 0
+        }, completion: { _ in
+            scrubPreviewView.isHidden = true
+            scrubPreviewView.transform = .identity
+        })
+    }
+
+    func updateScrubPreviewPosition(for sliderValue: Float) {
+        guard let slider = self.timelineSlider, let centerXConstraint = self.scrubPreviewCenterXConstraint else { return }
+
+        self.view.layoutIfNeeded()
+        let sliderFrame = slider.convert(slider.bounds, to: self.view)
+        let proposedCenterX = sliderFrame.minX + (sliderFrame.width * CGFloat(sliderValue))
+        let horizontalInset: CGFloat = 148
+        centerXConstraint.constant = min(max(proposedCenterX, horizontalInset), self.view.bounds.width - horizontalInset)
+        self.view.layoutIfNeeded()
+    }
+
+    func requestScrubPreviewImage(at time: Float64) {
+        let requestId = UUID()
+        self.previewImageRequestId = requestId
+        self.thumbnailProvider?.request(at: time) { [weak self] image in
+            guard let self = self, self.previewImageRequestId == requestId else { return }
+            self.scrubPreviewImageView?.image = image
+            self.scrubPreviewImageView?.isHidden = image == nil
+            self.scheduleScrubPreviewHide(after: 1.25)
+        }
+    }
+}
+
+// MARK: - Timeline
+extension ControlStripOverlayViewController {
+    func addPeriodicTimeObserver() {
+        guard let player = self.playerItem?.player else { return }
+
+        self.removeTimeObserver()
+
+        let interval = CMTime(seconds: 0.5, preferredTimescale: CMTimeScale(NSEC_PER_SEC))
+        self.timeObserverToken = player.addPeriodicTimeObserver(forInterval: interval, queue: .main) { [weak self] _ in
+            self?.updateTimeline()
+        }
+    }
+
+    func removeTimeObserver() {
+        guard let token = self.timeObserverToken else { return }
+
+        self.playerItem?.player?.removeTimeObserver(token)
+        self.timeObserverToken = nil
+    }
+
+    func updateTimeline() {
+        guard let player = self.playerItem?.player else {
+            self.timelineSlider?.isEnabled = false
+            return
+        }
+
+        let bounds = self.timelineBounds(for: player)
+        self.timelineStartTime = bounds.start
+        self.timelineDuration = bounds.duration
+
+        guard bounds.duration > 0 else {
+            self.timelineSlider?.isEnabled = false
+            self.elapsedTimeLabel?.text = "--:--"
+            self.remainingTimeLabel?.text = "--:--"
+            return
+        }
+
+        self.timelineSlider?.isEnabled = true
+        self.timelineSlider?.stepValue = Float(15 / bounds.duration)
+
+        let currentTime = CMTimeGetSeconds(player.currentTime())
+        let progress = Float((currentTime - bounds.start) / bounds.duration)
+        self.timelineSlider?.value = min(max(progress, 0), 1)
+        self.updateTimelineLabels(currentTime: currentTime)
+    }
+
+    func updateTimelineLabels(currentTime: Float64) {
+        let elapsed = max(0, currentTime - self.timelineStartTime)
+        let remaining = max(0, self.timelineDuration - elapsed)
+
+        self.elapsedTimeLabel?.text = self.formatTime(elapsed)
+        self.remainingTimeLabel?.text = "-\(self.formatTime(remaining))"
+    }
+
+    func timelineBounds(for player: AVPlayer) -> (start: Float64, duration: Float64) {
+        if let duration = player.currentItem?.duration {
+            let durationSeconds = CMTimeGetSeconds(duration)
+            if durationSeconds.isFinite && durationSeconds > 0 {
+                return (0, durationSeconds)
+            }
+        }
+
+        if let seekableRange = player.currentItem?.seekableTimeRanges.last?.timeRangeValue {
+            let start = CMTimeGetSeconds(seekableRange.start)
+            let duration = CMTimeGetSeconds(seekableRange.duration)
+            if start.isFinite && duration.isFinite && duration > 0 {
+                return (start, duration)
+            }
+        }
+
+        return (0, 0)
+    }
+
+    func formatTime(_ seconds: Float64) -> String {
+        guard seconds.isFinite else { return "--:--" }
+
+        let roundedSeconds = max(0, Int(seconds.rounded()))
+        let hours = roundedSeconds / 3600
+        let minutes = (roundedSeconds % 3600) / 60
+        let seconds = roundedSeconds % 60
+
+        if hours > 0 {
+            return String(format: "%d:%02d:%02d", hours, minutes, seconds)
+        }
+
+        return String(format: "%d:%02d", minutes, seconds)
     }
 }

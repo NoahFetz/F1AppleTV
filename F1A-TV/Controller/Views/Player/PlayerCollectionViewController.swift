@@ -8,12 +8,20 @@
 import UIKit
 import AVKit
 
-class PlayerCollectionViewController: BaseCollectionViewController, StreamEntitlementLoadedProtocol, ChannelSelectionProtocol, ControlStripActionProtocol, FullscreenPlayerDismissedProtocol, PlayTimeReportedProtocol {
+class PlayerCollectionViewController: BaseCollectionViewController, ChannelSelectionProtocol, ControlStripActionProtocol, FullscreenPlayerDismissedProtocol {
+    var services: AppServices!
+    var entitlementGenerations = [String: UUID]()
+    var entitlementTasks = [String: Task<Void, Never>]()
+    var reportingTask: Task<Void, Never>?
+    var displayCriteriaTask: Task<Void, Never>?
+    var defaultsTasks = [String: Task<Void, Never>]()
+    var defaultsAppliedPlayerIDs = Set<String>()
     
     // MARK: - Properties
     var channelItems = [ContentItem]()
     var playerItems = [PlayerItem]()
     var lastFocusedPlayer: IndexPath?
+    var controlTargetPlayerId: String?
     
     var fullscreenPlayerId: String?
     
@@ -28,13 +36,22 @@ class PlayerCollectionViewController: BaseCollectionViewController, StreamEntitl
     override func viewDidLoad() {
         super.viewDidLoad()
         self.setupCollectionView()
+        NotificationCenter.default.addObserver(self, selector: #selector(playerResolutionChanged), name: FairPlayer.resolutionDidChange, object: nil)
+    }
+
+    deinit { displayCriteriaTask?.cancel(); defaultsTasks.values.forEach { $0.cancel() }; entitlementTasks.values.forEach { $0.cancel() }; reportingTask?.cancel(); NotificationCenter.default.removeObserver(self) }
+
+    @objc private func playerResolutionChanged(_ notification: Notification) {
+        guard let player = notification.object as? FairPlayer, player === playerItems.first?.player,
+              player.resolutionStatus == .available else { return }
+        updatePreferredDisplayCriteria(for: player)
     }
     
     func initialize(channelItems: [ContentItem], playFromStart: Bool? = false) {
         self.channelItems = channelItems
         self.playFromStart = playFromStart ?? false
         
-        for mainChannel in self.channelItems.filter({$0.container.metadata?.channelType == .MainFeed}) {
+        for mainChannel in self.channelItems.filter({$0.channelType == .MainFeed}) {
             self.loadStreamEntitlement(channelItem: mainChannel)
         }
     }
@@ -118,19 +135,20 @@ class PlayerCollectionViewController: BaseCollectionViewController, StreamEntitl
         cell.loadingSpinner?.startAnimating()
         
         let currentItem = self.playerItems[indexPath.item]
+        cell.isControlTarget = currentItem.id == self.controlTargetPlayerId
         
         cell.titleLabel.text = ""
         cell.subtitleLabel.text = ""
         cell.subtitleLabel.textColor = .white
         
-        switch currentItem.contentItem.container.metadata?.channelType {
+        switch currentItem.contentItem.channelType {
         case .MainFeed, .AdditionalFeed:
-            cell.titleLabel.text = currentItem.contentItem.container.metadata?.title
+            cell.titleLabel.text = currentItem.contentItem.title
             
         case .OnBoardCamera:
-            cell.titleLabel.text = currentItem.contentItem.container.metadata?.title
+            cell.titleLabel.text = currentItem.contentItem.title
             
-            if let additionalStream = currentItem.contentItem.container.metadata?.additionalStreams?.first {
+            if let additionalStream = currentItem.contentItem.channel {
                 cell.subtitleLabel.text = additionalStream.teamName
                 cell.subtitleLabel.textColor = UIColor(rgb: additionalStream.hex ?? "#00000000")
             }
@@ -139,7 +157,7 @@ class PlayerCollectionViewController: BaseCollectionViewController, StreamEntitl
             print("Shouldn't happen (Hopefully ^^)")
         }
         
-        if let player = currentItem.player {
+        if let player = currentItem.player, player.currentItem != nil {
             cell.startPlayer(player: player)
             player.play()
             
@@ -151,6 +169,11 @@ class PlayerCollectionViewController: BaseCollectionViewController, StreamEntitl
         return cell
     }
     
+    override func pressesBegan(_ presses: Set<UIPress>, with event: UIPressesEvent?) {
+        collectionView.visibleCells.compactMap { $0 as? ChannelPlayerCollectionViewCell }.filter { $0.isFocused || $0.isControlTarget }.forEach { $0.showOptionsMenu() }
+        super.pressesBegan(presses, with: event)
+    }
+
     // MARK: - UICollectionView Delegate
     
     override func collectionView(_ collectionView: UICollectionView, didSelectItemAt indexPath: IndexPath) {
@@ -159,7 +182,9 @@ class PlayerCollectionViewController: BaseCollectionViewController, StreamEntitl
             return
         }
         
-        self.showControlStripOverlay()
+        // Capture the selected tile before the overlay takes focus.
+        self.lastFocusedPlayer = indexPath
+        self.showControlStripOverlay(for: indexPath)
     }
     
     override func collectionView(_ collectionView: UICollectionView, didUpdateFocusIn context: UICollectionViewFocusUpdateContext, with coordinator: UIFocusAnimationCoordinator) {
@@ -171,12 +196,6 @@ class PlayerCollectionViewController: BaseCollectionViewController, StreamEntitl
             
             if let nextFocusedIndexPath = context.nextFocusedIndexPath {
                 self.lastFocusedPlayer = nextFocusedIndexPath
-                return
-            }
-            
-            if let previouslyFocusedIndexPath = context.previouslyFocusedIndexPath {
-                self.lastFocusedPlayer = previouslyFocusedIndexPath
-                return
             }
         }
     }

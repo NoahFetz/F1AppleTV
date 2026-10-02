@@ -11,26 +11,33 @@ import SPAlert
 class UserInteractionHelper {
     static let instance = UserInteractionHelper()
     
-    func getKeyWindow() -> UIWindow {
-        return UIApplication.shared.connectedScenes.filter({$0.activationState == .foregroundActive}).map({$0 as? UIWindowScene}).compactMap({$0}).first?.windows.filter({$0.isKeyWindow}).first ?? UIWindow()
+    func getKeyWindow() -> UIWindow? {
+        UIApplication.shared.connectedScenes
+            .compactMap { $0 as? UIWindowScene }
+            .filter { $0.activationState == .foregroundActive }
+            .flatMap { $0.windows }
+            .first { $0.isKeyWindow }
     }
-    
-    func getPresentingViewController() -> UIViewController {
-        if var topController = self.getKeyWindow().rootViewController {
-            while let presentedViewController = topController.presentedViewController {
-                topController = presentedViewController
-            }
-            return topController
-        }
-        return self.getKeyWindow().rootViewController ?? UIViewController()
+
+    func getPresentingViewController() -> UIViewController? {
+        guard var controller = getKeyWindow()?.rootViewController else { return nil }
+        while let presented = controller.presentedViewController { controller = presented }
+        return controller
     }
-    
+
     func showSuccess(title: String, message: String) {
         SPAlert.present(title: title, message: message, preset: .done)
     }
     
-    func showError(title: String, message: String) {
-        SPAlert.present(title: title, message: message, preset: .error)
+    func showError(title: String, message: String, recordsError: Bool = true, retry: (() -> Void)? = nil) {
+        if recordsError { AppErrorStore.shared.record(NSError(domain: "Application", code: 1), operation: .action) }
+        DispatchQueue.main.async {
+            let alert = UIAlertController(title: title, message: message, preferredStyle: .alert)
+            if let retry { alert.addAction(UIAlertAction(title: "action_retry".localizedString, style: .default) { _ in retry() }) }
+            alert.addAction(UIAlertAction(title: "close".localizedString, style: .cancel))
+            guard let presenter = self.getPresentingViewController(), !(presenter is UIAlertController) else { return }
+            presenter.present(alert, animated: true)
+        }
     }
     
     func showAlert(title: String, message: String) {
@@ -40,6 +47,6 @@ class UserInteractionHelper {
             print("Cancelled")
         }))
         
-        self.getPresentingViewController().present(alertController, animated: true)
+        self.getPresentingViewController()?.present(alertController, animated: true)
     }
 }

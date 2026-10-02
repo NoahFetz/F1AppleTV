@@ -45,3 +45,22 @@ Package.pins
 
 # Carthage
 Carthage/Build
+
+# Local credentials, signing material and raw debugging captures
+.env
+.env.*
+!.env.example
+*.p8
+*.p12
+*.pfx
+*.key
+*.pem
+*.mobileprovision
+*.har
+*.log
+*.trace
+*.xcarchive/
+*.ipa
+archive/
+export/
+_XcodeTaskExportOptions.plist

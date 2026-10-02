@@ -7,6 +7,8 @@
 
 import Foundation
 
+// Legacy Keychain serialization only. Endpoint responses decode through AccountDTO.
+
 struct DeviceRegistrationResultDeviceDto: Codable {
     var addDate: String
     var authenticationKey: String

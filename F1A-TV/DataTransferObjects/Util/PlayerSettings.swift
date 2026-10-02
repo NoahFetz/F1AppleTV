@@ -16,6 +16,39 @@ struct PlayerSettings: Codable, Identifiable {
     var driverChannelSorting: DriverChannelSortType
     var showFunNames: Bool
     
+    var followsHeroBackground = true
+    var livePreviews = true
+    var previewHeight = 360
+    var startupMaximumHeight: Int?
+    var liveStart = LiveStartPreference.ask
+    // ISO language identifiers; "default" and "off" have explicit meanings.
+    var audioDefaults = [Int: String]()
+    var captionDefaults = [Int: String]()
+
+    enum CodingKeys: String, CodingKey {
+        case id, preferredChannelLanguage, preferredChannelCaptions, preferredChannelVolume, preferredChannelMute
+        case driverChannelSorting, showFunNames, followsHeroBackground, livePreviews, previewHeight
+        case startupMaximumHeight, liveStart, audioDefaults, captionDefaults
+    }
+    init(from decoder: Decoder) throws {
+        self.init()
+        let c = try decoder.container(keyedBy: CodingKeys.self)
+        id = try c.decodeIfPresent(String.self, forKey: .id) ?? id
+        preferredChannelLanguage = try c.decodeIfPresent([Int: String?].self, forKey: .preferredChannelLanguage) ?? preferredChannelLanguage
+        preferredChannelCaptions = try c.decodeIfPresent([Int: String?].self, forKey: .preferredChannelCaptions) ?? preferredChannelCaptions
+        preferredChannelVolume = try c.decodeIfPresent([Int: Float].self, forKey: .preferredChannelVolume) ?? preferredChannelVolume
+        preferredChannelMute = try c.decodeIfPresent([Int: Bool].self, forKey: .preferredChannelMute) ?? preferredChannelMute
+        driverChannelSorting = try c.decodeIfPresent(DriverChannelSortType.self, forKey: .driverChannelSorting) ?? driverChannelSorting
+        showFunNames = try c.decodeIfPresent(Bool.self, forKey: .showFunNames) ?? showFunNames
+        followsHeroBackground = try c.decodeIfPresent(Bool.self, forKey: .followsHeroBackground) ?? true
+        livePreviews = try c.decodeIfPresent(Bool.self, forKey: .livePreviews) ?? true
+        previewHeight = try c.decodeIfPresent(Int.self, forKey: .previewHeight) == 540 ? 540 : 360
+        startupMaximumHeight = try c.decodeIfPresent(Int.self, forKey: .startupMaximumHeight)
+        liveStart = try c.decodeIfPresent(LiveStartPreference.self, forKey: .liveStart) ?? .ask
+        audioDefaults = try c.decodeIfPresent([Int: String].self, forKey: .audioDefaults) ?? [:]
+        captionDefaults = try c.decodeIfPresent([Int: String].self, forKey: .captionDefaults) ?? [:]
+    }
+
     init() {
         self.id = UUID().uuidString
         self.preferredChannelLanguage = [Int:String]()
@@ -87,3 +120,5 @@ struct PlayerSettings: Codable, Identifiable {
         self.preferredChannelMute[channelType.getIdentifier()] = mute
     }
 }
+
+enum LiveStartPreference: String, Codable, CaseIterable { case ask, live, beginning }

@@ -1,163 +1,94 @@
-//
-//  SettingsOverviewTableViewController.swift
-//  SettingsOverviewTableViewController
-//
-//  Created by Noah Fetz on 05.09.21.
-//
-
 import UIKit
 
-class SettingsOverviewTableViewController: BaseTableViewController {
-    var playerSettings = CredentialHelper.getPlayerSettings()
-    
+/// Programmatic settings panels; the historic name is retained for existing callers.
+final class SettingsOverviewTableViewController: UIViewController {
+    private var settings = CredentialHelper.getPlayerSettings()
+    private var stack: UIStackView!
+    private weak var lastFocusedControl: UIView?
+    override var preferredFocusEnvironments: [UIFocusEnvironment] {
+        if let lastFocusedControl, lastFocusedControl.window != nil { return [lastFocusedControl] }
+        return stack?.arrangedSubviews.compactMap { $0 as? TVActionButton }.first.map { [$0] } ?? super.preferredFocusEnvironments
+    }
+    override func didUpdateFocus(in context: UIFocusUpdateContext, with coordinator: UIFocusAnimationCoordinator) {
+        super.didUpdateFocus(in: context, with: coordinator)
+        if let next = context.nextFocusedView, next.isDescendant(of: view) { lastFocusedControl = next }
+    }
     override func viewDidLoad() {
         super.viewDidLoad()
-        self.setupTableView()
+        stack = TVDesign.stack(in: view, title: "settings_title".localizedString)
     }
-    
     override func viewWillAppear(_ animated: Bool) {
-        self.playerSettings = CredentialHelper.getPlayerSettings()
+        super.viewWillAppear(animated)
+        let latest = CredentialHelper.getPlayerSettings()
+        guard stack.arrangedSubviews.count <= 1 || (try? JSONEncoder().encode(latest)) != (try? JSONEncoder().encode(settings)) else { return }
+        settings = latest
+        stack.arrangedSubviews.dropFirst().forEach { $0.removeFromSuperview() }
+        renderControls()
     }
-    
-    func setupTableView() {
-        
-    }
-
-    // MARK: - Table view data source
-
-    override func numberOfSections(in tableView: UITableView) -> Int {
-        return 2
-    }
-
-    override func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
-        switch section {
-        case 0:
-            return 1
-            
-        case 1:
-            return DriverChannelSortType.allCases.count
-            
-        default:
-            return 0
-            
+    private func renderControls() {
+        section("Browsing")
+        choice("Background", values: ["Follow hero", "Static branding"], selected: settings.followsHeroBackground ? 0 : 1) { self.settings.followsHeroBackground = $0 == 0 }
+        section("Previews")
+        choice("Live previews", values: ["On", "Off"], selected: settings.livePreviews ? 0 : 1) { self.settings.livePreviews = $0 == 0 }
+        choice("Preview quality", values: ["360p", "540p"], selected: settings.previewHeight == 540 ? 1 : 0) { self.settings.previewHeight = $0 == 0 ? 360 : 540 }
+        section("Playback")
+        let heights: [Int?] = [nil, 2160, 1080, 720]
+        choice("Startup quality", values: ["Highest", "2160p", "1080p", "720p"], selected: heights.firstIndex(of: settings.startupMaximumHeight) ?? 0) { self.settings.startupMaximumHeight = heights[$0] }
+        choice("Start live sessions", values: ["Ask", "Live", "From beginning"], selected: LiveStartPreference.allCases.firstIndex(of: settings.liveStart) ?? 0) { self.settings.liveStart = LiveStartPreference.allCases[$0] }
+        section("Audio and captions")
+        let codes = ["default", "en", "de", "fr", "es", "nl", "pt"]
+        let languages = ["Stream default", "English", "Deutsch", "Français", "Español", "Nederlands", "Português"]
+        for type in ChannelType.allCases {
+            let id = type.getIdentifier()
+            let name = ["Main Feed", "Additional Feed", "Onboard"][id]
+            let audio = settings.audioDefaults[id]
+            let legacyAudio = settings.preferredChannelLanguage[id] ?? nil
+            choice(name + " · Audio", values: languages, selected: codes.firstIndex(of: audio ?? "default") ?? 0, legacy: audio == nil ? legacyAudio : nil) { self.settings.audioDefaults[id] = codes[$0] }
+            let captions = settings.captionDefaults[id]
+            let legacyCaptions = settings.preferredChannelCaptions[id] ?? nil
+            let captionCodes = ["off"] + codes
+            choice(name + " · Captions", values: ["Off"] + languages, selected: captionCodes.firstIndex(of: captions ?? "default") ?? 1, legacy: captions == nil ? legacyCaptions : nil) { self.settings.captionDefaults[id] = captionCodes[$0] }
         }
+        section("Channels")
+        choice("Driver sorting", values: DriverChannelSortType.allCases.map { $0.getDisplayName() }, selected: settings.driverChannelSorting.rawValue) { self.settings.driverChannelSorting = DriverChannelSortType(rawValue: $0) ?? DriverChannelSortType() }
+        choice("Fun driver names", values: ["Off", "On"], selected: settings.showFunNames ? 1 : 0) { self.settings.showFunNames = $0 == 1 }
+        section("diagnostics_title".localizedString)
+        stack.addArrangedSubview(TVDesign.button("diagnostics_error_log".localizedString) { [weak self] in
+            self?.presentFullscreen(viewController: ErrorLogViewController())
+        })
+        section("About")
+        let version = Bundle.main.object(forInfoDictionaryKey: "CFBundleShortVersionString") as? String ?? ""
+        let build = Bundle.main.object(forInfoDictionaryKey: "CFBundleVersion") as? String ?? ""
+        stack.addArrangedSubview(TVDesign.button("About F1 Apple TV") { [weak self] in
+            let about = UIViewController()
+            about.view.backgroundColor = ConstantsUtil.brandingBackgroundColor
+            let panel = TVDesign.stack(in: about.view, title: "About")
+            panel.addArrangedSubview(TVDesign.label("F1 Apple TV · \(version) (\(build))"))
+            panel.addArrangedSubview(TVDesign.label("disclaimer".localizedString, size: 25))
+            panel.addArrangedSubview(TVDesign.button("Close") { [weak about] in about?.dismiss(animated: true) })
+            self?.present(about, animated: true)
+        })
     }
-    
-    override func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
-        switch indexPath.section {
-        case 0:
-            let cell = tableView.dequeueReusableCell(withIdentifier: ConstantsUtil.templateTableViewCell, for: indexPath) as! TemplateTableViewCell
-            
-            cell.contentStackView.arrangedSubviews.forEach({$0.removeFromSuperview()})
-            
-            cell.unselectedBackgroundColor = .clear
-            cell.userInterfaceStyleChanged()
-            
-            let titleLabel = UILabel()
-            titleLabel.font = UIFont(name: "Formula1-Display-Regular", size: 18)
-            titleLabel.textColor = .white
-            titleLabel.text = "settings_show_fun_names_title".localizedString
-            titleLabel.minimumScaleFactor = 0.5
-            titleLabel.adjustsFontSizeToFitWidth = true
-            titleLabel.allowsDefaultTighteningForTruncation = true
-            
-            if(self.playerSettings.showFunNames) {
-                let selectedImage = UIImageView()
-                selectedImage.image = UIImage(systemName: "checkmark.circle.fill")
-                selectedImage.tintColor = .systemBlue
-                selectedImage.contentMode = .scaleAspectFit
-                
-                NSLayoutConstraint.activate([
-                    selectedImage.widthAnchor.constraint(equalToConstant: 50),
-                    selectedImage.heightAnchor.constraint(equalToConstant: 50)
-                ])
-                
-                cell.addViewsToStackView(views: [titleLabel, selectedImage])
-            }else{
-                cell.addViewsToStackView(views: [titleLabel])
+    private func section(_ title: String) { stack.addArrangedSubview(TVDesign.label(title, size: 30, bold: true)) }
+    private func choice(_ title: String, values: [String], selected: Int, legacy: String? = nil, change: @escaping (Int) -> Void) {
+        let button = TVActionButton(type: .custom)
+        button.contentHorizontalAlignment = .left
+        var current = min(max(0, selected), values.count - 1)
+        button.setTitle(title + "    ·    " + (legacy ?? values[current]), for: .normal)
+        button.addAction(UIAction { [weak self, weak button] _ in
+            guard let self else { return }
+            let alert = UIAlertController(title: title, message: nil, preferredStyle: .actionSheet)
+            for (index, value) in values.enumerated() {
+                alert.addAction(UIAlertAction(title: value + (index == current && legacy == nil ? " ✓" : ""), style: .default) { _ in
+                    current = index; change(index)
+                    button?.setTitle(title + "    ·    " + value, for: .normal)
+                    CredentialHelper.setPlayerSettings(playerSettings: self.settings)
+                    NotificationCenter.default.post(name: .tvSettingsChanged, object: nil)
+                })
             }
-            
-            return cell
-            
-        case 1:
-            let cell = tableView.dequeueReusableCell(withIdentifier: ConstantsUtil.templateTableViewCell, for: indexPath) as! TemplateTableViewCell
-            
-            cell.contentStackView.arrangedSubviews.forEach({$0.removeFromSuperview()})
-            
-            cell.unselectedBackgroundColor = .clear
-            cell.userInterfaceStyleChanged()
-            
-            let currentType = DriverChannelSortType.init(rawValue: indexPath.row)
-            
-            let titleLabel = UILabel()
-            titleLabel.font = UIFont(name: "Formula1-Display-Regular", size: 28)
-            titleLabel.textColor = .white
-            titleLabel.text = currentType?.getDisplayName()
-            
-            if(currentType == self.playerSettings.driverChannelSorting) {
-                let selectedImage = UIImageView()
-                selectedImage.image = UIImage(systemName: "checkmark.circle.fill")
-                selectedImage.tintColor = .systemBlue
-                selectedImage.contentMode = .scaleAspectFit
-                
-                NSLayoutConstraint.activate([
-                    selectedImage.widthAnchor.constraint(equalToConstant: 50),
-                    selectedImage.heightAnchor.constraint(equalToConstant: 50)
-                ])
-                
-                cell.addViewsToStackView(views: [titleLabel, selectedImage])
-            }else{
-                cell.addViewsToStackView(views: [titleLabel])
-            }
-            
-            return cell
-            
-        default:
-            return self.getDefaultNoContentTableViewCell(tableView, cellForRowAt: indexPath)
-            
-        }
-    }
-    
-    override func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
-        switch indexPath.section {
-        case 0:
-            self.playerSettings.showFunNames = !self.playerSettings.showFunNames
-            
-            CredentialHelper.setPlayerSettings(playerSettings: self.playerSettings)
-            self.tableView.reloadDataWithDissolve()
-            
-        case 1:
-            let selectedType = DriverChannelSortType.init(rawValue: indexPath.row) ?? DriverChannelSortType()
-            self.playerSettings.driverChannelSorting = selectedType
-            
-            CredentialHelper.setPlayerSettings(playerSettings: self.playerSettings)
-            self.tableView.reloadDataWithDissolve()
-            
-        default:
-            print("No action")
-            
-        }
-    }
-    
-    override func tableView(_ tableView: UITableView, titleForHeaderInSection section: Int) -> String? {
-        switch section {
-        case 0:
-            return "settings_fun_header".localizedString
-            
-        case 1:
-            return "settings_driver_channel_sorting_title".localizedString
-            
-        default:
-            return nil
-            
-        }
-    }
-    
-    override func tableView(_ tableView: UITableView, titleForFooterInSection section: Int) -> String? {
-        switch section {
-        default:
-            return nil
-            
-        }
+            alert.addAction(UIAlertAction(title: "Cancel", style: .cancel))
+            self.present(alert, animated: true)
+        }, for: .primaryActionTriggered)
+        stack.addArrangedSubview(button)
     }
 }

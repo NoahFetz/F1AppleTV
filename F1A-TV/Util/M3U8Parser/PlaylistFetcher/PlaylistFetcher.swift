@@ -57,7 +57,7 @@ public class DefaultPlaylistFetcher: PlaylistFetcher {
         let task = URLSession.shared.dataTask(with: urlRequest) { (data, response, error) in
             // make sure no error
             guard (error == nil) else {
-                print("There was an error with your request: \(String(describing: error))")
+                print("Playlist request failed")
                 taskError = PlaylistFetcherError.error(error!)
                 taskSemaphore.signal()
                 return
@@ -101,7 +101,7 @@ public class DefaultPlaylistFetcher: PlaylistFetcher {
         let task = URLSession.shared.dataTask(with: urlRequest) { (data, response, error) in
             // make sure no error
             guard (error == nil) else {
-                print("There was an error with your request: \(String(describing: error))")
+                print("Playlist request failed")
                 completionHandler(.failure(error))
                 return
             }

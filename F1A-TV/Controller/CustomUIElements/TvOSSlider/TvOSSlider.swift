@@ -21,16 +21,18 @@ private let defaultTrackColor: UIColor = .gray
 private let defaultMininumTrackTintColor: UIColor = .blue
 private let defaultFocusScaleFactor: CGFloat = 1.1
 private let defaultStepValue: Float = 0.1
-private let decelerationRate: Float = 0.01
-private let decelerationMaxVelocity: Float = 90
-private let fineTunningVelocityThreshold: Float = 60
+private let decelerationRate: Float = 0.82
+private let decelerationMaxVelocity: Float = 1_200
+private let fineTunningVelocityThreshold: Float = 260
+private let pressRepeatInitialDelay: TimeInterval = 0.38
+private let pressRepeatInterval: TimeInterval = 0.12
 
 /// A control used to select a single value from a continuous range of values.
 public final class TvOSSlider: UIControl {
     var expectedLayoutWidth: CGFloat = 0
-    
+
     // MARK: - Public
-    
+
     /// The slider’s current value.
     @IBInspectable
     public var value: Float {
@@ -40,18 +42,18 @@ public final class TvOSSlider: UIControl {
         set {
             storedValue = min(maximumValue, newValue)
             storedValue = max(minimumValue, storedValue)
-            
+
             var trackWidth = trackView.bounds.width
             if(trackWidth == 0) {
                 trackWidth = self.expectedLayoutWidth
             }
-            
+
             var offset = trackWidth * CGFloat((storedValue - minimumValue) / (maximumValue - minimumValue))
             offset = min(trackWidth, offset)
             thumbViewCenterXConstraint.constant = offset
         }
     }
-    
+
     /// The minimum value of the slider.
     @IBInspectable
     public var minimumValue: Float = defaultMinimumValue {
@@ -59,7 +61,7 @@ public final class TvOSSlider: UIControl {
             value = max(value, minimumValue)
         }
     }
-    
+
     /// The maximum value of the slider.
     @IBInspectable
     public var maximumValue: Float = defaultMaximumValue {
@@ -67,11 +69,11 @@ public final class TvOSSlider: UIControl {
             value = min(value, maximumValue)
         }
     }
-    
+
     /// A Boolean value indicating whether changes in the slider’s value generate continuous update events.
     @IBInspectable
     public var isContinuous: Bool = defaultIsContinuous
-    
+
     /// The color used to tint the default minimum track images.
     @IBInspectable
     public var minimumTrackTintColor: UIColor? = defaultMininumTrackTintColor {
@@ -79,7 +81,7 @@ public final class TvOSSlider: UIControl {
             minimumTrackView.backgroundColor = minimumTrackTintColor
         }
     }
-    
+
     /// The color used to tint the default maximum track images.
     @IBInspectable
     public var maximumTrackTintColor: UIColor? {
@@ -87,7 +89,7 @@ public final class TvOSSlider: UIControl {
             maximumTrackView.backgroundColor = maximumTrackTintColor
         }
     }
-    
+
     /// The color used to tint the default thumb images.
     @IBInspectable
     public var thumbTintColor: UIColor = defaultThumbTintColor {
@@ -95,7 +97,7 @@ public final class TvOSSlider: UIControl {
             thumbView.backgroundColor = thumbTintColor
         }
     }
-    
+
     /// Scale factor applied to the slider when receiving the focus
     @IBInspectable
     public var focusScaleFactor: CGFloat = defaultFocusScaleFactor {
@@ -103,21 +105,38 @@ public final class TvOSSlider: UIControl {
             updateStateDependantViews()
         }
     }
-    
+
     /// Value added or subtracted from the current value on steps left or right updates
     public var stepValue: Float = defaultStepValue
-    
+
+    /// Enables native-style accelerated stepping when left or right is held.
+    public var allowsPressRepeat = true
+
+    /// Requires Select before the slider captures directional input.
+    public var requiresSelectToAdjust = false
+
+    /// Notifies an owning view when exclusive adjustment mode changes.
+    public var adjustmentStateDidChange: ((Bool) -> Void)?
+
+    /// Whether the slider has captured directional input after the user presses Select.
+    public private(set) var isAdjusting = false {
+        didSet {
+            updateStateDependantViews()
+            adjustmentStateDidChange?(isAdjusting)
+        }
+    }
+
     /**
      Sets the slider’s current value, allowing you to animate the change visually.
-     
+
      - Parameters:
         - value: The new value to assign to the value property
         - animated: Specify true to animate the change in value; otherwise, specify false to update the slider’s appearance immediately. Animations are performed asynchronously and do not block the calling thread.
      */
     public func setValue(_ value: Float, animated: Bool) {
         self.value = value
-        stopDeceleratingTimer()
-        
+        stopDeceleratingTimer(sendValueChanged: false)
+
         if animated {
             UIView.animate(withDuration: animationDuration) {
                 self.setNeedsLayout()
@@ -125,10 +144,10 @@ public final class TvOSSlider: UIControl {
             }
         }
     }
-    
+
     /**
      Assigns a minimum track image to the specified control states.
-     
+
      - Parameters:
         - image: The minimum track image to associate with the specified states.
         - state: The control state with which to associate the image.
@@ -137,10 +156,10 @@ public final class TvOSSlider: UIControl {
         minimumTrackViewImages[state.rawValue] = image
         updateStateDependantViews()
     }
-    
+
     /**
      Assigns a maximum track image to the specified control states.
-     
+
      - Parameters:
         - image: The maximum track image to associate with the specified states.
         - state: The control state with which to associate the image.
@@ -149,10 +168,10 @@ public final class TvOSSlider: UIControl {
         maximumTrackViewImages[state.rawValue] = image
         updateStateDependantViews()
     }
-    
+
     /**
      Assigns a thumb image to the specified control states.
-     
+
      - Parameters:
         - image: The thumb image to associate with the specified states.
         - state: The control state with which to associate the image.
@@ -161,183 +180,198 @@ public final class TvOSSlider: UIControl {
         thumbViewImages[state.rawValue] = image
         updateStateDependantViews()
     }
-    
+
     /// The minimum track image currently being used to render the slider.
     public var currentMinimumTrackImage: UIImage? {
         return minimumTrackView.image
     }
-    
+
     /// Contains the maximum track image currently being used to render the slider.
     public var currentMaximumTrackImage: UIImage? {
         return maximumTrackView.image
     }
-    
+
     /// The thumb image currently being used to render the slider.
     public var currentThumbImage: UIImage? {
         return thumbView.image
     }
-    
+
     /**
      Returns the minimum track image associated with the specified control state.
-     
+
      - Parameters:
         - state: The control state whose minimum track image you want to use. Specify a single control state value for this parameter.
-     
+
     - Returns: The minimum track image associated with the specified state, or nil if no image has been set. This method might also return nil if you specify multiple control states in the state parameter. For a description of track images, see Customizing the Slider’s Appearance.
      */
     public func minimumTrackImage(for state: UIControl.State) -> UIImage? {
         return minimumTrackViewImages[state.rawValue]
     }
-    
+
     /**
      Returns the maximum track image associated with the specified control state.
-     
+
      - Parameters:
         - state: The control state whose maximum track image you want to use. Specify a single control state value for this parameter.
-     
+
      - Returns: The maximum track image associated with the specified state, or nil if an appropriate image could not be retrieved. This method might return nil if you specify multiple control states in the state parameter. For a description of track images, see Customizing the Slider’s Appearance.
      */
     public func maximumTrackImage(for state: UIControl.State) -> UIImage? {
         return maximumTrackViewImages[state.rawValue]
     }
-    
+
     /**
      Returns the thumb image associated with the specified control state.
-     
+
      - Parameters:
         - state: The control state whose thumb image you want to use. Specify a single control state value for this parameter.
-     
+
      - Returns: The thumb image associated with the specified state, or nil if an appropriate image could not be retrieved. This method might return nil if you specify multiple control states in the state parameter. For a description of track and thumb images, see Customizing the Slider’s Appearance.
      */
     public func thumbImage(for state: UIControl.State) -> UIImage? {
         return thumbViewImages[state.rawValue]
     }
-    
+
     // MARK: - Initializers
-    
+
     /// :nodoc:
     public override init(frame: CGRect) {
         super.init(frame: frame)
         setUpView()
     }
-    
+
     /// :nodoc:
     public required init?(coder aDecoder: NSCoder) {
         super.init(coder: aDecoder)
         setUpView()
     }
-    
+
     deinit {
+        stopDirectionalPressRepeat()
+        focusRetentionTimer?.invalidate()
         NotificationCenter.default.removeObserver(self)
     }
-    
+
     // MARK: - UIControlStates
-    
+
     /// :nodoc:
     public override var isEnabled: Bool {
         didSet {
             panGestureRecognizer.isEnabled = isEnabled
+            if !isEnabled {
+                stopDirectionalPressRepeat()
+                focusRetentionTimer?.invalidate()
+                shouldRetainFocusForDirectionalInput = false
+                isAdjusting = false
+            }
             updateStateDependantViews()
         }
     }
-    
+
     /// :nodoc:
     public override var isSelected: Bool {
         didSet {
             updateStateDependantViews()
         }
     }
-    
+
     /// :nodoc:
     public override var isHighlighted: Bool {
         didSet {
             updateStateDependantViews()
         }
     }
-    
+
     /// :nodoc:
     public override func didUpdateFocus(in context: UIFocusUpdateContext, with coordinator: UIFocusAnimationCoordinator) {
         coordinator.addCoordinatedAnimations({
             self.updateStateDependantViews()
         }, completion: nil)
     }
-    
+
     // MARK: - Private
-    
+
     private typealias ControlState = UInt
-    
+
     public var storedValue: Float = defaultValue
-    
+
     private var thumbViewImages: [ControlState: UIImage] = [:]
     private var thumbView: UIImageView!
-    
+
     private var trackViewImages: [ControlState: UIImage] = [:]
     private var trackView: UIImageView!
-    
+
     private var minimumTrackViewImages: [ControlState: UIImage] = [:]
     private var minimumTrackView: UIImageView!
-    
+
     private var maximumTrackViewImages: [ControlState: UIImage] = [:]
     private var maximumTrackView: UIImageView!
-    
+
     private var panGestureRecognizer: UIPanGestureRecognizer!
-    private var leftTapGestureRecognizer: UITapGestureRecognizer!
-    private var rightTapGestureRecognizer: UITapGestureRecognizer!
-    
+
     private var thumbViewCenterXConstraint: NSLayoutConstraint!
-    
+
     private var dPadState: DPadState = .select
-    
+
     private weak var deceleratingTimer: Timer?
     private var deceleratingVelocity: Float = 0
-    
+    private var directionalPressRepeatTimer: Timer?
+    private var directionalPressDirection: Float?
+    private var directionalPressStartedAt: Date?
+    private var isHandlingDirectionalSelectPress = false
+    private var isHandlingDirectionalPress = false
+    private var focusRetentionTimer: Timer?
+    private var shouldRetainFocusForDirectionalInput = false
+
     private var thumbViewCenterXConstraintConstant: Float = 0
-    
+
     private func setUpView() {
         setUpTrackView()
         setUpMinimumTrackView()
         setUpMaximumTrackView()
         setUpThumbView()
-        
+
         setUpTrackViewConstraints()
         setUpMinimumTrackViewConstraints()
         setUpMaximumTrackViewConstraints()
         setUpThumbViewConstraints()
-        
+
         setUpGestures()
-        
+        isAccessibilityElement = true
+        accessibilityTraits.insert(.adjustable)
+
         NotificationCenter.default.addObserver(self, selector: #selector(controllerConnected(note:)), name: .GCControllerDidConnect, object: nil)
         updateStateDependantViews()
     }
-    
+
     private func setUpThumbView() {
         thumbView = UIImageView()
         thumbView.layer.cornerRadius = thumbSize/2
         thumbView.backgroundColor = thumbTintColor
         addSubview(thumbView)
     }
-    
+
     private func setUpTrackView() {
         trackView = UIImageView()
         trackView.layer.cornerRadius = trackViewHeight/2
         trackView.backgroundColor = defaultTrackColor
         addSubview(trackView)
     }
-    
+
     private func setUpMinimumTrackView() {
         minimumTrackView = UIImageView()
         minimumTrackView.layer.cornerRadius = trackViewHeight/2
         minimumTrackView.backgroundColor = minimumTrackTintColor
         addSubview(minimumTrackView)
     }
-    
+
     private func setUpMaximumTrackView() {
         maximumTrackView = UIImageView()
         maximumTrackView.layer.cornerRadius = trackViewHeight/2
         maximumTrackView.backgroundColor = maximumTrackTintColor
         addSubview(maximumTrackView)
     }
-    
+
     private func setUpTrackViewConstraints() {
         trackView.translatesAutoresizingMaskIntoConstraints = false
         trackView.leadingAnchor.constraint(equalTo: leadingAnchor).isActive = true
@@ -345,7 +379,7 @@ public final class TvOSSlider: UIControl {
         trackView.centerYAnchor.constraint(equalTo: centerYAnchor).isActive = true
         trackView.heightAnchor.constraint(equalToConstant: trackViewHeight).isActive = true
     }
-    
+
     private func setUpMinimumTrackViewConstraints() {
         minimumTrackView.translatesAutoresizingMaskIntoConstraints = false
         minimumTrackView.leadingAnchor.constraint(equalTo: trackView.leadingAnchor).isActive = true
@@ -353,7 +387,7 @@ public final class TvOSSlider: UIControl {
         minimumTrackView.centerYAnchor.constraint(equalTo:trackView.centerYAnchor).isActive = true
         minimumTrackView.heightAnchor.constraint(equalToConstant: trackViewHeight).isActive = true
     }
-    
+
     private func setUpMaximumTrackViewConstraints() {
         maximumTrackView.translatesAutoresizingMaskIntoConstraints = false
         maximumTrackView.leadingAnchor.constraint(equalTo: thumbView.centerXAnchor).isActive = true
@@ -361,7 +395,7 @@ public final class TvOSSlider: UIControl {
         maximumTrackView.centerYAnchor.constraint(equalTo:trackView.centerYAnchor).isActive = true
         maximumTrackView.heightAnchor.constraint(equalToConstant: trackViewHeight).isActive = true
     }
-    
+
     private func setUpThumbViewConstraints() {
         thumbView.translatesAutoresizingMaskIntoConstraints = false
         thumbView.centerYAnchor.constraint(equalTo: centerYAnchor).isActive = true
@@ -370,44 +404,51 @@ public final class TvOSSlider: UIControl {
         thumbViewCenterXConstraint = thumbView.centerXAnchor.constraint(equalTo: trackView.leadingAnchor, constant: CGFloat(value))
         thumbViewCenterXConstraint.isActive = true
     }
-    
+
     private func setUpGestures() {
         panGestureRecognizer = UIPanGestureRecognizer(target: self, action: #selector(panGestureWasTriggered(panGestureRecognizer:)))
         addGestureRecognizer(panGestureRecognizer)
-        
-        leftTapGestureRecognizer = UITapGestureRecognizer(target: self, action: #selector(downTapWasTriggered))
-        leftTapGestureRecognizer.allowedPressTypes = [NSNumber(value: UIPress.PressType.downArrow.rawValue)] //We do it vertically here
-        leftTapGestureRecognizer.allowedTouchTypes = [NSNumber(value: UITouch.TouchType.indirect.rawValue)]
-        addGestureRecognizer(leftTapGestureRecognizer)
-        
-        rightTapGestureRecognizer = UITapGestureRecognizer(target: self, action: #selector(upTapWasTriggered))
-        rightTapGestureRecognizer.allowedPressTypes = [NSNumber(value: UIPress.PressType.upArrow.rawValue)] //We do it vertically here
-        rightTapGestureRecognizer.allowedTouchTypes = [NSNumber(value: UITouch.TouchType.indirect.rawValue)]
-        addGestureRecognizer(rightTapGestureRecognizer)
     }
-    
+
     private func updateStateDependantViews() {
         minimumTrackView.image = minimumTrackViewImages[state.rawValue] ?? minimumTrackViewImages[UIControl.State.normal.rawValue]
         maximumTrackView.image = maximumTrackViewImages[state.rawValue] ?? maximumTrackViewImages[UIControl.State.normal.rawValue]
         thumbView.image = thumbViewImages[state.rawValue] ?? thumbViewImages[UIControl.State.normal.rawValue]
-        
+
         if isFocused {
             transform = CGAffineTransform(scaleX: focusScaleFactor, y: focusScaleFactor)
+            trackView.transform = CGAffineTransform(scaleX: 1, y: 1.8)
+            minimumTrackView.transform = CGAffineTransform(scaleX: 1, y: 1.8)
+            maximumTrackView.transform = CGAffineTransform(scaleX: 1, y: 1.8)
+            thumbView.transform = CGAffineTransform(scaleX: 1.3, y: 1.3)
+            thumbView.layer.shadowColor = UIColor.white.cgColor
+            thumbView.layer.shadowOpacity = 0.75
+            thumbView.layer.shadowRadius = 8
+            thumbView.layer.shadowOffset = .zero
+            layer.borderColor = UIColor.white.withAlphaComponent(0.9).cgColor
+            layer.borderWidth = isAdjusting ? 3 : 2
+            layer.cornerRadius = 10
         }
         else {
             transform = CGAffineTransform.identity
+            trackView.transform = .identity
+            minimumTrackView.transform = .identity
+            maximumTrackView.transform = .identity
+            thumbView.transform = .identity
+            thumbView.layer.shadowOpacity = 0
+            layer.borderWidth = 0
         }
     }
-    
+
     @objc private func controllerConnected(note: NSNotification) {
         guard let controller = note.object as? GCController else { return }
         guard let micro = controller.microGamepad else { return }
-        
+
         let threshold: Float = 0.7
         micro.reportsAbsoluteDpadValues = true
         micro.dpad.valueChangedHandler = {
             [weak self] (pad, x, y) in
-            
+
             if x < -threshold {
                 self?.dPadState = .left
             }
@@ -419,59 +460,134 @@ public final class TvOSSlider: UIControl {
             }
         }
     }
-    
+
     @objc
     private func handleDeceleratingTimer(timer: Timer) {
         let centerX = thumbViewCenterXConstraintConstant + deceleratingVelocity * 0.01
         let percent = centerX / Float(trackView.frame.width)
         value = minimumValue + ((maximumValue - minimumValue) * percent)
-        
+
         if isContinuous {
             sendActions(for: .valueChanged)
         }
-        
+
         thumbViewCenterXConstraintConstant = Float(thumbViewCenterXConstraint.constant)
-        
+
         deceleratingVelocity *= decelerationRate
         if !isFocused || abs(deceleratingVelocity) < 1 {
             stopDeceleratingTimer()
+            sendActions(for: .editingDidEnd)
         }
     }
-    
-    private func stopDeceleratingTimer() {
+
+    private func stopDeceleratingTimer(sendValueChanged: Bool = true) {
         deceleratingTimer?.invalidate()
         deceleratingTimer = nil
         deceleratingVelocity = 0
-        sendActions(for: .valueChanged)
-    }
-    
-    //For the F1TV App we do it vertical and not horizontal so the return values are inverted
-    private func isVerticalGesture(_ recognizer: UIPanGestureRecognizer) -> Bool {
-        let translation = recognizer.translation(in: self)
-        if abs(translation.y) > abs(translation.x) {
-            return false
+        if sendValueChanged {
+            sendActions(for: .valueChanged)
         }
-        return true
     }
-    
+
+    private func changeValue(by direction: Float, multiplier: Float = 1) {
+        let previousValue = value
+        value += direction * stepValue * multiplier
+
+        if value != previousValue {
+            sendActions(for: .valueChanged)
+        }
+    }
+
+    private func startDirectionalPressRepeat(direction: Float) {
+        guard allowsPressRepeat else { return }
+
+        stopDirectionalPressRepeat()
+        directionalPressDirection = direction
+        directionalPressStartedAt = Date()
+
+        let timer = Timer.scheduledTimer(withTimeInterval: pressRepeatInterval, repeats: true) { [weak self] _ in
+            guard let self = self, let direction = self.directionalPressDirection, let startedAt = self.directionalPressStartedAt else { return }
+
+            let heldDuration = Date().timeIntervalSince(startedAt)
+            guard heldDuration >= pressRepeatInitialDelay else { return }
+
+            let multiplier: Float
+            switch heldDuration {
+            case 1.5...:
+                multiplier = 4
+            case 0.9...:
+                multiplier = 2
+            default:
+                multiplier = 1
+            }
+
+            self.changeValue(by: direction, multiplier: multiplier)
+        }
+        RunLoop.main.add(timer, forMode: .common)
+        directionalPressRepeatTimer = timer
+    }
+
+    private func stopDirectionalPressRepeat() {
+        directionalPressRepeatTimer?.invalidate()
+        directionalPressRepeatTimer = nil
+        directionalPressDirection = nil
+        directionalPressStartedAt = nil
+    }
+
+    private func retainFocusForDirectionalInput() {
+        shouldRetainFocusForDirectionalInput = true
+    }
+
+    private func releaseFocusRetentionAfterDirectionalPress() {
+        focusRetentionTimer?.invalidate()
+        focusRetentionTimer = Timer.scheduledTimer(withTimeInterval: 0.2, repeats: false) { [weak self] _ in
+            self?.shouldRetainFocusForDirectionalInput = false
+        }
+    }
+
+    private func toggleAdjustmentMode() {
+        guard requiresSelectToAdjust else { return }
+
+        isAdjusting.toggle()
+        stopDirectionalPressRepeat()
+        isHandlingDirectionalPress = false
+        isHandlingDirectionalSelectPress = false
+
+        if isAdjusting {
+            sendActions(for: .editingDidBegin)
+        } else {
+            shouldRetainFocusForDirectionalInput = false
+            focusRetentionTimer?.invalidate()
+            sendActions(for: .editingDidEnd)
+        }
+    }
+
+    private var acceptsDirectionalInput: Bool {
+        return !requiresSelectToAdjust || isAdjusting
+    }
+
     // MARK: - Actions
-    
+
     @objc
     private func panGestureWasTriggered(panGestureRecognizer: UIPanGestureRecognizer) {
-        if self.isVerticalGesture(panGestureRecognizer) {
+        let translation = panGestureRecognizer.translation(in: self)
+        guard abs(translation.x) >= abs(translation.y) else {
             return
         }
-        
-        //For the F1TV App we do it vertical and not horizontal so we need to invert the y value to make it go in the right direction
-        let translation = -Float(panGestureRecognizer.translation(in: self).y)
-        let velocity = Float(panGestureRecognizer.velocity(in: self).y)
-        
+
+        let horizontalTranslation = Float(translation.x)
+        let horizontalVelocity = Float(panGestureRecognizer.velocity(in: self).x)
+
         switch panGestureRecognizer.state {
         case .began:
-            stopDeceleratingTimer()
+            if requiresSelectToAdjust && !isAdjusting {
+                isAdjusting = true
+            }
+            stopDeceleratingTimer(sendValueChanged: false)
             thumbViewCenterXConstraintConstant = Float(thumbViewCenterXConstraint.constant)
+            sendActions(for: .editingDidBegin)
         case .changed:
-            let centerX = thumbViewCenterXConstraintConstant + translation / 5
+            let centerX = thumbViewCenterXConstraintConstant + horizontalTranslation
             let percent = centerX / Float(trackView.frame.width)
             value = minimumValue + ((maximumValue - minimumValue) * percent)
             if isContinuous {
@@ -479,46 +595,124 @@ public final class TvOSSlider: UIControl {
             }
         case .ended, .cancelled:
             thumbViewCenterXConstraintConstant = Float(thumbViewCenterXConstraint.constant)
-            
-            if abs(velocity) > fineTunningVelocityThreshold {
-                let direction: Float = velocity > 0 ? 1 : -1
-                deceleratingVelocity = abs(velocity) > decelerationMaxVelocity ? decelerationMaxVelocity * direction : velocity
+
+            if abs(horizontalVelocity) > fineTunningVelocityThreshold {
+                let direction: Float = horizontalVelocity > 0 ? 1 : -1
+                deceleratingVelocity = abs(horizontalVelocity) > decelerationMaxVelocity ? decelerationMaxVelocity * direction : horizontalVelocity
                 deceleratingTimer = Timer.scheduledTimer(timeInterval: 0.01, target: self, selector: #selector(handleDeceleratingTimer(timer:)), userInfo: nil, repeats: true)
             }
             else {
                 stopDeceleratingTimer()
+                sendActions(for: .editingDidEnd)
             }
         default:
             break
         }
     }
-    
+
     @objc
-    private func downTapWasTriggered() {
-        setValue(value-stepValue, animated: true)
+    private func decrementValue() {
+        changeValue(by: -1)
     }
-    
+
     @objc
-    private func upTapWasTriggered() {
-        setValue(value+stepValue, animated: true)
+    private func incrementValue() {
+        changeValue(by: 1)
     }
-    
+
     public override func pressesBegan(_ presses: Set<UIPress>, with event: UIPressesEvent?) {
+        var handledPress = false
+
         for press in presses {
             switch press.type {
-            case .select where dPadState == .down: //We do it vertically here
-                panGestureRecognizer.isEnabled = false
-                downTapWasTriggered()
-            case .select where dPadState == .up: //We do it vertically here
-                panGestureRecognizer.isEnabled = false
-                upTapWasTriggered()
+            case .leftArrow where acceptsDirectionalInput:
+                retainFocusForDirectionalInput()
+                decrementValue()
+                startDirectionalPressRepeat(direction: -1)
+                isHandlingDirectionalPress = true
+                handledPress = true
+            case .rightArrow where acceptsDirectionalInput:
+                retainFocusForDirectionalInput()
+                incrementValue()
+                startDirectionalPressRepeat(direction: 1)
+                isHandlingDirectionalPress = true
+                handledPress = true
+            case .select where acceptsDirectionalInput && dPadState == .left:
+                retainFocusForDirectionalInput()
+                decrementValue()
+                startDirectionalPressRepeat(direction: -1)
+                isHandlingDirectionalSelectPress = true
+                isHandlingDirectionalPress = true
+                handledPress = true
+            case .select where acceptsDirectionalInput && dPadState == .right:
+                retainFocusForDirectionalInput()
+                incrementValue()
+                startDirectionalPressRepeat(direction: 1)
+                isHandlingDirectionalSelectPress = true
+                isHandlingDirectionalPress = true
+                handledPress = true
+            case .select where requiresSelectToAdjust:
+                toggleAdjustmentMode()
+                handledPress = true
             case .select:
-                panGestureRecognizer.isEnabled = false
+                handledPress = true
             default:
                 break
             }
         }
-        panGestureRecognizer.isEnabled = true
-        super.pressesBegan(presses, with: event)
+
+        if !handledPress {
+            super.pressesBegan(presses, with: event)
+        }
+    }
+
+    public override func pressesEnded(_ presses: Set<UIPress>, with event: UIPressesEvent?) {
+        let handledDirectionalPress = isHandlingDirectionalPress && (
+            presses.contains { $0.type == .leftArrow || $0.type == .rightArrow }
+            || (isHandlingDirectionalSelectPress && presses.contains { $0.type == .select })
+        )
+
+        if handledDirectionalPress {
+            stopDirectionalPressRepeat()
+            isHandlingDirectionalPress = false
+            isHandlingDirectionalSelectPress = false
+            releaseFocusRetentionAfterDirectionalPress()
+            return
+        }
+
+        super.pressesEnded(presses, with: event)
+    }
+
+    public override func pressesCancelled(_ presses: Set<UIPress>, with event: UIPressesEvent?) {
+        let handledDirectionalPress = isHandlingDirectionalPress && (
+            presses.contains { $0.type == .leftArrow || $0.type == .rightArrow }
+            || (isHandlingDirectionalSelectPress && presses.contains { $0.type == .select })
+        )
+
+        if handledDirectionalPress {
+            stopDirectionalPressRepeat()
+            isHandlingDirectionalPress = false
+            isHandlingDirectionalSelectPress = false
+            releaseFocusRetentionAfterDirectionalPress()
+            return
+        }
+
+        super.pressesCancelled(presses, with: event)
+    }
+
+    public override func shouldUpdateFocus(in context: UIFocusUpdateContext) -> Bool {
+        if ((requiresSelectToAdjust && isAdjusting) || shouldRetainFocusForDirectionalInput) && context.previouslyFocusedView === self {
+            return false
+        }
+
+        return super.shouldUpdateFocus(in: context)
+    }
+
+    public override func accessibilityIncrement() {
+        incrementValue()
+    }
+
+    public override func accessibilityDecrement() {
+        decrementValue()
     }
 }

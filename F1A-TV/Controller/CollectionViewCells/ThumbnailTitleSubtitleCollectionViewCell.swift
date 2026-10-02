@@ -126,7 +126,7 @@ class ThumbnailTitleSubtitleCollectionViewCell: BaseCollectionViewCell {
                 with: url,
                 options: [
                     .processor(processor),
-                    .scaleFactor(UIScreen.main.scale),
+                    .scaleFactor(self.traitCollection.displayScale),
                     .transition(.fade(0.2)),
                     .cacheOriginalImage
                 ], completionHandler:

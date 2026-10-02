@@ -1,0 +1,29 @@
+{
+  "resultCode": "OK",
+  "resultObj": {
+    "containers": [
+      {
+        "layout": "future-widget"
+      },
+      {
+        "layout": "horizontal_thumbnail",
+        "retrieveItems": {
+          "resultObj": {
+            "containers": [
+              false,
+              {
+                "metadata": {
+                  "contentType": "VIDEO",
+                  "contentId": "123",
+                  "emfAttributes": {
+                    "sessionStartDate": "1800000000000"
+                  }
+                }
+              }
+            ]
+          }
+        }
+      }
+    ]
+  }
+}

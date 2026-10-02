@@ -1,0 +1,10 @@
+{
+  "PhysicalDevice": {
+    "AuthenticationKey": "",
+    "DeviceId": "device"
+  },
+  "SessionId": "",
+  "data": {
+    "subscriptionToken": ""
+  }
+}

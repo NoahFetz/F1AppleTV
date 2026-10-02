@@ -1,0 +1,111 @@
+{
+  "resultObj": {
+    "containers": [
+      {
+        "metadata": {
+          "label": "Home",
+          "imageUrl": ""
+        },
+        "actions": [
+          {
+            "key": "onClick",
+            "uri": "/2.0/R/ENG/WEB_HLS/ALL/PAGE/395/PREMIUM/14",
+            "targetType": "PAGE",
+            "href": "/"
+          }
+        ]
+      },
+      {
+        "metadata": {
+          "label": "2026 Season",
+          "imageUrl": ""
+        },
+        "actions": [
+          {
+            "key": "onClick",
+            "uri": "/2.0/R/ENG/WEB_HLS/ALL/PAGE/12343/PREMIUM/14",
+            "targetType": "PAGE",
+            "href": "/page/12343/2026-season"
+          }
+        ]
+      },
+      {
+        "metadata": {
+          "label": "Archive",
+          "imageUrl": ""
+        },
+        "actions": [
+          {
+            "key": "onClick",
+            "uri": "/2.0/R/ENG/WEB_HLS/ALL/PAGE/493/PREMIUM/14",
+            "targetType": "PAGE",
+            "href": "/page/493/archive"
+          }
+        ]
+      },
+      {
+        "metadata": {
+          "label": "Shows",
+          "imageUrl": ""
+        },
+        "actions": [
+          {
+            "key": "onClick",
+            "uri": "/2.0/R/ENG/WEB_HLS/ALL/PAGE/410/PREMIUM/14",
+            "targetType": "PAGE",
+            "href": "/page/410/shows"
+          }
+        ]
+      },
+      {
+        "metadata": {
+          "label": "Documentaries",
+          "imageUrl": ""
+        },
+        "actions": [
+          {
+            "key": "onClick",
+            "uri": "/2.0/R/ENG/WEB_HLS/ALL/PAGE/413/PREMIUM/14",
+            "targetType": "PAGE",
+            "href": "/page/413/documentaries"
+          }
+        ]
+      },
+      {
+        "metadata": {
+          "label": "Search",
+          "imageUrl": "",
+          "type": "search"
+        },
+        "actions": [
+          {
+            "key": "onClick",
+            "uri": "/2.0/R/ENG/WEB_HLS/ALL/PAGE/5234/PREMIUM/14",
+            "targetType": "PAGE",
+            "href": "/search"
+          }
+        ]
+      },
+      {
+        "metadata": {
+          "label": "My List",
+          "imageUrl": "",
+          "feature_indentifier": "my_list"
+        },
+        "actions": [
+          {
+            "key": "onClick",
+            "uri": "/2.0/R/ENG/WEB_HLS/ALL/PAGE/7755/PREMIUM/14",
+            "targetType": "PAGE",
+            "href": "/page/7755/my-list"
+          }
+        ]
+      }
+    ]
+  },
+  "resultCode": "OK",
+  "message": "",
+  "errorDescription": "200-10000",
+  "source": "server",
+  "systemTime": 1790803612184
+}

@@ -11,11 +11,11 @@ import AVKit
 struct PlayerItem: Identifiable {
     var id = UUID().uuidString.lowercased()
     var contentItem: ContentItem
-    var entitlement: StreamEntitlementDto?
+    var entitlement: PlaybackEntitlement?
     var position: Int
-    var playerAsset: AVURLAsset?
-    var playerItem: AVPlayerItem?
     var player: FairPlayer?
+    var playerAsset: AVURLAsset? { player?.currentItem?.asset as? AVURLAsset }
+    var playerItem: AVPlayerItem? { player?.currentItem }
     
     init() {
         self.contentItem = ContentItem()

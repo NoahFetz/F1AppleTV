@@ -1,0 +1,10 @@
+{
+  "resultCode": "OK",
+  "resultObj": {
+    "entitlementToken": "fixture",
+    "url": "https://cdn.example/master.m3u8",
+    "channelId": 1033,
+    "drmType": "fairplay",
+    "laUrl": "https://license.example/license?contentId=123"
+  }
+}

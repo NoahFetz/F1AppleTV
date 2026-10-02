@@ -12,6 +12,7 @@ enum SeriesType: CaseIterable {
     case Formula1
     case Formula2
     case Formula3
+    case F1Academy
     case PorscheSuperCup
     
     init() {
@@ -29,7 +30,7 @@ enum SeriesType: CaseIterable {
     
     static func fromCapitalDisplayName(capitalDisplayName: String) -> SeriesType {
         for type in SeriesType.allCases {
-            if(type.getCapitalDisplayName() == capitalDisplayName) {
+            if(type.getCapitalDisplayName() == capitalDisplayName.uppercased()) {
                 return type
             }
         }
@@ -50,6 +51,7 @@ enum SeriesType: CaseIterable {
         case .Formula3:
             return 10
             
+        case .F1Academy: return 11
         case .PorscheSuperCup:
             return 7
         }
@@ -69,6 +71,7 @@ enum SeriesType: CaseIterable {
         case .Formula3:
             return "FORMULA 3"
             
+        case .F1Academy: return "F1 ACADEMY"
         case .PorscheSuperCup:
             return "PORSCHE"
         }
@@ -88,6 +91,7 @@ enum SeriesType: CaseIterable {
         case .Formula3:
             return "F3"
             
+        case .F1Academy: return "F1 Academy"
         case .PorscheSuperCup:
             return "PSC"
         }
@@ -102,11 +106,12 @@ enum SeriesType: CaseIterable {
             return UIColor(rgb: 0xe10600)
             
         case .Formula2:
-            return UIColor(rgb: 0x4178b1)
+            return UIColor(rgb: 0x0090d0)
             
         case .Formula3:
-            return UIColor(rgb: 0x77776e)
+            return UIColor(rgb: 0x666666)
             
+        case .F1Academy: return .cyan
         case .PorscheSuperCup:
             return UIColor(rgb: 0x4178b1)
         }

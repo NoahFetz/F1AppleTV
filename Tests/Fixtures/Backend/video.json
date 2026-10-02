@@ -1,0 +1,33 @@
+{
+  "resultCode": "OK",
+  "resultObj": {
+    "containers": [
+      {
+        "metadata": {
+          "contentType": "VIDEO",
+          "contentId": "123",
+          "title": "Fixture race",
+          "contentSubtype": "LIVE",
+          "additionalStreams": [
+            {
+              "type": "additional",
+              "title": "F1 LIVE",
+              "playbackUrl": "CONTENT/PLAY?contentId=123&channelId=1"
+            },
+            {
+              "type": "obc",
+              "title": "LECLERC",
+              "racingNumber": "16",
+              "playbackUrl": "CONTENT/PLAY?contentId=123&channelId=16"
+            },
+            {
+              "type": "unknown",
+              "title": "Unknown",
+              "playbackUrl": "CONTENT/PLAY?contentId=123&channelId=99"
+            }
+          ]
+        }
+      }
+    ]
+  }
+}

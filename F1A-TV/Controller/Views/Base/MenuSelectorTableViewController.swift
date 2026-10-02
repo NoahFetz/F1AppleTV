@@ -8,6 +8,7 @@
 import UIKit
 
 class MenuSelectorTableViewController: BaseTableViewController {
+    var services: AppServices!
     var featuredViewController: PageOverviewCollectionViewController?
     var currentSeasonViewController: PageOverviewCollectionViewController?
     var archiveViewController: PageOverviewCollectionViewController?
@@ -55,7 +56,7 @@ class MenuSelectorTableViewController: BaseTableViewController {
         backgroundImageView.layer.mask = maskLayer
         backgroundImageView.contentMode = .scaleAspectFill
         
-        backgroundImageView.image = UIImage(named: "thumb_placeholder")
+        backgroundImageView.image = CatalogBackdropArtwork.placeholder
     }
     
     func registerForTraitCollectionChange() {
@@ -143,6 +144,7 @@ class MenuSelectorTableViewController: BaseTableViewController {
         self.selectedMenuItem = context.nextFocusedIndexPath?.row ?? 0
         
         self.menuSwitchTimer = Timer.scheduledTimer(withTimeInterval: 0.4, repeats: false, block: {timer in
+            MainActor.assumeIsolated {
             switch context.nextFocusedIndexPath?.row {
             case 0:
                 self.featuredViewController = self.createPageViewController(pageUri: self.buildPageUri(pageId: MenuPageType.Home.getPageId()))
@@ -165,7 +167,7 @@ class MenuSelectorTableViewController: BaseTableViewController {
                 self.splitViewController?.showDetailViewController(self.docsViewController ?? UIViewController(), sender: self)
                 
             case 5:
-                self.accountViewController = self.getViewControllerWith(viewIdentifier: ConstantsUtil.accountOverviewViewController) as? AccountOverviewViewController
+                self.accountViewController = self.services.accountController()
                 self.splitViewController?.showDetailViewController(self.accountViewController ?? UIViewController(), sender: self)
                 
             case 6:
@@ -175,36 +177,15 @@ class MenuSelectorTableViewController: BaseTableViewController {
             default:
                 print("No action")
             }
+            }
         })
     }
     
-    override func tableView(_ tableView: UITableView, viewForFooterInSection section: Int) -> UIView? {
-        let footerStackView = UIStackView()
-        footerStackView.axis = .vertical
-        
-        let disclaimerLabel = FontAdjustedUILabel()
-        disclaimerLabel.font = UIFont(name: "Formula1-Display-Regular", size: 12)
-        disclaimerLabel.text = "disclaimer".localizedString
-        disclaimerLabel.numberOfLines = 0
-        disclaimerLabel.textAlignment = .center
-        disclaimerLabel.backgroundShadow()
-        footerStackView.addArrangedSubview(disclaimerLabel)
-        
-        return footerStackView
-    }
-    
-    override func tableView(_ tableView: UITableView, heightForFooterInSection section: Int) -> CGFloat {
-        return 300
-    }
-    
     func buildPageUri(pageId: String) -> String {
-        return "/\(APIVersionType.V2.getVersionType())/R/\(DataManager.instance.apiLanguage.getAPIKey())/\(DataManager.instance.apiStreamType.getAPIKey())/ALL/PAGE/\(pageId)/F1_TV_Pro_Annual/14"
+        return CatalogRequest.pageURI(pageID: pageId, language: APILanguageType.fromAPIKey(apiKey: "api_endpoing_language_id".localizedString).getAPIKey())
     }
     
     func createPageViewController(pageUri: String) -> PageOverviewCollectionViewController {
-        let viewController = self.getViewControllerWith(viewIdentifier: ConstantsUtil.pageOverviewCollectionViewController) as? PageOverviewCollectionViewController
-        viewController?.initialize(pageUri: pageUri)
-        
-        return viewController ?? PageOverviewCollectionViewController()
+        services.page(uri: pageUri)
     }
 }
