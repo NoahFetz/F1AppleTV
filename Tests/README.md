@@ -369,3 +369,29 @@ the simulator guard, a protected Practice 1 attempt produced a dismissible
 playback error rather than the native session-construction crash. This does not
 verify successful protected playback. The simulator build retains its linker
 warnings; the hardware build only emits the App Intents metadata warning.
+
+## Physical-device key-routing investigation (2026-10-02)
+
+The paired tvOS 26.6 Apple TV's saved diagnostics contained three playback
+failures with NSURLErrorDomain -1102, without a recorded certificate/license
+failure. Its console output alone did not identify the failed resource. Device
+Hub cannot mirror this device because screen sharing requires tvOS 27; diagnostics
+were read from the app's preferences without accessing Keychain credentials.
+
+Apple's AVAssetResourceLoaderDelegate contract requires a delegate installed on
+an AVContentKeySession recipient to classify custom key requests with
+AVStreamingKeyDeliveryContentKeyType and finish the loading request. The migration
+had returned false for `skd` requests. The delegate now performs that handoff and
+forwards resource renewals through the same handler; SPC/CKC work remains in the
+native session. This fixes a contract violation consistent with the observed
+resource-loading failure; recovery on the affected hardware is not yet verified.
+
+All 41 backend, six license-request and 33 playlist/playback/preview checks pass.
+The new policy checks cover key classification, exactly-once handoff, unowned
+keys and unrelated resources. Synthetic HLS fixtures exercise certificate
+callbacks for both native and filtered protected manifests, then deliberately
+fail certificate loading before SPC/license generation. These tests do not
+decrypt protected media or reproduce every hardware loading path. The generic
+tvOS build passes with no app-source warnings; its existing App Intents metadata
+warning remains. Retry the affected streams on a physical Apple TV using the
+updated build to confirm intermittent startup, renewals and concurrent previews.

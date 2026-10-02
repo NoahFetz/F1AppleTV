@@ -12,7 +12,7 @@ cleanup() {
 }
 trap cleanup EXIT
 if [[ "${1:-}" == "--playback" ]]; then
-    mkdir -p "$build_dir/hls/broken" "$build_dir/hls/live"
+    mkdir -p "$build_dir/hls/broken" "$build_dir/hls/live" "$build_dir/hls/fairplay"
     ffmpeg -hide_banner -loglevel error -f lavfi -i testsrc2=size=320x180:rate=25 \
         -f lavfi -i sine=frequency=440:sample_rate=48000 \
         -filter_complex '[0:v]split=2[high][low];[low]scale=160:90[small]' \
@@ -31,6 +31,14 @@ if [[ "${1:-}" == "--playback" ]]; then
     python3 - "$build_dir/hls" <<'PYFIXTURE'
 import pathlib, sys
 root = pathlib.Path(sys.argv[1])
+key = '#EXT-X-KEY:METHOD=SAMPLE-AES,URI="skd://0xfixture"'
+# Synthetic key metadata exercises native key routing, not successful DRM decryption.
+protected = (root / 'variant0.m3u8').read_text().replace('#EXT-X-VERSION:3', '#EXT-X-VERSION:5')
+protected = protected.replace('#EXTINF:', key + '\n#EXTINF:', 1)
+protected = '\n'.join('../' + line if line.endswith('.ts') else line for line in protected.splitlines())
+(root / 'fairplay' / 'media.m3u8').write_text(protected + '\n')
+master = (root / 'master.m3u8').read_text().replace('variant0.m3u8', 'media.m3u8').replace('variant1.m3u8', '../variant1.m3u8')
+(root / 'fairplay' / 'master.m3u8').write_text(master)
 tracks = root / 'tracks'
 tracks.mkdir()
 master = (root / 'master.m3u8').read_text()

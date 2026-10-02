@@ -466,6 +466,22 @@ final class BackendServiceTests: XCTestCase {
         XCTAssertNil(FairPlayLicenseRequest.assetID(for: ordinary))
     }
 
+    func testResourceLoaderClassifiesStreamingKeysAndFinishesExactlyOnce() throws {
+        for text in ["skd://0xfixture", "skd://fixture"] {
+            var contentTypes = [String]()
+            let handled = AVFoundationFairPlaySession.routeResourceKey(url: URL(string: text), hasSession: true) { contentTypes.append($0) }
+            XCTAssertTrue(handled)
+            XCTAssertEqual(contentTypes, [AVStreamingKeyDeliveryContentKeyType])
+        }
+    }
+
+    func testResourceLoaderRejectsUnownedKeysAndLeavesPlaylistsForTheirHandler() {
+        for text in [nil, "https://cdn.example/master.m3u8", "f1-resolution://playlist/fixture.m3u8", "skd://"] as [String?] {
+            XCTAssertFalse(AVFoundationFairPlaySession.routeResourceKey(url: text.flatMap(URL.init(string:)), hasSession: true) { _ in XCTFail("Unsupported resource must not finish as a key") })
+        }
+        XCTAssertFalse(AVFoundationFairPlaySession.routeResourceKey(url: URL(string: "skd://fixture"), hasSession: false) { _ in XCTFail("No native session owns this key") })
+    }
+
     func testNativeKeySessionsOwnIndependentRecipientsAndInvalidateIdempotently() throws {
         let service = TestFairPlay(fetch: { XCTFail("Registration must be lazy"); return Data([1]) }, exchange: { XCTFail("Registration must not request a license"); return Data([2]) })
         let entitlement = PlaybackEntitlement(url: "https://cdn.example/a", channelID: "1", drmType: "fairplay", licenseURL: "https://license.example/a", entitlementToken: "fixture")

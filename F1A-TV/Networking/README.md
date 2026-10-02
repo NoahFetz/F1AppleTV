@@ -35,8 +35,12 @@ provider and retry delay. No service singleton reads credentials or presents UI.
   loading, generates SPC asynchronously, and delivers decoded CKC through
   `AVContentKeyResponse`. Key renewal uses the same license flow. Session
   invalidation cancels pending work; late and duplicate SPC callbacks cannot
-  exchange or deliver licenses. The resource loader now only serves filtered
-  HLS playlists. Thumbnail generation receives the same injected FairPlay service
+  exchange or deliver licenses. The resource loader serves filtered HLS playlists
+  and marks `skd` requests (including renewals) with
+  `AVStreamingKeyDeliveryContentKeyType` before finishing them. This hands key
+  loading to the native session; it does not generate SPC or deliver CKC through
+  the resource loader. Rejecting those requests prevents the native session from
+  loading the key. Thumbnail generation receives the same injected FairPlay service
   but owns a separate key session. tvOS Simulator skips native FairPlay session
   construction, which the platform rejects with an Objective-C exception.
 

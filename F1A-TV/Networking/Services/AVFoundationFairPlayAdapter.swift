@@ -77,6 +77,14 @@ final class AVFoundationFairPlaySession: NSObject, AVContentKeySessionDelegate, 
         return nil
     }
 
+    /// With a resource-loader delegate installed, custom key requests require
+    /// explicit classification before AVFoundation hands them to this session.
+    static func routeResourceKey(url: URL?, hasSession: Bool, finish: (String) -> Void) -> Bool {
+        guard hasSession, let url, FairPlayLicenseRequest.assetID(for: url) != nil else { return false }
+        finish(AVStreamingKeyDeliveryContentKeyType)
+        return true
+    }
+
     private func onQueue(_ operation: () -> Void) {
         if DispatchQueue.getSpecific(key: queueKey) == true { operation() }
         else { queue.sync(execute: operation) }

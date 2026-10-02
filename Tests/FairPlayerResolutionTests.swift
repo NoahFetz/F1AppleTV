@@ -1,7 +1,50 @@
 import AVFoundation
 import XCTest
 
+private final class KeyRoutingService: FairPlayService, @unchecked Sendable {
+    private let lock = NSLock()
+    private var attempts = 0
+    var certificateAttempts: Int { lock.lock(); defer { lock.unlock() }; return attempts }
+    private func countAttempt() { lock.lock(); attempts += 1; lock.unlock() }
+    func certificate() async throws -> Data {
+        countAttempt()
+        // Stop before SPC generation. This fixture has no real certificate or license.
+        throw URLError(.cannotDecodeContentData)
+    }
+    func license(entitlement: PlaybackEntitlement, spc: Data, assetID: String) async throws -> Data {
+        XCTFail("Synthetic key-routing check must not exchange a license")
+        throw URLError(.cannotDecodeContentData)
+    }
+}
+
 final class FairPlayerResolutionTests: XCTestCase {
+    func testProtectedPlaylistHandsCustomKeysToNativeSession() throws {
+        try checkProtectedKeyRouting(path: "fairplay/master.m3u8")
+    }
+
+    func testProtectedNativePlaylistHandsCustomKeysToNativeSession() throws {
+        try checkProtectedKeyRouting(path: "fairplay/media.m3u8")
+    }
+
+    private func checkProtectedKeyRouting(path: String) throws {
+        guard let base = ProcessInfo.processInfo.environment["F1_RESOLUTION_FIXTURE_URL"] else {
+            throw XCTSkip("Local fixture server required")
+        }
+        let service = KeyRoutingService()
+        let player = FairPlayer()
+        defer { player.stopStream() }
+        player.reportsPlaybackErrors = false
+        player.fairPlayService = service
+        player.playStream(streamEntitlement: PlaybackEntitlement(url: base + "/" + path, channelID: "fixture", drmType: "fairplay", licenseURL: "https://license.example/fixture", entitlementToken: "fixture"))
+        let prepared = expectation(description: "Protected fixture prepared")
+        player.prepareStream { _ in prepared.fulfill() }
+        wait(for: [prepared], timeout: 12)
+        player.isMuted = true
+        player.play()
+        let routed = XCTNSPredicateExpectation(predicate: NSPredicate { _, _ in service.certificateAttempts > 0 }, object: nil)
+        XCTAssertEqual(XCTWaiter.wait(for: [routed], timeout: 8), .completed, "Custom key URLs must reach AVContentKeySession before certificate loading")
+    }
+
     private func makePlayer(path: String = "master.m3u8", maximumHeight: Int? = nil) throws -> FairPlayer {
         guard let base = ProcessInfo.processInfo.environment["F1_RESOLUTION_FIXTURE_URL"] else {
             throw XCTSkip("Run Tests/run-resolution-tests.sh --playback to generate local HLS fixtures.")

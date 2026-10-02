@@ -419,6 +419,12 @@ class FairPlayer: AVPlayer {
 
 extension FairPlayer: AVAssetResourceLoaderDelegate {
     func resourceLoader(_ resourceLoader: AVAssetResourceLoader, shouldWaitForLoadingOfRequestedResource loadingRequest: AVAssetResourceLoadingRequest) -> Bool {
+        if AVFoundationFairPlaySession.routeResourceKey(url: loadingRequest.request.url, hasSession: contentKeySession != nil, finish: { contentType in
+            // A resource-loader delegate must identify custom key URLs even when
+            // AVContentKeySession performs SPC/CKC loading. Returning false rejects the key.
+            loadingRequest.contentInformationRequest?.contentType = contentType
+            loadingRequest.finishLoading()
+        }) { return true }
         if let url = loadingRequest.request.url, url.scheme == "f1-resolution" {
             playlistLock.lock()
             let data = playlistData[url]
@@ -441,7 +447,11 @@ extension FairPlayer: AVAssetResourceLoaderDelegate {
             loadingRequest.finishLoading()
             return true
         }
-        // AVContentKeySession owns FairPlay keys; this delegate only serves local HLS playlists.
+        // Unsupported resources are not handled by this delegate.
         return false
+    }
+
+    func resourceLoader(_ resourceLoader: AVAssetResourceLoader, shouldWaitForRenewalOfRequestedResource renewalRequest: AVAssetResourceRenewalRequest) -> Bool {
+        self.resourceLoader(resourceLoader, shouldWaitForLoadingOfRequestedResource: renewalRequest)
     }
 }
