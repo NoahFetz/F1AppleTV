@@ -24,7 +24,7 @@ Builds and fixture tests do not establish authenticated physical-device playback
 
 ## Installation with TestFlight
 
-The [public TestFlight invitation](https://testflight.apple.com/join/NRswe1IZ) is currently not accepting new testers (checked October 2, 2026). Availability and the requirements of published builds may differ from the current source.
+The [public TestFlight invitation](https://testflight.apple.com/join/NRswe1IZ) is open for new testers. Availability and the requirements of published builds may differ from the current source.
 
 When the invitation is open, install TestFlight on your iPhone or iPad and Apple TV using the same App Store account, accept the invitation on the mobile device, then install F1A-TV through TestFlight on Apple TV.
 
