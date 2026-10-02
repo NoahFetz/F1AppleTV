@@ -41,6 +41,7 @@ extension PlayerCollectionViewController {
             playerItem: focusedPlayerItem,
             playerCount: self.playerItems.count,
             controlStripActionProtocol: self,
+            isLiveSession: isLiveSession,
             onDismiss: { [weak self] in
                 self?.setControlTargetPlayer(id: nil)
             }
@@ -92,6 +93,7 @@ extension PlayerCollectionViewController {
 
     func fullscreenPlayerDidDismiss() {
         if let syncPlayerItem = self.playerItems.first(where: {$0.id == self.fullscreenPlayerId}) {
+            wantsPlayback = syncPlayerItem.player?.rate != 0
             self.syncAllPlayers(with: syncPlayerItem)
             if let player = syncPlayerItem.player { self.updatePreferredDisplayCriteria(for: player) }
         }else{

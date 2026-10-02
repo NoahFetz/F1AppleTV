@@ -12,36 +12,20 @@ import AVKit
 extension PlayerCollectionViewController {
     
     func syncAllPlayers(with syncPlayerItem: PlayerItem) {
-        DispatchQueue.main.async {
-            print("Syncing all channels")
-            
-            if let currentTime = syncPlayerItem.player?.currentTime() {
-                var syncTime = CMTimeGetSeconds(currentTime)
-                
-                for playerItem in self.playerItems {
-                    if(playerItem.id == syncPlayerItem.id){
-                        continue
-                    }
-                    
-                    if let player = playerItem.player, let duration = player.currentItem?.duration {
-                        if syncTime >= CMTimeGetSeconds(duration) {
-                            syncTime = CMTimeGetSeconds(duration)
-                        }
-                        player.seek(to: CMTime(value: CMTimeValue(syncTime * 1000), timescale: 1000))
-                        
-                        if(player.timeControlStatus == .paused) {
-                            player.play()
-                        }
-                    }
-                }
-            }
-            
-            if(syncPlayerItem.player?.timeControlStatus == .paused) {
-                syncPlayerItem.player?.play()
+        guard let reference = syncPlayerItem.player else { return }
+        let identity = synchronizationGeneration
+        for playerItem in playerItems where playerItem.id != syncPlayerItem.id {
+            guard let player = playerItem.player, player.currentItem?.status == .readyToPlay else { continue }
+            StreamSynchronization.seek(player, to: reference, isCurrent: { [weak self, weak player] in
+                guard let self, let player else { return false }; return self.synchronizationGeneration == identity && self.playerItems.contains { $0.player === player }
+            }) { [weak self, weak player] done in
+                guard let self, let player, done, self.synchronizationGeneration == identity,
+                      self.playerItems.contains(where: { $0.player === player }) else { return }
+                if reference.rate == 0 { player.pause() } else { player.play() }
             }
         }
     }
-    
+
     func forwardAllPlayersBy(seconds: Float64) {
         let syncPlayerItem = self.playerItems.first
         
@@ -61,48 +45,26 @@ extension PlayerCollectionViewController {
     }
     
     func seekAllPlayersTo(time: Float64) {
-        DispatchQueue.main.async {
-            var syncTime = time
-            
-            for playerItem in self.playerItems {
-                if let player = playerItem.player, let duration = player.currentItem?.duration {
-                    if syncTime >= CMTimeGetSeconds(duration) {
-                        syncTime = CMTimeGetSeconds(duration)
-                    }
-                    player.seek(to: CMTime(value: CMTimeValue(syncTime * 1000), timescale: 1000))
-                }
-            }
+        guard time.isFinite else { return }
+        for playerItem in playerItems {
+            guard let player = playerItem.player, let item = player.currentItem else { continue }
+            let range = item.seekableTimeRanges.last?.timeRangeValue
+            let lower = range?.start.seconds ?? 0
+            let upper = range.map { CMTimeRangeGetEnd($0).seconds - 0.1 } ?? (item.duration.seconds.isFinite ? item.duration.seconds : time)
+            player.seek(to: CMTime(seconds: max(lower, min(time, max(lower, upper))), preferredTimescale: 600))
         }
     }
-    
-    func pauseAll(excludeIds: [String]? = [String]()) {
-        DispatchQueue.main.async {
-            for playerItem in self.playerItems {
-                if((excludeIds?.contains(playerItem.id) ?? false)){
-                    continue
-                }
-                
-                if let player = playerItem.player {
-                    player.pause()
-                }
-            }
-        }
+
+    func pauseAll(excludeIds: [String]? = []) {
+        if excludeIds?.isEmpty != false { wantsPlayback = false }
+        for item in playerItems where !(excludeIds?.contains(item.id) ?? false) { item.player?.pause() }
     }
-    
-    func playAll(excludeIds: [String]? = [String]()) {
-        DispatchQueue.main.async {
-            for playerItem in self.playerItems {
-                if((excludeIds?.contains(playerItem.id) ?? false)){
-                    continue
-                }
-                
-                if let player = playerItem.player {
-                    player.play()
-                }
-            }
-        }
+
+    func playAll(excludeIds: [String]? = []) {
+        wantsPlayback = true
+        for item in playerItems where !(excludeIds?.contains(item.id) ?? false) { item.player?.play() }
     }
-    
+
     func orderChannels() {
         if(self.playerItems.isEmpty) {
             return
@@ -137,26 +99,13 @@ extension PlayerCollectionViewController {
     func loadStreamEntitlement(channelItem: ContentItem) {
         self.orderChannels()
         
-        let oldCount = self.playerItems.count
-        
-        let playerItem = PlayerItem(contentItem: channelItem, position: self.playerItems.count)
-        self.playerItems.append(playerItem)
-        self.orderChannels()
-        
-        let newCount = self.playerItems.count
-        
-        // Determine update strategy
-        let strategy = LayoutUpdateStrategy.determine(
-            oldCount: oldCount,
-            newCount: newCount,
-            oldMainIndex: 0,
-            newMainIndex: 0,
-            changedIndex: newCount - 1
-        )
-        
-        // Apply the layout update
-        self.applyLayoutUpdate(strategy: strategy, changedIndex: newCount - 1, isAdding: true)
-        
+        guard !playerItems.contains(where: { $0.contentItem.previewIdentity == channelItem.previewIdentity }) else { return }
+        let playerItem = PlayerItem(contentItem: channelItem, position: playerItems.count)
+        playerItems.append(playerItem)
+        orderChannels()
+        layoutChoice = layoutChoice.afterAdding(count: playerItems.count)
+        refreshPlayerLayout()
+
         if let id = channelItem.contentId {
             if let additionalStream = channelItem.channel {
                 
@@ -216,39 +165,53 @@ extension PlayerCollectionViewController {
                 if fromStart { player.seek(to: CMTimeMakeWithSeconds(1, preferredTimescale: 1)) }
                 if currentIndex == 0 { self.updatePreferredDisplayCriteria(for: player) }
                 self.collectionView.reloadItems(at: [IndexPath(item: currentIndex, section: 0)])
+                self.observeReadiness(id: playerId, player: player)
             }
         }
     }
     
-    func waitForPlayerReadyToPlay(playerItem: PlayerItem){
-        if let player = playerItem.player {
-            DispatchQueue.global().async {
-                var tryCount = 0
-                while(player.status != .readyToPlay) {
-                    if(tryCount >= 240) { //Wait max 1 min before aborting
-                        print("Took more than 1 min to load, aborting...")
-                        return
+    func observeReadiness(id: String, player: FairPlayer) {
+        guard let item = player.currentItem else { return }
+        readyObservations[id] = item.observe(\.status, options: [.initial, .new]) { [weak self, weak player] item, _ in
+            DispatchQueue.main.async {
+                guard let self, let player, self.playerItems.contains(where: { $0.id == id && $0.player === player }),
+                      player.currentItem === item else { return }
+                guard item.status == .readyToPlay, self.initializedPlayerIDs.insert(id).inserted else { return }
+                self.readyObservations.removeValue(forKey: id)
+                guard let current = self.playerItems.first(where: { $0.id == id }) else { return }
+                self.setPreferredChannelSettings(playerItem: current)
+                if let audio = self.setupAudio.removeValue(forKey: id) { player.volume = audio.volume; player.isMuted = audio.muted }
+                if self.liveCoordinator.hasJump { self.liveCoordinator.include(AVLiveSeekSession(player)); return }
+                if let (anchor, generation) = self.startupAnchors.removeValue(forKey: id), generation == self.synchronizationGeneration {
+                    anchor.apply(to: player, isCurrent: { [weak self, weak player] in
+                        guard let self, let player else { return false }; return self.synchronizationGeneration == generation && self.playerItems.contains { $0.player === player }
+                    }) { [weak self, weak player] done in
+                        guard let self, let player, done, self.synchronizationGeneration == generation,
+                              self.playerItems.contains(where: { $0.player === player }) else { return }
+                        if !self.wantsPlayback { player.pause() } else { player.play() }
                     }
-                    tryCount += 1
-                    
-                    print("Waiting for ready to play for " + String(tryCount) + " times")
-                    usleep(250000)
+                    return
                 }
-                print("Now ready to play")
-                usleep(500000)
-                
-                DispatchQueue.main.async { self.setPreferredChannelSettings(playerItem: playerItem) }
-                
-                if let resumePlayHeadPosition = playerItem.contentItem.resumePosition, self.isFirstPlayer {
-                    self.seekAllPlayersTo(time: Float64(resumePlayHeadPosition))
+                if let reference = self.playerItems.first?.player, reference !== player {
+                    let generation = self.synchronizationGeneration
+                    StreamSynchronization.seek(player, to: reference, isCurrent: { [weak self, weak player] in
+                        guard let self, let player else { return false }; return self.synchronizationGeneration == generation && self.playerItems.contains { $0.player === player }
+                    }) { [weak self, weak player] done in
+                        guard let self, let player, done, self.synchronizationGeneration == generation,
+                              self.playerItems.contains(where: { $0.player === player }) else { return }
+                        if reference.rate == 0 { player.pause() } else { player.play() }
+                    }
+                } else {
+                    if let resume = current.contentItem.resumePosition, self.isFirstPlayer {
+                        player.seek(to: CMTime(seconds: resume, preferredTimescale: 600))
+                    }
                     self.isFirstPlayer = false
-                }else{
-                    self.syncAllPlayers(with: self.playerItems.first ?? PlayerItem())
+                    if self.wantsPlayback { player.play() } else { player.pause() }
                 }
             }
         }
     }
-    
+
     func setPreferredChannelSettings(playerItem: PlayerItem) {
         let playerSettings = CredentialHelper.getPlayerSettings()
         let channelType = playerItem.contentItem.channelType ?? ChannelType()

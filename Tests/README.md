@@ -15,6 +15,7 @@ F1 TV credentials.
 | Credential migration and storage doubles | `bash Tests/Credentials/run.sh` |
 | String catalog | `python3 Tests/verify-localizations.py` |
 | Actual Alamofire transport with mocked responses | `F1_ALAMOFIRE_SOURCE=/path/to/resolved/Alamofire bash Tests/run-transport-tests.sh` |
+| Multiview layouts, saved setups, default feed and Go Live | `bash Tests/run-multiview-tests.sh` |
 
 The transport check needs an existing resolved Alamofire checkout; it does not
 download packages. Signing is needed for simulator account/Keychain checks.
@@ -24,6 +25,55 @@ results do not establish authenticated hardware compatibility.
 The dated notes below record validation of individual changes. Later notes
 supersede earlier test counts, warning counts and implementation details; the
 FairPlay content-key migration is the latest DRM implementation described here.
+
+## Multiview feature validation (2026-10-02)
+
+The new multiview suite has 19 passing tests covering layout geometry through
+32 streams, capacity handling, default-feed migration/fallback, semantic channel
+matching across sessions, saved setup persistence and audio, and live-window
+positioning. Controlled live-session doubles cover program-date synchronization,
+different media origins, moving seekable windows, pending players, cancellation,
+stale callbacks, date-seek fallback, and bounded readiness failures.
+
+All existing suites also pass: 34 catalog, 41 backend, 6 FairPlay request,
+33 playlist/local playback/preview, and 2 Alamofire transport checks (135 XCTest
+checks in total). Credential regression checks and all six localization checks
+pass separately. Existing test-only diagnostic deprecation/concurrency warnings
+and an Alamofire source warning remain; the app sources build without warnings.
+Unsigned generic tvOS and tvOS Simulator builds pass. Xcode also emits its
+App Intents metadata notice and two simulator linker address warnings; neither
+is an app-source compiler warning.
+
+An isolated tvOS 27.2 simulator harness using generated unencrypted media passed
+22 additional assertions for player reuse, layout changes without restarting,
+paused playback, setup ordering, and saved volume/mute restoration. Simulated
+remote checks exercised the layout selector, disabled undersized layouts, empty
+Add stream slots, Grid selection, and the saved-setup actions. The native
+fullscreen Resolution and live-action controls are present together. The harness
+also verified the default-feed choice sheet in Settings and clearing the red
+editing indicator when closing the controls.
+It uses its own bundle ID and local setup store; it does not submit credentials.
+
+Physical Apple TV checks remain necessary for authenticated F1 Live/default-feed
+startup, protected/unprotected playback, real moving live windows/program dates,
+pending DRM players joining Go Live, and concurrent decoder/preview performance.
+Synthetic responses, local media, and simulator builds do not establish those
+behaviors on an authenticated device.
+
+Multiview control polish (2026-10-02): Layout and Saved setups now use native
+icon/text buttons inside the shared glass panel. Empty layout slots use a compact
+native glass Add stream button rather than highlighting the entire tile. Stream
+selection appearance changes only on a state transition; repeated remote presses
+refresh the idle timeout without restarting the border or label animations.
+
+The tvOS and simulator builds pass. The isolated local-media harness still passes
+its 22 player/setup assertions plus five additional checks for the new slot cell,
+visible editing state, no restarted border/label animations after 20 repeated
+updates, and keeping the editing indicator visible past the idle timeout.
+Simulated remote checks verified session-action focus within the glass panel,
+navigation from a stream into both empty slot buttons, opening the channel picker,
+and Back restoring slot navigation. These checks used unencrypted generated video;
+physical Apple TV appearance and remote behavior remain to be checked.
 
 ## Resolution selection tests
 

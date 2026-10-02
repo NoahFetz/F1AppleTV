@@ -11,10 +11,12 @@ import UIKit
 extension PlayerCollectionViewController {
 
     @objc func playPausePressed() {
+        liveCoordinator.cancel()
+        synchronizationGeneration = UUID()
         self.reportCurrentPlayTime()
 
         if let firstPlayer = self.playerItems.first {
-            if(firstPlayer.player?.timeControlStatus == .paused){
+            if !wantsPlayback {
                 print("Resuming playback after syncing all channels")
 
                 self.syncAllPlayers(with: firstPlayer)
@@ -28,6 +30,9 @@ extension PlayerCollectionViewController {
     }
 
     @objc func menuPressed() {
+        liveCoordinator.cancel()
+        synchronizationGeneration = UUID()
+        readyObservations.removeAll()
         self.reportCurrentPlayTime()
 
         self.pauseAll()
@@ -75,7 +80,7 @@ extension PlayerCollectionViewController {
             self.pauseAll(excludeIds: [playerItem.id])
 
             DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
-                self.services.playerController.openPlayer(player: player, fullscreenPlayerDismissedProtocol: self)
+                self.services.playerController.openPlayer(player: player, fullscreenPlayerDismissedProtocol: self, isLive: self.isLiveSession)
             }
         }
     }
@@ -87,18 +92,24 @@ extension PlayerCollectionViewController {
     }
 
     func rewindPlayer() {
+        liveCoordinator.cancel()
+        synchronizationGeneration = UUID()
         self.reportCurrentPlayTime()
 
         self.rewindAllPlayersBy(seconds: 15)
     }
 
     func forwardPlayer() {
+        liveCoordinator.cancel()
+        synchronizationGeneration = UUID()
         self.reportCurrentPlayTime()
 
         self.forwardAllPlayersBy(seconds: 15)
     }
 
     func seekPlayersTo(time: Float64) {
+        liveCoordinator.cancel()
+        synchronizationGeneration = UUID()
         self.seekAllPlayersTo(time: time)
     }
     
@@ -117,24 +128,17 @@ extension PlayerCollectionViewController {
         entitlementTasks.removeValue(forKey: id)?.cancel(); entitlementGenerations.removeValue(forKey: id)
         playerItem.player?.stopStream()
 
-        let oldCount = self.playerItems.count
-
-        self.playerItems.removeAll(where: {$0.id == playerItem.id})
+        liveCoordinator.cancel()
+        synchronizationGeneration = UUID()
+        readyObservations.removeValue(forKey: id)
+        defaultsTasks.removeValue(forKey: id)?.cancel()
+        initializedPlayerIDs.remove(id); defaultsAppliedPlayerIDs.remove(id); setupAudio.removeValue(forKey: id)
+        self.playerItems.removeAll(where: { $0.id == id })
+        startupAnchors.removeValue(forKey: id)
         self.orderChannels()
+        if let main = playerItems.first { setPreferredChannelSettings(playerItem: main) }
+        refreshPlayerLayout()
 
-        let newCount = self.playerItems.count
-
-        // Determine update strategy
-        let strategy = LayoutUpdateStrategy.determine(
-            oldCount: oldCount,
-            newCount: newCount,
-            oldMainIndex: 0,
-            newMainIndex: 0,
-            changedIndex: removedIndex
-        )
-
-        // Apply the layout update
-        self.applyLayoutUpdate(strategy: strategy, changedIndex: removedIndex, isAdding: false)
     }
 }
 
@@ -145,7 +149,10 @@ extension PlayerCollectionViewController {
         guard newIndex >= 0 && newIndex < self.playerItems.count else { return }
         guard newIndex != 0 else { return } // Already main
 
-        if let layout = self.collectionView.collectionViewLayout as? PlayerGridLayout {
+        if self.collectionView.collectionViewLayout is PlayerGridLayout {
+            liveCoordinator.cancel()
+            synchronizationGeneration = UUID()
+            let focusedID = self.playerItems[newIndex].id
             // Store reference to players and their settings before swap
             let previousMainPlayer = self.playerItems[0].player
             let newMainPlayer = self.playerItems[newIndex].player
@@ -167,9 +174,7 @@ extension PlayerCollectionViewController {
             print("Swapped main player: unmuted new main (volume: \(newMainPlayer?.volume ?? 0)), muted and silenced sidebar player")
 
             // Update layout and reload
-            layout.mainPlayerIndex = 0  // Main is always at index 0
-            self.collectionView.collectionViewLayout.invalidateLayout()
-            self.collectionView.reloadData()
+            refreshPlayerLayout(focusedID: focusedID)
 
             // Sync all players after swap
             if let mainPlayerItem = self.playerItems.first {

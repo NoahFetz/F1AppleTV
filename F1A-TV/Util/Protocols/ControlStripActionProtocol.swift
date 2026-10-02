@@ -7,7 +7,7 @@
 
 import Foundation
 
-protocol ControlStripActionProtocol {
+protocol ControlStripActionProtocol: AnyObject {
     func willClosePlayer(id: String)
     func enterFullScreenPlayer(id: String)
     func playPausePlayer()
@@ -17,4 +17,7 @@ protocol ControlStripActionProtocol {
     func didFinishSeeking()
     func showChannelSelectorOverlay()
     func swapToMainPlayer(id: String)
+    func showLayoutPicker()
+    func showSetupPicker()
+    func goLive()
 }

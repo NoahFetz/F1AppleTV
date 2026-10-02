@@ -32,6 +32,10 @@ final class SettingsOverviewTableViewController: UIViewController {
         choice("Live previews", values: ["On", "Off"], selected: settings.livePreviews ? 0 : 1) { self.settings.livePreviews = $0 == 0 }
         choice("Preview quality", values: ["360p", "540p"], selected: settings.previewHeight == 540 ? 1 : 0) { self.settings.previewHeight = $0 == 0 ? 360 : 540 }
         section("Playback")
+        choice("default_feed".localizedString, values: ["international_feed_title".localizedString, "f1_live_feed_title".localizedString], selected: settings.defaultFeed == .f1Live ? 1 : 0) { self.settings.defaultFeed = $0 == 1 ? .f1Live : .international }
+        stack.addArrangedSubview(TVDesign.button("saved_setups".localizedString) { [weak self] in
+            self?.presentFullscreen(viewController: SetupPickerViewController())
+        })
         let heights: [Int?] = [nil, 2160, 1080, 720]
         choice("Startup quality", values: ["Highest", "2160p", "1080p", "720p"], selected: heights.firstIndex(of: settings.startupMaximumHeight) ?? 0) { self.settings.startupMaximumHeight = heights[$0] }
         choice("Start live sessions", values: ["Ask", "Live", "From beginning"], selected: LiveStartPreference.allCases.firstIndex(of: settings.liveStart) ?? 0) { self.settings.liveStart = LiveStartPreference.allCases[$0] }

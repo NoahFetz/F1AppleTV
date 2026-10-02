@@ -29,6 +29,17 @@ class PlayerCollectionViewController: BaseCollectionViewController, ChannelSelec
     var channelSelectorViewController: ChannelSelectorOverlayViewController?
     var controlStripViewController: ControlStripOverlayViewController?
     
+    var layoutChoice = MultiviewLayout.auto
+    var readyObservations = [String: NSKeyValueObservation]()
+    var initializedPlayerIDs = Set<String>()
+    var setupAudio = [String: SavedStream]()
+    var liveCoordinator = LivePlaybackCoordinator()
+    var synchronizationGeneration = UUID()
+    var wantsPlayback = true
+    var startupAnchors = [String: (PlaybackPositionSnapshot, UUID)]()
+    var isLiveSession: Bool { channelItems.contains { $0.contentSubtype == "LIVE" } }
+    var slotCount: Int { layoutChoice.slotCount(players: playerItems.count) }
+
     var isFirstPlayer = true
     var playFromStart = false
     
@@ -36,6 +47,10 @@ class PlayerCollectionViewController: BaseCollectionViewController, ChannelSelec
     override func viewDidLoad() {
         super.viewDidLoad()
         self.setupCollectionView()
+        liveCoordinator.onFailure = { [weak self] in
+            guard let self, self.viewIfLoaded?.window != nil else { return }
+            UserInteractionHelper.instance.showError(title: "error".localizedString, message: "go_live_failed".localizedString)
+        }
         NotificationCenter.default.addObserver(self, selector: #selector(playerResolutionChanged), name: FairPlayer.resolutionDidChange, object: nil)
     }
 
@@ -51,18 +66,23 @@ class PlayerCollectionViewController: BaseCollectionViewController, ChannelSelec
         self.channelItems = channelItems
         self.playFromStart = playFromStart ?? false
         
-        for mainChannel in self.channelItems.filter({$0.channelType == .MainFeed}) {
-            self.loadStreamEntitlement(channelItem: mainChannel)
+        if let channel = PlaybackSelection.initialChannel(in: channelItems.compactMap(\.channel), preference: CredentialHelper.getPlayerSettings().defaultFeed),
+           let item = channelItems.first(where: { $0.channel?.id == channel.id }) {
+            loadStreamEntitlement(channelItem: item)
         }
     }
     
     // MARK: - Setup
     func setupCollectionView() {
         self.collectionView.backgroundColor = .black
+        self.collectionView.register(AddStreamCollectionViewCell.self, forCellWithReuseIdentifier: AddStreamCollectionViewCell.reuseIdentifier)
         
         // Use custom layout for main + small players arrangement
         let customLayout = PlayerGridLayout()
+        customLayout.choice = layoutChoice
+        customLayout.playerCount = playerItems.count
         self.collectionView.collectionViewLayout = customLayout
+        self.collectionView.remembersLastFocusedIndexPath = true
         
         let playPauseGesture = UITapGestureRecognizer(target: self, action: #selector(self.playPausePressed))
         playPauseGesture.allowedPressTypes = [NSNumber(value: UIPress.PressType.playPause.rawValue)]
@@ -88,26 +108,23 @@ class PlayerCollectionViewController: BaseCollectionViewController, ChannelSelec
     }
     
     // MARK: - Layout Update Helper
-    func applyLayoutUpdate(strategy: LayoutUpdateStrategy, changedIndex: Int, isAdding: Bool) {
-        self.collectionView.collectionViewLayout.invalidateLayout()
-        
-        switch strategy {
-        case .reloadAll:
-            // Complete reload - safest option for mode changes
-            self.collectionView.reloadData()
-            
-        case .simpleInsert(let index):
-            self.collectionView.insertItems(at: [IndexPath(item: index, section: 0)])
-            
-        case .simpleDelete(let index):
-            self.collectionView.deleteItems(at: [IndexPath(item: index, section: 0)])
-            
-        case .reloadMainArea, .reloadSidebarOnly:
-            // For now, just reload all - can optimize later
-            self.collectionView.reloadData()
+    func refreshPlayerLayout(focusedID: String? = nil) {
+        if let layout = collectionView.collectionViewLayout as? PlayerGridLayout {
+            layout.choice = layoutChoice
+            layout.playerCount = playerItems.count
         }
+        if let focusedID, let index = playerItems.firstIndex(where: { $0.id == focusedID }) {
+            lastFocusedPlayer = IndexPath(item: index, section: 0)
+        } else if let last = lastFocusedPlayer, last.item >= slotCount {
+            lastFocusedPlayer = IndexPath(item: max(0, playerItems.count - 1), section: 0)
+        }
+        collectionView.reloadData()
+        collectionView.collectionViewLayout.invalidateLayout()
     }
-    
+    override func indexPathForPreferredFocusedView(in collectionView: UICollectionView) -> IndexPath? {
+        lastFocusedPlayer ?? IndexPath(item: 0, section: 0)
+    }
+
     // MARK: - UICollectionView DataSource
 
     override func numberOfSections(in collectionView: UICollectionView) -> Int {
@@ -115,18 +132,17 @@ class PlayerCollectionViewController: BaseCollectionViewController, ChannelSelec
     }
 
     override func collectionView(_ collectionView: UICollectionView, numberOfItemsInSection section: Int) -> Int {
-        if(self.playerItems.isEmpty) {
-            return 1
-        }
-        return self.playerItems.count
+        return slotCount
     }
 
     override func collectionView(_ collectionView: UICollectionView, cellForItemAt indexPath: IndexPath) -> UICollectionViewCell {
-        if(self.playerItems.isEmpty) {
-            let cell = collectionView.dequeueReusableCell(withReuseIdentifier: ConstantsUtil.noContentCollectionViewCell, for: indexPath) as! NoContentCollectionViewCell
-            
-            cell.centerLabel.text = "multiplayer_no_channels_add_first".localizedString
-            
+        if !playerItems.indices.contains(indexPath.item) {
+            let cell = collectionView.dequeueReusableCell(withReuseIdentifier: AddStreamCollectionViewCell.reuseIdentifier, for: indexPath) as! AddStreamCollectionViewCell
+            cell.onSelect = { [weak self, weak cell] in
+                guard let self, let cell, let slot = self.collectionView.indexPath(for: cell) else { return }
+                self.lastFocusedPlayer = slot
+                self.showChannelSelectorOverlay()
+            }
             return cell
         }
         
@@ -159,11 +175,7 @@ class PlayerCollectionViewController: BaseCollectionViewController, ChannelSelec
         
         if let player = currentItem.player, player.currentItem != nil {
             cell.startPlayer(player: player)
-            player.play()
-            
             cell.loadingSpinner?.stopAnimating()
-            
-            self.waitForPlayerReadyToPlay(playerItem: currentItem)
         }
         
         return cell
@@ -177,7 +189,8 @@ class PlayerCollectionViewController: BaseCollectionViewController, ChannelSelec
     // MARK: - UICollectionView Delegate
     
     override func collectionView(_ collectionView: UICollectionView, didSelectItemAt indexPath: IndexPath) {
-        if(self.playerItems.isEmpty) {
+        if !playerItems.indices.contains(indexPath.item) {
+            self.lastFocusedPlayer = indexPath
             self.showChannelSelectorOverlay()
             return
         }

@@ -8,11 +8,14 @@ This app is unofficial and is not associated in any way with the Formula 1 compa
 
 - Backend-driven navigation for Home, the current season, Archive, Shows and Documentaries, with additional series destinations when supplied by F1 TV.
 - Featured carousels, poster and thumbnail rows, event backgrounds, and an interactive race-weekend schedule in your device's timezone.
-- Multiview playback with feed selection and synchronized, muted stream previews.
-- Startup quality, live-start, audio, caption and channel preferences in Settings.
+- Multiview playback with selectable layouts, named saved setups, and synchronized, muted stream previews.
+- International/F1 Live startup selection, startup quality, live-start, audio, caption and channel preferences in Settings.
+- Go Live controls in both the multiview and native fullscreen players.
 - Account sign-in and a persistent local error history under Settings → Diagnostics → Error Log.
 
 Search, My List and watch-history integration are not implemented. Playback requires an F1 TV account with access to the selected content; this app does not provide a subscription.
+
+In multiview controls, **Layout** offers Auto, Single, Inset, Main + 1/2/3, and an adaptive Grid (including 2×2 and 4×4). Smaller layouts require fewer open streams; adding beyond a layout's capacity returns to Auto without dropping streams. **Saved setups** saves and loads a named stream arrangement, including order and volume/mute settings. Setups match the feeds and drivers available in the current session; unavailable streams are skipped. Manage saved setups and choose the default feed under Settings → Playback. Setup loading is manual and leaves startup quality/language preferences unchanged.
 
 ## Requirements
 

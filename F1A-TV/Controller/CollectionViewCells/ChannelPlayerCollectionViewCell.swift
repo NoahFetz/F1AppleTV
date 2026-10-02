@@ -17,9 +17,11 @@ class ChannelPlayerCollectionViewCell: BaseCollectionViewCell {
     var loadingSpinner: UIActivityIndicatorView?
     private var focusTimeout: DispatchWorkItem?
     private var selectionBadgeLabel: UILabel?
+    private enum SelectionAppearance { case hidden, selected, editing }
+    private var selectionAppearance = SelectionAppearance.hidden
     var isControlTarget = false {
         didSet {
-            self.updateSelectionAppearance()
+            if oldValue != isControlTarget { self.updateSelectionAppearance() }
         }
     }
 
@@ -91,8 +93,18 @@ class ChannelPlayerCollectionViewCell: BaseCollectionViewCell {
         self.playerContainerView.layer.insertSublayer(self.playerLayer ?? CALayer(), at: 0)
     }
 
-    override func prepareForReuse() { super.prepareForReuse(); focusTimeout?.cancel(); hideOptionsMenu() }
-    override func didMoveToWindow() { super.didMoveToWindow(); if window == nil { focusTimeout?.cancel(); hideOptionsMenu() } }
+    override func prepareForReuse() {
+        super.prepareForReuse()
+        isControlTarget = false
+        hideOptionsMenu(animated: false)
+        playerLayer?.player = nil; playerLayer?.removeFromSuperlayer(); playerLayer = nil
+        titleLabel.text = nil; subtitleLabel.text = nil
+    }
+    override func didMoveToWindow() {
+        super.didMoveToWindow()
+        if window == nil { hideOptionsMenu(animated: false) }
+        else { updateSelectionAppearance() }
+    }
     deinit { focusTimeout?.cancel() }
 
     @objc func userInterfaceStyleChanged() {
@@ -131,53 +143,57 @@ class ChannelPlayerCollectionViewCell: BaseCollectionViewCell {
             focusTimeout = work
             DispatchQueue.main.asyncAfter(deadline: .now() + 3.5, execute: work)
         }
-        self.tableItemShadow()
-
-        let isEditing = self.isControlTarget
-        self.playerContainerView.layer.borderColor = (isEditing ? ConstantsUtil.brandingRed : UIColor.white).cgColor
-
-        let width = CABasicAnimation(keyPath: "borderWidth")
-        width.fromValue = 0
-        width.toValue = isEditing ? 6 : 4
-        width.duration = 0.2
-        width.timingFunction = CAMediaTimingFunction(name: .easeInEaseOut)
-        self.playerContainerView.layer.borderWidth = isEditing ? 6 : 4
-
-        self.playerContainerView.layer.add(width, forKey: nil)
-
-        self.titleLabel.fadeIn()
-        self.subtitleLabel.fadeIn()
-        self.selectionBadgeLabel?.text = self.isControlTarget ? "EDITING" : "SELECTED"
-        self.selectionBadgeLabel?.backgroundColor = self.isControlTarget ? ConstantsUtil.brandingRed : .white
-        self.selectionBadgeLabel?.textColor = self.isControlTarget ? .white : .black
-        self.selectionBadgeLabel?.fadeIn()
-
-        /*UIView.animate(withDuration: 0.2) {
-            self.tableItemShadow()
-            self.playerContainerView.transform = CGAffineTransform(scaleX: 1.005, y: 1.005)
-        }*/
+        setSelectionAppearance(isControlTarget ? .editing : .selected)
     }
 
-    func hideOptionsMenu() {
+    func hideOptionsMenu(animated: Bool = true) {
         focusTimeout?.cancel()
-        self.removeShadow()
+        focusTimeout = nil
+        setSelectionAppearance(.hidden, animated: animated)
+    }
 
-        let width = CABasicAnimation(keyPath: "borderWidth")
-        width.fromValue = self.playerContainerView.layer.borderWidth
-        width.toValue = 0
-        width.duration = 0.2
-        width.timingFunction = CAMediaTimingFunction(name: .easeInEaseOut)
-        self.playerContainerView.layer.borderWidth = 0
+    private func setSelectionAppearance(_ appearance: SelectionAppearance, animated: Bool = true) {
+        // Remote presses and focus updates may arrive for every control movement.
+        // Refresh the timeout above, but animate only an actual selection transition.
+        guard selectionAppearance != appearance || !animated else { return }
+        selectionAppearance = appearance
+        let visible = appearance != .hidden
+        let editing = appearance == .editing
+        let border = playerContainerView.layer
+        let oldWidth = border.presentation()?.borderWidth ?? border.borderWidth
+        let targetWidth: CGFloat = visible ? (editing ? 6 : 4) : 0
+        border.removeAnimation(forKey: "selectionBorder")
+        CATransaction.begin()
+        CATransaction.setDisableActions(true)
+        border.borderColor = (editing ? ConstantsUtil.brandingRed : UIColor.white).cgColor
+        border.borderWidth = targetWidth
+        CATransaction.commit()
+        if animated && oldWidth != targetWidth {
+            let animation = CABasicAnimation(keyPath: "borderWidth")
+            animation.fromValue = oldWidth
+            animation.toValue = targetWidth
+            animation.duration = 0.2
+            animation.timingFunction = CAMediaTimingFunction(name: .easeInEaseOut)
+            border.add(animation, forKey: "selectionBorder")
+        }
 
-        self.playerContainerView.layer.add(width, forKey: nil)
-
-        self.titleLabel.fadeOut()
-        self.subtitleLabel.fadeOut()
-        self.selectionBadgeLabel?.fadeOut()
-
-        /*UIView.animate(withDuration: 0.2) {
-            self.removeShadow()
-            self.playerContainerView.transform = .identity
-        }*/
+        if visible { tableItemShadow() } else { removeShadow() }
+        selectionBadgeLabel?.text = editing ? "EDITING" : "SELECTED"
+        selectionBadgeLabel?.backgroundColor = editing ? ConstantsUtil.brandingRed : .white
+        selectionBadgeLabel?.textColor = editing ? .white : .black
+        let labels = [titleLabel, subtitleLabel, selectionBadgeLabel].compactMap { $0 }
+        if visible { labels.forEach { $0.isHidden = false } }
+        let changes = { labels.forEach { $0.alpha = visible ? 1 : 0 } }
+        let completion: (Bool) -> Void = { [weak self] _ in
+            guard self?.selectionAppearance == .hidden else { return }
+            labels.forEach { $0.isHidden = true }
+        }
+        if animated {
+            UIView.animate(withDuration: 0.2, delay: 0, options: [.beginFromCurrentState, .allowUserInteraction], animations: changes, completion: completion)
+        } else {
+            labels.forEach { $0.layer.removeAllAnimations() }
+            changes()
+            completion(true)
+        }
     }
 }

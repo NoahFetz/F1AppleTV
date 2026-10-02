@@ -533,7 +533,9 @@ class PageOverviewCollectionViewController: BaseCollectionViewController {
     }
     private func prepareToStartStream(_ video: VideoDetails, playFromStart: Bool) {
         guard video.channels.count > 1 else {
-            if let channel = video.channels.first { services.playerController.playStream(contentId: channel.target.uri, playFromStart: playFromStart, services: services, owner: self) }
+            if let channel = PlaybackSelection.initialChannel(in: video.channels, preference: CredentialHelper.getPlayerSettings().defaultFeed) {
+                services.playerController.playStream(contentId: channel.target.uri, playFromStart: playFromStart, services: services, owner: self, channel: channel.kind, isLive: video.isLive)
+            }
             return
         }
         let settings = CredentialHelper.getPlayerSettings()

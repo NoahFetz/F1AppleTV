@@ -13,7 +13,7 @@ class ControlStripOverlayViewController: BaseViewController {
 
     var controlsBarView: UIStackView?
 
-    var controlStripActionProtocol: ControlStripActionProtocol?
+    weak var controlStripActionProtocol: ControlStripActionProtocol?
     var playerItem: PlayerItem?
     var playerCount: Int = 1
     var onDismiss: (() -> Void)?
@@ -30,6 +30,9 @@ class ControlStripOverlayViewController: BaseViewController {
     var languageSelectorButton: UIButton?
     var captionSelectorButton: UIButton?
     var resolutionSelectorButton: UIButton?
+    private var lastFocusedControl: UIView?
+    private var liveButton: UIButton?
+    var isLiveSession = false
     private var resolutionObserver: NSObjectProtocol?
     private var mediaMenuTask: Task<Void, Never>?
 
@@ -53,6 +56,7 @@ class ControlStripOverlayViewController: BaseViewController {
     private var hasNotifiedDismissal = false
 
     override var preferredFocusEnvironments: [UIFocusEnvironment] {
+        if let lastFocusedControl, lastFocusedControl.window != nil { return [lastFocusedControl] }
         if let timelineSlider = timelineSlider {
             return [timelineSlider]
         }
@@ -69,8 +73,19 @@ class ControlStripOverlayViewController: BaseViewController {
         self.setupViewController()
     }
 
+    override func didUpdateFocus(in context: UIFocusUpdateContext, with coordinator: UIFocusAnimationCoordinator) {
+        super.didUpdateFocus(in: context, with: coordinator)
+        if let next = context.nextFocusedView, next.isDescendant(of: view) { lastFocusedControl = next }
+    }
+
+    override func viewDidAppear(_ animated: Bool) {
+        super.viewDidAppear(animated)
+        if timeObserverToken == nil { addPeriodicTimeObserver() }
+    }
+
     override func viewWillDisappear(_ animated: Bool) {
         super.viewWillDisappear(animated)
+        if isBeingDismissed { notifyDismissal() }
         self.removeTimeObserver()
         self.thumbnailProvider?.cancel()
         self.scrubPreviewHideTimer?.invalidate()
@@ -79,7 +94,7 @@ class ControlStripOverlayViewController: BaseViewController {
     override func viewDidDisappear(_ animated: Bool) {
         super.viewDidDisappear(animated)
 
-        if self.isBeingDismissed {
+        if self.isBeingDismissed || presentingViewController == nil {
             self.notifyDismissal()
         }
     }
@@ -90,10 +105,11 @@ class ControlStripOverlayViewController: BaseViewController {
         self.removeTimeObserver()
     }
 
-    func initialize(playerItem: PlayerItem, playerCount: Int, controlStripActionProtocol: ControlStripActionProtocol, onDismiss: @escaping () -> Void) {
+    func initialize(playerItem: PlayerItem, playerCount: Int, controlStripActionProtocol: ControlStripActionProtocol, isLiveSession: Bool, onDismiss: @escaping () -> Void) {
         self.controlStripActionProtocol = controlStripActionProtocol
         self.playerItem = playerItem
         self.playerCount = playerCount
+        self.isLiveSession = isLiveSession
         self.onDismiss = onDismiss
     }
 
@@ -191,7 +207,7 @@ class ControlStripOverlayViewController: BaseViewController {
         blurBackgroundView.backgroundShadow()
 
         NSLayoutConstraint.activate([
-            blurBackgroundView.heightAnchor.constraint(equalToConstant: 214)
+            blurBackgroundView.heightAnchor.constraint(equalToConstant: 286)
         ])
 
         let panelStackView = UIStackView()
@@ -209,6 +225,7 @@ class ControlStripOverlayViewController: BaseViewController {
             panelStackView.bottomAnchor.constraint(equalTo: blurBackgroundView.contentView.bottomAnchor, constant: -26)
         ])
 
+        panelStackView.addArrangedSubview(self.makeSessionActions())
         panelStackView.addArrangedSubview(self.makeTimelineStackView())
 
         self.controlsBarView = UIStackView()
@@ -222,6 +239,44 @@ class ControlStripOverlayViewController: BaseViewController {
 
         self.contentStackView.addArrangedSubview(blurBackgroundView)
         self.setupScrubPreview(above: blurBackgroundView)
+    }
+
+    private func makeSessionActions() -> UIStackView {
+        let actions = UIStackView()
+        actions.axis = .horizontal
+        actions.alignment = .center
+        actions.spacing = 18
+        actions.addArrangedSubview(makeSessionButton(title: "layouts".localizedString, symbol: "rectangle.3.group") { [weak self] in
+            self?.controlStripActionProtocol?.showLayoutPicker()
+        })
+        actions.addArrangedSubview(makeSessionButton(title: "saved_setups".localizedString, symbol: "bookmark") { [weak self] in
+            self?.controlStripActionProtocol?.showSetupPicker()
+        })
+        let spacer = UIView()
+        spacer.setContentHuggingPriority(.defaultLow, for: .horizontal)
+        actions.addArrangedSubview(spacer)
+        return actions
+    }
+
+    private func makeSessionButton(title: String, symbol: String, action: @escaping () -> Void) -> UIButton {
+        // The panel supplies the glass material, just as it does for transport controls.
+        // Native buttons supply focus highlighting without another opaque pill.
+        var configuration = UIButton.Configuration.plain()
+        configuration.title = title
+        configuration.image = UIImage(systemName: symbol, withConfiguration: UIImage.SymbolConfiguration(pointSize: 24, weight: .medium))
+        configuration.imagePadding = 12
+        configuration.baseForegroundColor = .white
+        configuration.contentInsets = NSDirectionalEdgeInsets(top: 12, leading: 16, bottom: 12, trailing: 16)
+        configuration.titleTextAttributesTransformer = UIConfigurationTextAttributesTransformer { attributes in
+            var attributes = attributes
+            attributes.font = .systemFont(ofSize: 24, weight: .medium)
+            return attributes
+        }
+        let button = UIButton(configuration: configuration, primaryAction: UIAction { _ in action() })
+        button.tintColor = .white
+        button.setContentHuggingPriority(.required, for: .horizontal)
+        button.setContentCompressionResistancePriority(.required, for: .horizontal)
+        return button
     }
 
     func makeTimelineStackView() -> UIStackView {
@@ -262,6 +317,14 @@ class ControlStripOverlayViewController: BaseViewController {
         timelineStackView.addArrangedSubview(elapsedLabel)
         timelineStackView.addArrangedSubview(slider)
         timelineStackView.addArrangedSubview(remainingLabel)
+        if isLiveSession {
+            let button = UIButton(type: .system)
+            button.tintColor = .white
+            button.setTitle("go_live".localizedString, for: .normal)
+            button.titleLabel?.font = .systemFont(ofSize: 24, weight: .semibold)
+            button.addAction(UIAction { [weak self] _ in self?.controlStripActionProtocol?.goLive() }, for: .primaryActionTriggered)
+            timelineStackView.addArrangedSubview(button); liveButton = button
+        }
 
         return timelineStackView
     }
@@ -269,20 +332,10 @@ class ControlStripOverlayViewController: BaseViewController {
     func addContentToControlsBar() {
         self.controlsBarView?.arrangedSubviews.forEach({ $0.removeFromSuperview() })
 
-        let layoutMode = PlayerLayoutMode.mode(for: self.playerCount)
-
-        if layoutMode == .single {
-            self.setupAddChannelButton()
-        } else if layoutMode == .mainWithSidebar && self.playerItem?.position != 0 {
-            self.setupSwapToMainButton()
-            self.setupFullScreenButton()
-            self.setupAddChannelButton()
-            self.setupRemoveChannelButton()
-        } else {
-            self.setupFullScreenButton()
-            self.setupAddChannelButton()
-            self.setupRemoveChannelButton()
-        }
+        if self.playerCount > 1, self.playerItem?.position != 0 { self.setupSwapToMainButton() }
+        self.setupFullScreenButton()
+        self.setupAddChannelButton()
+        self.setupRemoveChannelButton()
 
         self.setupFlexibleSpacerView()
 
@@ -756,6 +809,10 @@ extension ControlStripOverlayViewController {
             return
         }
 
+        if let range = player.currentItem?.seekableTimeRanges.last?.timeRangeValue {
+            liveButton?.isEnabled = LiveTimeline.target(start: range.start.seconds, end: CMTimeRangeGetEnd(range).seconds) != nil
+            liveButton?.setTitle((LiveTimeline.isAtLive(position: player.currentTime().seconds, end: CMTimeRangeGetEnd(range).seconds) ? "live_status" : "go_live").localizedString, for: .normal)
+        } else { liveButton?.isEnabled = false }
         let bounds = self.timelineBounds(for: player)
         self.timelineStartTime = bounds.start
         self.timelineDuration = bounds.duration

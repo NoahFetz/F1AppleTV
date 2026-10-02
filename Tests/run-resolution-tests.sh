@@ -71,6 +71,7 @@ xcrun --sdk macosx swiftc -swift-version 5 -parse-as-library -module-cache-path 
     "$root"/F1A-TV/Extensions/AVPlayerItemExtension.swift \
     "$root"/F1A-TV/DataTransferObjects/Util/PlaybackDefaults.swift \
     "$root"/F1A-TV/DataTransferObjects/Util/PlayerSettings.swift \
+    "$root"/F1A-TV/Models/DefaultFeed.swift \
     "$root"/F1A-TV/Util/Enum/ChannelType.swift \
     "$root"/F1A-TV/Util/Enum/DriverChannelSortType.swift \
     "$root"/F1A-TV/DataTransferObjects/Util/AppErrorStore.swift \
