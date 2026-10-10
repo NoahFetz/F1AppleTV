@@ -1,0 +1,42 @@
+{
+  "originHash" : "ac1417f0ddb78fa120aece51b9e81c761fc457256a786b5779e7efcd9a41fb82",
+  "pins" : [
+    {
+      "identity" : "alamofire",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/Alamofire/Alamofire.git",
+      "state" : {
+        "branch" : "master",
+        "revision" : "bda9ed57d72988a3a2ada33d824583541f86eac6"
+      }
+    },
+    {
+      "identity" : "kingfisher",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/onevcat/Kingfisher.git",
+      "state" : {
+        "branch" : "master",
+        "revision" : "a821446e559d74f67d93dfcab86bcd370e177bf0"
+      }
+    },
+    {
+      "identity" : "skeletonview",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/Juanpe/SkeletonView.git",
+      "state" : {
+        "branch" : "main",
+        "revision" : "30c92f0992888e7b249e788405ac31e2103f5c69"
+      }
+    },
+    {
+      "identity" : "spalert",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/NoahFetz/SPAlert.git",
+      "state" : {
+        "branch" : "tvOS",
+        "revision" : "93bb4df089e6a85ef76f0d5876385e3283ba38e3"
+      }
+    }
+  ],
+  "version" : 3
+}

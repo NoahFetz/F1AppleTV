@@ -1,3 +1,6 @@
+#if canImport(F1Core)
+import F1Core
+#endif
 //
 //  AppDelegate.swift
 //  F1TV

@@ -1,3 +1,6 @@
+#if canImport(F1Core)
+import F1Core
+#endif
 //
 //  PlayerItem.swift
 //  F1A-TV
@@ -14,6 +17,8 @@ struct PlayerItem: Identifiable {
     var entitlement: PlaybackEntitlement?
     var position: Int
     var player: FairPlayer?
+    // Owned by the feed so reopening the controls reuses the native/key session.
+    var thumbnails: StreamThumbnailProvider?
     var playerAsset: AVURLAsset? { player?.currentItem?.asset as? AVURLAsset }
     var playerItem: AVPlayerItem? { player?.currentItem }
     

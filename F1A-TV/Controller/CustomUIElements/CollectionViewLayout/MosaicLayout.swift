@@ -1,3 +1,6 @@
+#if canImport(F1Core)
+import F1Core
+#endif
 //
 //  MosaicLayout.swift
 //  F1A-TV

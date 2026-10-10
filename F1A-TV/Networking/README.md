@@ -1,6 +1,7 @@
 # Backend client
 
-`AppServices` is the scene composition root. It constructs one Alamofire transport,
+`F1Core` owns the shared services, models and wire mapping used by tvOS and macOS.
+`AppServices` is the tvOS scene composition root. It constructs one Alamofire transport,
 API client, authentication actor, catalog service, playback service and FairPlay
 service, then configures controllers through factories before their views load.
 Tests can replace every service, the transport, credential store, challenge
@@ -46,7 +47,9 @@ provider and retry delay. No service singleton reads credentials or presents UI.
 
 Only catalog and certificate GETs retry once for transient connectivity or
 502/503/504. Login, logout, license and play-time POSTs are not replayed automatically.
-Controllers own final failure reporting, inline state, Retry and alerts. Expected
+Controllers own final failure reporting, inline state, Retry and alerts. FairPlayer
+reports presentation errors through an injected callback; platform code owns its
+resolution menu. The tvOS adapters preserve existing alert behavior. Expected
 cancellation and superseded completions are ignored. Diagnostics store safe fields
 only, with no credentials, headers, response bodies, signed URLs or DRM data.
 

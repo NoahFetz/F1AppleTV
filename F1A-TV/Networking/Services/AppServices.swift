@@ -1,3 +1,6 @@
+#if canImport(F1Core)
+import F1Core
+#endif
 import UIKit
 
 /// Created once per scene and passed to controllers before their views load.

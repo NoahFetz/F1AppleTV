@@ -1,3 +1,6 @@
+#if canImport(F1Core)
+import F1Core
+#endif
 //
 //  SideBarInfoViewController.swift
 //  F1oA-TV

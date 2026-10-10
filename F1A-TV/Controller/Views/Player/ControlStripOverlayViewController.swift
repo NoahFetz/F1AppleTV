@@ -1,3 +1,6 @@
+#if canImport(F1Core)
+import F1Core
+#endif
 //
 //  ControlStripOverlayViewController.swift
 //  F1A-TV
@@ -45,7 +48,10 @@ class ControlStripOverlayViewController: BaseViewController {
     private var timelineStackView: UIStackView?
     private var scrubPreviewView: UIView?
     private var scrubPreviewImageView: UIImageView?
+    private var scrubPreviewVideoView: ScrubVideoPreviewView?
     private var scrubPreviewTimeLabel: UILabel?
+    private var scrubPreviewStatusLabel: UILabel?
+    private var scrubPreviewSpinner: UIActivityIndicatorView?
     private var scrubPreviewCenterXConstraint: NSLayoutConstraint?
     private var scrubPreviewHideTimer: Timer?
     private var thumbnailProvider: StreamThumbnailProvider?
@@ -81,13 +87,22 @@ class ControlStripOverlayViewController: BaseViewController {
     override func viewDidAppear(_ animated: Bool) {
         super.viewDidAppear(animated)
         if timeObserverToken == nil { addPeriodicTimeObserver() }
+        observeThumbnailState()
     }
 
     override func viewWillDisappear(_ animated: Bool) {
         super.viewWillDisappear(animated)
         if isBeingDismissed { notifyDismissal() }
         self.removeTimeObserver()
-        self.thumbnailProvider?.cancel()
+        self.previewImageRequestId = nil
+        self.thumbnailProvider?.onNativeState = nil
+        self.thumbnailProvider?.suspend()
+        self.scrubPreviewVideoView?.install(nil)
+        self.scrubPreviewView?.isHidden = true
+        self.scrubPreviewView?.alpha = 0
+        self.scrubPreviewImageView?.isHidden = true
+        self.scrubPreviewVideoView?.isHidden = true
+        self.setPreviewStatus(nil)
         self.scrubPreviewHideTimer?.invalidate()
     }
 
@@ -127,18 +142,34 @@ class ControlStripOverlayViewController: BaseViewController {
         self.setupOverlayLayout()
         self.addPeriodicTimeObserver()
         if let player = self.playerItem?.player {
-            self.thumbnailProvider = StreamThumbnailProvider(player: player)
+            if CredentialHelper.getPlayerSettings().scrubPreviews {
+                self.thumbnailProvider = self.playerItem?.thumbnails
+            }
             self.resolutionObserver = NotificationCenter.default.addObserver(forName: FairPlayer.resolutionDidChange, object: player, queue: .main) { [weak self] _ in
                 MainActor.assumeIsolated {
                     guard let self = self else { return }
                     self.updateResolutionMenu()
-                    self.thumbnailProvider?.cancel()
                     self.previewImageRequestId = nil
                     self.scrubPreviewImageView?.image = nil
                     self.scrubPreviewImageView?.isHidden = true
                     self.hideScrubPreview()
                     self.updateTimeline()
                 }
+            }
+        }
+    }
+
+    private func observeThumbnailState() {
+        self.thumbnailProvider?.onNativeState = { [weak self] state in
+            guard let self, self.previewImageRequestId != nil else { return }
+            switch state {
+            case .loading(let layer): self.showNativePreview(layer, loading: true)
+            case .ready(let layer): self.showNativePreview(layer, loading: false)
+            case .unavailable:
+                self.scrubPreviewVideoView?.install(nil)
+                self.scrubPreviewVideoView?.isHidden = true
+                self.setPreviewStatus("Preview unavailable")
+            case .idle: break
             }
         }
     }
@@ -689,7 +720,26 @@ extension ControlStripOverlayViewController {
         timeLabel.textAlignment = .center
         timeLabel.backgroundColor = .clear
 
+        let videoView = ScrubVideoPreviewView()
+        videoView.translatesAutoresizingMaskIntoConstraints = false
+        videoView.clipsToBounds = true
+        videoView.layer.cornerRadius = 8
+        videoView.layer.borderColor = UIColor.white.withAlphaComponent(0.3).cgColor
+        videoView.layer.borderWidth = 1
+        videoView.isHidden = true
         previewView.addSubview(imageView)
+        previewView.addSubview(videoView)
+        let statusLabel = UILabel()
+        statusLabel.font = .systemFont(ofSize: 19)
+        statusLabel.textColor = .white
+        statusLabel.textAlignment = .center
+        let spinner = UIActivityIndicatorView(style: .medium)
+        spinner.hidesWhenStopped = true
+        let statusStack = UIStackView(arrangedSubviews: [spinner, statusLabel])
+        statusStack.axis = .vertical; statusStack.spacing = 8
+        statusStack.translatesAutoresizingMaskIntoConstraints = false
+        statusStack.isUserInteractionEnabled = false
+        previewView.addSubview(statusStack)
         previewView.addSubview(timeMaterial)
         timeMaterial.contentView.addSubview(timeLabel)
         self.view.addSubview(previewView)
@@ -697,13 +747,19 @@ extension ControlStripOverlayViewController {
         let centerXConstraint = previewView.centerXAnchor.constraint(equalTo: self.view.leadingAnchor, constant: self.view.bounds.midX)
         NSLayoutConstraint.activate([
             previewView.widthAnchor.constraint(equalToConstant: 256),
-            previewView.heightAnchor.constraint(equalToConstant: 196),
+            previewView.heightAnchor.constraint(equalToConstant: CredentialHelper.getPlayerSettings().scrubPreviews ? 196 : 44),
             centerXConstraint,
             previewView.bottomAnchor.constraint(equalTo: controlPanel.topAnchor, constant: -18),
             imageView.leadingAnchor.constraint(equalTo: previewView.leadingAnchor),
             imageView.trailingAnchor.constraint(equalTo: previewView.trailingAnchor),
             imageView.topAnchor.constraint(equalTo: previewView.topAnchor),
             imageView.heightAnchor.constraint(equalToConstant: 144),
+            videoView.leadingAnchor.constraint(equalTo: imageView.leadingAnchor),
+            videoView.trailingAnchor.constraint(equalTo: imageView.trailingAnchor),
+            videoView.topAnchor.constraint(equalTo: imageView.topAnchor),
+            videoView.bottomAnchor.constraint(equalTo: imageView.bottomAnchor),
+            statusStack.centerXAnchor.constraint(equalTo: videoView.centerXAnchor),
+            statusStack.centerYAnchor.constraint(equalTo: videoView.centerYAnchor),
             timeMaterial.centerXAnchor.constraint(equalTo: previewView.centerXAnchor),
             timeMaterial.bottomAnchor.constraint(equalTo: previewView.bottomAnchor),
             timeMaterial.widthAnchor.constraint(equalToConstant: 140),
@@ -716,7 +772,10 @@ extension ControlStripOverlayViewController {
 
         self.scrubPreviewView = previewView
         self.scrubPreviewImageView = imageView
+        self.scrubPreviewVideoView = videoView
         self.scrubPreviewTimeLabel = timeLabel
+        self.scrubPreviewStatusLabel = statusLabel
+        self.scrubPreviewSpinner = spinner
         self.scrubPreviewCenterXConstraint = centerXConstraint
     }
 
@@ -750,11 +809,16 @@ extension ControlStripOverlayViewController {
     func hideScrubPreview() {
         guard let scrubPreviewView = self.scrubPreviewView, !scrubPreviewView.isHidden else { return }
 
-        self.thumbnailProvider?.cancel()
         self.previewImageRequestId = nil
+        self.thumbnailProvider?.suspend()
+        self.scrubPreviewVideoView?.install(nil)
+        self.scrubPreviewVideoView?.isHidden = true
+        self.scrubPreviewImageView?.isHidden = true
+        self.setPreviewStatus(nil)
         UIView.animate(withDuration: 0.16, animations: {
             scrubPreviewView.alpha = 0
-        }, completion: { _ in
+        }, completion: { [weak self] _ in
+            guard self?.previewImageRequestId == nil else { return }
             scrubPreviewView.isHidden = true
             scrubPreviewView.transform = .identity
         })
@@ -772,14 +836,43 @@ extension ControlStripOverlayViewController {
     }
 
     func requestScrubPreviewImage(at time: Float64) {
+        guard let thumbnailProvider else { self.scheduleScrubPreviewHide(after: 1.25); return }
         let requestId = UUID()
         self.previewImageRequestId = requestId
-        self.thumbnailProvider?.request(at: time) { [weak self] image in
+        if self.scrubPreviewVideoView?.isHidden != false && self.scrubPreviewImageView?.isHidden != false {
+            self.setPreviewStatus("Loading preview…", loading: true)
+        }
+        thumbnailProvider.request(at: time) { [weak self] preview in
             guard let self = self, self.previewImageRequestId == requestId else { return }
-            self.scrubPreviewImageView?.image = image
-            self.scrubPreviewImageView?.isHidden = image == nil
+            self.scrubPreviewImageView?.isHidden = true
+            self.scrubPreviewVideoView?.isHidden = true
+            switch preview {
+            case .image(let image):
+                self.setPreviewStatus(nil)
+                self.scrubPreviewVideoView?.install(nil)
+                self.scrubPreviewImageView?.image = UIImage(cgImage: image)
+                self.scrubPreviewImageView?.isHidden = false
+            case .video(let layer):
+                self.showNativePreview(layer, loading: false)
+            case nil:
+                self.scrubPreviewVideoView?.install(nil)
+                self.setPreviewStatus("Preview unavailable")
+            }
             self.scheduleScrubPreviewHide(after: 1.25)
         }
+    }
+
+    private func showNativePreview(_ layer: AVPlayerLayer, loading: Bool) {
+        scrubPreviewImageView?.isHidden = true
+        scrubPreviewVideoView?.install(layer)
+        scrubPreviewVideoView?.isHidden = false
+        setPreviewStatus(loading ? "Loading preview…" : nil, loading: loading)
+    }
+
+    private func setPreviewStatus(_ text: String?, loading: Bool = false) {
+        scrubPreviewStatusLabel?.text = text
+        scrubPreviewStatusLabel?.isHidden = text == nil
+        if loading { scrubPreviewSpinner?.startAnimating() } else { scrubPreviewSpinner?.stopAnimating() }
     }
 }
 

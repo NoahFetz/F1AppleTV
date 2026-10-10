@@ -1,3 +1,6 @@
+#if canImport(F1Core)
+import F1Core
+#endif
 import UIKit
 import AVFoundation
 
@@ -52,6 +55,7 @@ extension PlayerCollectionViewController {
             defaultsTasks.removeValue(forKey: removed.id)?.cancel(); readyObservations.removeValue(forKey: removed.id)
             initializedPlayerIDs.remove(removed.id); defaultsAppliedPlayerIDs.remove(removed.id)
             setupAudio.removeValue(forKey: removed.id); startupAnchors.removeValue(forKey: removed.id)
+            removed.thumbnails?.reset()
             removed.player?.stopStream()
         }
         playerItems = next; orderChannels(); layoutChoice = setup.layout.afterAdding(count: next.count)

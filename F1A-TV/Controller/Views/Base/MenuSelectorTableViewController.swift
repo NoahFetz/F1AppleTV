@@ -1,3 +1,6 @@
+#if canImport(F1Core)
+import F1Core
+#endif
 //
 //  MenuSelectorTableViewController.swift
 //  F1oA-TV

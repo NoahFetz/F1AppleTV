@@ -1,0 +1,206 @@
+{
+  "default-configuration": "Release",
+  "configurations": [
+    "Debug",
+    "Release",
+  ],
+  "localizations": {
+    "development": "en",
+    "supported": [
+      "de",
+      "es",
+      "fr",
+      "nl",
+      "pt-PT",
+    ],
+  },
+  "packages": [
+    {
+      "kind": "local",
+      "path": "F1Core",
+    },
+  ],
+  "files": [
+    {
+      "kind": "group",
+      "path": "F1A-Mac",
+      "children": [
+        {
+          "kind": "group",
+          "path": "App",
+          "children": [
+            { "path": "F1AMacApp.swift", "target-membership": [ "F1A-Mac/compile-sources" ] },
+          ],
+        }, {
+          "kind": "group",
+          "path": "Catalog",
+          "children": [
+            { "path": "CatalogModel.swift", "target-membership": [ "F1A-Mac/compile-sources" ] },
+            { "path": "CatalogViews.swift", "target-membership": [ "F1A-Mac/compile-sources" ] },
+            { "path": "CatalogArtwork.swift", "target-membership": [ "F1A-Mac/compile-sources" ] },
+            { "path": "DesktopCatalogDesign.swift", "target-membership": [ "F1A-Mac/compile-sources" ] },
+            { "path": "DesktopScheduleViews.swift", "target-membership": [ "F1A-Mac/compile-sources" ] },
+            { "path": "HeroPagingSurface.swift", "target-membership": [ "F1A-Mac/compile-sources" ] },
+          ],
+        }, {
+          "kind": "group",
+          "path": "Playback",
+          "children": [
+            { "path": "DesktopSession.swift", "target-membership": [ "F1A-Mac/compile-sources" ] },
+            { "path": "PlayerViews.swift", "target-membership": [ "F1A-Mac/compile-sources" ] },
+            { "path": "PlayerWindow.swift", "target-membership": [ "F1A-Mac/compile-sources" ] },
+            { "path": "PlayerRendering.swift", "target-membership": [ "F1A-Mac/compile-sources" ] },
+            { "path": "FeedPreviews.swift", "target-membership": [ "F1A-Mac/compile-sources" ] },
+            { "path": "ScrubPreview.swift", "target-membership": [ "F1A-Mac/compile-sources" ] },
+            { "path": "ScrubPreviewModel.swift", "target-membership": [ "F1A-Mac/compile-sources" ] },
+          ],
+        }, {
+          "kind": "group",
+          "path": "Account",
+          "children": [
+            { "path": "AccountView.swift", "target-membership": [ "F1A-Mac/compile-sources" ] },
+            { "path": "MacBrowserLogin.swift", "target-membership": [ "F1A-Mac/compile-sources" ] },
+          ],
+        }, {
+          "kind": "group",
+          "path": "Diagnostics",
+          "children": [
+            { "path": "DiagnosticsView.swift", "target-membership": [ "F1A-Mac/compile-sources" ] },
+          ],
+        }, {
+          "kind": "group",
+          "path": "Settings",
+          "children": [
+            { "path": "DesktopSettingsView.swift", "target-membership": [ "F1A-Mac/compile-sources" ] },
+          ],
+        }, {
+          "kind": "group",
+          "path": "Services",
+          "children": [
+            { "path": "MacServices.swift", "target-membership": [ "F1A-Mac/compile-sources" ] },
+          ],
+        }, {
+          "kind": "group",
+          "path": "Appearance",
+          "children": [
+            { "path": "DesktopAppearance.swift", "target-membership": [ "F1A-Mac/compile-sources" ] },
+            { "path": "DesktopApplicationIcon.swift", "target-membership": [ "F1A-Mac/compile-sources" ] },
+          ],
+        }, {
+          "kind": "group",
+          "path": "Resources",
+          "children": [
+            { "path": "Assets.xcassets", "target-membership": [ "F1A-Mac/resources" ] },
+          ],
+        }, {
+          "kind": "group",
+          "path": "Configuration",
+          "children": [
+            { "path": "F1A-Mac.entitlements" },
+          ],
+        },
+      ],
+    }, {
+      "kind": "group",
+      "name": "Products",
+      "children": [
+        { "path": "<PRODUCTS>/F1A-Mac.app", "id": "A10000000000000000000002", "type": "wrapper.application", "index": false },
+      ],
+    }, {
+      "kind": "group",
+      "path": "F1A-TV/Fonts",
+      "children": [
+        { "path": "Formula1-Bold.ttf", "target-membership": [ "F1A-Mac/resources" ] },
+        { "path": "Formula1-Regular.ttf", "target-membership": [ "F1A-Mac/resources" ] },
+        { "path": "Titillium-Regular.otf", "target-membership": [ "F1A-Mac/resources" ] },
+        { "path": "Titillium-Semibold.otf", "target-membership": [ "F1A-Mac/resources" ] },
+      ],
+    },
+  ],
+  "targets": [
+    {
+      "name": "F1A-Mac",
+      "id": "A10000000000000000000001",
+      "product": "Products/F1A-Mac.app",
+      "product-type": "application",
+      "build-phases": [
+        "compile-sources",
+        "frameworks",
+        "resources",
+      ],
+      "package-product-members": [
+        {
+          "package": "F1Core",
+          "product-name": "F1Core",
+          "build-phase": { "build-phase": "frameworks" },
+        },
+      ],
+      "build-settings": {
+        "ASSETCATALOG_COMPILER_APPICON_NAME": "AppIcon",
+        "CLANG_ENABLE_OBJC_WEAK": "YES",
+        "CODE_SIGN_ENTITLEMENTS": "F1A-Mac/Configuration/F1A-Mac.entitlements",
+        "CODE_SIGN_STYLE": "Automatic",
+        "CURRENT_PROJECT_VERSION": "26.1010.1",
+        "DEAD_CODE_STRIPPING": "YES",
+        "ENABLE_APP_SANDBOX": "YES",
+        "ENABLE_HARDENED_RUNTIME": "YES",
+        "GENERATE_INFOPLIST_FILE": "YES",
+        "INFOPLIST_KEY_CFBundleDisplayName": "Vroom TV",
+        "INFOPLIST_KEY_LSApplicationCategoryType": "public.app-category.entertainment",
+        "LD_RUNPATH_SEARCH_PATHS": [
+          "$(inherited)",
+          "@executable_path/../Frameworks",
+        ],
+        "MACOSX_DEPLOYMENT_TARGET": "26.0",
+        "MARKETING_VERSION": "1.0",
+        "PRODUCT_BUNDLE_IDENTIFIER": "ch.fetz-gr.F1A-Mac",
+        "PRODUCT_NAME": "$(TARGET_NAME)",
+        "SDKROOT": "macosx",
+        "SUPPORTED_PLATFORMS": "macosx",
+        "SWIFT_ACTIVE_COMPILATION_CONDITIONS[config=Debug]": "DEBUG",
+        "SWIFT_OPTIMIZATION_LEVEL[config=Debug]": "-Onone",
+        "SWIFT_VERSION": "5.0",
+      },
+    },
+  ],
+  "build-settings": {
+    "CLANG_ANALYZER_LOCALIZABILITY_NONLOCALIZED": "YES",
+    "CLANG_ENABLE_MODULES": "YES",
+    "CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING": "YES",
+    "CLANG_WARN_BOOL_CONVERSION": "YES",
+    "CLANG_WARN_COMMA": "YES",
+    "CLANG_WARN_CONSTANT_CONVERSION": "YES",
+    "CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS": "YES",
+    "CLANG_WARN_EMPTY_BODY": "YES",
+    "CLANG_WARN_ENUM_CONVERSION": "YES",
+    "CLANG_WARN_INFINITE_RECURSION": "YES",
+    "CLANG_WARN_INT_CONVERSION": "YES",
+    "CLANG_WARN_NON_LITERAL_NULL_CONVERSION": "YES",
+    "CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF": "YES",
+    "CLANG_WARN_OBJC_LITERAL_CONVERSION": "YES",
+    "CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER": "YES",
+    "CLANG_WARN_RANGE_LOOP_ANALYSIS": "YES",
+    "CLANG_WARN_STRICT_PROTOTYPES": "YES",
+    "CLANG_WARN_SUSPICIOUS_MOVE": "YES",
+    "CLANG_WARN_UNREACHABLE_CODE": "YES",
+    "CLANG_WARN__DUPLICATE_METHOD_MATCH": "YES",
+    "DEAD_CODE_STRIPPING": "YES",
+    "DEVELOPMENT_TEAM": "8SW735FL99",
+    "ENABLE_STRICT_OBJC_MSGSEND": "YES",
+    "ENABLE_TESTABILITY[config=Debug]": "YES",
+    "ENABLE_USER_SCRIPT_SANDBOXING": "YES",
+    "GCC_NO_COMMON_BLOCKS": "YES",
+    "GCC_WARN_64_TO_32_BIT_CONVERSION": "YES",
+    "GCC_WARN_ABOUT_RETURN_TYPE": "YES",
+    "GCC_WARN_UNDECLARED_SELECTOR": "YES",
+    "GCC_WARN_UNINITIALIZED_AUTOS": "YES",
+    "GCC_WARN_UNUSED_FUNCTION": "YES",
+    "GCC_WARN_UNUSED_VARIABLE": "YES",
+    "ONLY_ACTIVE_ARCH[config=Debug]": "YES",
+    "STRING_CATALOG_GENERATE_SYMBOLS": "YES",
+    "SWIFT_COMPILATION_MODE[config=Release]": "wholemodule",
+    "SWIFT_OPTIMIZATION_LEVEL[config=Debug]": "-Onone",
+    "SWIFT_VERSION": "5.0",
+  },
+  "last-upgrade": "27.2",
+}

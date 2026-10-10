@@ -1,3 +1,6 @@
+#if canImport(F1Core)
+import F1Core
+#endif
 //
 //  TemplateTableViewCell.swift
 //  F1A-TV

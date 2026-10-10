@@ -1,3 +1,6 @@
+#if canImport(F1Core)
+import F1Core
+#endif
 import UIKit
 import Kingfisher
 
@@ -335,13 +338,13 @@ class PageOverviewCollectionViewController: BaseCollectionViewController {
             switch type {
             case .Hero:
                 width = availableWidth
-                height = min(620, max(400, width * 9 / 16))
+                height = min(620, max(480, width * 9 / 16))
             case .PageHeader:
                 width = availableWidth
                 height = section?.items.first.map { CatalogDestinationCell.height(for: $0, floating: self.floatingEventHeader) } ?? 180
             case .GpBanner:
                 width = availableWidth
-                height = self.floatingEventHeader ? 260 : section?.items.first?.pictureUrl?.isEmpty == false ? 420 : 260
+                height = section?.items.first.map { CatalogBannerCell.height(for: $0, width: width, floating: self.floatingEventHeader) } ?? 260
             case .Schedule:
                 width = availableWidth
                 height = 1

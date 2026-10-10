@@ -40,6 +40,9 @@
       "version": {
         "branch": "tvOS",
       },
+    }, {
+      "kind": "local",
+      "path": "F1Core",
     },
   ],
   "files": [
@@ -81,72 +84,25 @@
           "kind": "group",
           "path": "Networking",
           "children": [
-            { "path": "CatalogRequest.swift", "target-membership": [ "F1A-TV/compile-sources" ] },
-            { "path": "FairPlayLicenseRequest.swift", "target-membership": [ "F1A-TV/compile-sources" ] },
             {
-              "kind": "group",
-              "path": "Wire",
-              "children": [
-                { "path": "DeviceRegistrationRequestDeviceDto.swift", "target-membership": [ "F1A-TV/compile-sources" ] },
-                { "path": "PlayTimeReportingDto.swift", "target-membership": [ "F1A-TV/compile-sources" ] },
-                { "path": "DeviceRegistrationRequestDto.swift", "target-membership": [ "F1A-TV/compile-sources" ] },
-                { "path": "DeviceAuthenticationRequestDto.swift", "target-membership": [ "F1A-TV/compile-sources" ] },
-                { "path": "DeviceUnregistrationRequestDto.swift", "target-membership": [ "F1A-TV/compile-sources" ] },
-                { "path": "AccountDTO.swift", "target-membership": [ "F1A-TV/compile-sources" ] },
-                { "path": "CatalogDTO.swift", "target-membership": [ "F1A-TV/compile-sources" ] },
-              ],
-            }, {
               "kind": "group",
               "path": "Services",
               "children": [
-                { "path": "AVFoundationFairPlayAdapter.swift", "target-membership": [ "F1A-TV/compile-sources" ] },
                 { "path": "KeychainSessionStore.swift", "target-membership": [ "F1A-TV/compile-sources" ] },
                 { "path": "AlamofireHTTPTransport.swift", "target-membership": [ "F1A-TV/compile-sources" ] },
-                { "path": "FairPlayKeyLoader.swift", "target-membership": [ "F1A-TV/compile-sources" ] },
-                { "path": "PlaybackService.swift", "target-membership": [ "F1A-TV/compile-sources" ] },
                 { "path": "AppServices.swift", "target-membership": [ "F1A-TV/compile-sources" ] },
-                { "path": "CatalogService.swift", "target-membership": [ "F1A-TV/compile-sources" ] },
-                { "path": "FairPlayService.swift", "target-membership": [ "F1A-TV/compile-sources" ] },
-                { "path": "AuthService.swift", "target-membership": [ "F1A-TV/compile-sources" ] },
-                { "path": "HTTPTransport.swift", "target-membership": [ "F1A-TV/compile-sources" ] },
               ],
             },
-            { "path": "CatalogArtworkRequest.swift", "target-membership": [ "F1A-TV/compile-sources" ] },
           ],
         }, {
           "kind": "group",
           "path": "DataTransferObjects",
           "children": [
-            { "kind": "group", "path": "F1TV" },
             {
-              "kind": "group",
-              "path": "Security",
-              "children": [
-                {
-                  "kind": "group",
-                  "path": "DeviceRegistration",
-                  "children": [
-                    { "path": "DeviceRegistrationResultDto.swift", "target-membership": [ "F1A-TV/compile-sources" ] },
-                    { "path": "DeviceRegistrationResultDeviceDto.swift", "target-membership": [ "F1A-TV/compile-sources" ] },
-                    { "path": "DeviceRegistrationSessionSummaryDto.swift", "target-membership": [ "F1A-TV/compile-sources" ] },
-                    { "path": "DeviceRegistrationSessionSummaryExternalAuthorizationDto.swift", "target-membership": [ "F1A-TV/compile-sources" ] },
-                  ],
-                },
-                { "kind": "group", "path": "DeviceAuthentication" },
-                { "kind": "group", "path": "DeviceUnregistration" },
-                { "path": "AuthDataDto.swift", "target-membership": [ "F1A-TV/compile-sources" ] },
-              ],
-            }, {
               "kind": "group",
               "path": "Util",
               "children": [
                 { "path": "PlayerItem.swift", "target-membership": [ "F1A-TV/compile-sources" ] },
-                { "path": "PlayerSettings.swift", "target-membership": [ "F1A-TV/compile-sources" ] },
-                { "path": "FairPlayer.swift", "target-membership": [ "F1A-TV/compile-sources" ] },
-                { "path": "PlaybackDefaults.swift", "target-membership": [ "F1A-TV/compile-sources" ] },
-                { "path": "CatalogNavigation.swift", "target-membership": [ "F1A-TV/compile-sources" ] },
-                { "path": "CatalogPresentation.swift", "target-membership": [ "F1A-TV/compile-sources" ] },
-                { "path": "AppErrorStore.swift", "target-membership": [ "F1A-TV/compile-sources" ] },
               ],
             },
           ],
@@ -201,7 +157,6 @@
                     { "path": "PlayerCollectionViewController+Setups.swift", "target-membership": [ "F1A-TV/compile-sources" ] },
                     { "path": "SetupPickerViewController.swift", "target-membership": [ "F1A-TV/compile-sources" ] },
                     { "path": "LayoutPickerViewController.swift", "target-membership": [ "F1A-TV/compile-sources" ] },
-                    { "path": "LivePlaybackCoordinator.swift", "target-membership": [ "F1A-TV/compile-sources" ] },
                     { "path": "PlayerCollectionViewController+Actions.swift", "target-membership": [ "F1A-TV/compile-sources" ] },
                     { "path": "PlayerCollectionViewController+PlayerManagement.swift", "target-membership": [ "F1A-TV/compile-sources" ] },
                     { "path": "PlayerCollectionViewController+Overlays.swift", "target-membership": [ "F1A-TV/compile-sources" ] },
@@ -276,11 +231,9 @@
             { "path": "UIViewControllerExtension.swift", "target-membership": [ "F1A-TV/compile-sources" ] },
             { "path": "NotificationExtension.swift", "target-membership": [ "F1A-TV/compile-sources" ] },
             { "path": "UIViewExtension.swift", "target-membership": [ "F1A-TV/compile-sources" ] },
-            { "path": "DateExtension.swift", "target-membership": [ "F1A-TV/compile-sources" ] },
             { "path": "UIColorExtension.swift", "target-membership": [ "F1A-TV/compile-sources" ] },
             { "path": "FontAdjustedUILabel.swift", "target-membership": [ "F1A-TV/compile-sources" ] },
             { "path": "AVPlayerViewControllerExtension.swift", "target-membership": [ "F1A-TV/compile-sources" ] },
-            { "path": "AVPlayerItemExtension.swift", "target-membership": [ "F1A-TV/compile-sources" ] },
             { "path": "UITableViewExtension.swift", "target-membership": [ "F1A-TV/compile-sources" ] },
           ],
         }, {
@@ -296,73 +249,10 @@
               ],
             }, {
               "kind": "group",
-              "path": "M3U8Parser",
-              "children": [
-                {
-                  "kind": "group",
-                  "path": "Managers",
-                  "children": [
-                    { "path": "M3U8Manager.swift", "encoding": "utf8", "target-membership": [ "F1A-TV/compile-sources" ] },
-                  ],
-                }, {
-                  "kind": "group",
-                  "path": "Models",
-                  "children": [
-                    {
-                      "kind": "group",
-                      "path": "Playlist",
-                      "children": [
-                        { "path": "MasterPlaylist.swift", "encoding": "utf8", "target-membership": [ "F1A-TV/compile-sources" ] },
-                        { "path": "Playlist.swift", "encoding": "utf8", "target-membership": [ "F1A-TV/compile-sources" ] },
-                        { "path": "MediaPlaylist.swift", "encoding": "utf8", "target-membership": [ "F1A-TV/compile-sources" ] },
-                      ],
-                    }, {
-                      "kind": "group",
-                      "path": "Tags",
-                      "children": [
-                        { "path": "BaseTag.swift", "encoding": "utf8", "target-membership": [ "F1A-TV/compile-sources" ] },
-                        { "path": "Tags.swift", "encoding": "utf8", "target-membership": [ "F1A-TV/compile-sources" ] },
-                        { "path": "Tag.swift", "encoding": "utf8", "target-membership": [ "F1A-TV/compile-sources" ] },
-                      ],
-                    }, {
-                      "kind": "group",
-                      "path": "PlaylistOperation",
-                      "children": [
-                        { "path": "PlaylistOperation.swift", "encoding": "utf8", "target-membership": [ "F1A-TV/compile-sources" ] },
-                      ],
-                    },
-                  ],
-                }, {
-                  "kind": "group",
-                  "path": "Parser",
-                  "children": [
-                    { "path": "M3U8Parser.swift", "encoding": "utf8", "target-membership": [ "F1A-TV/compile-sources" ] },
-                    { "path": "HLSResolutionPlaylist.swift", "target-membership": [ "F1A-TV/compile-sources" ] },
-                    { "path": "HLSPreviewPlaylist.swift", "target-membership": [ "F1A-TV/compile-sources" ] },
-                  ],
-                }, {
-                  "kind": "group",
-                  "path": "PlaylistFetcher",
-                  "children": [
-                    { "path": "PlaylistFetcher.swift", "encoding": "utf8", "target-membership": [ "F1A-TV/compile-sources" ] },
-                  ],
-                },
-              ],
-            }, {
-              "kind": "group",
               "path": "Enum",
               "children": [
                 { "path": "AccessoryIconType.swift", "target-membership": [ "F1A-TV/compile-sources" ] },
                 { "path": "SeriesType.swift", "target-membership": [ "F1A-TV/compile-sources" ] },
-                { "path": "ContainerLayoutType.swift", "target-membership": [ "F1A-TV/compile-sources" ] },
-                { "path": "ContentObjectType.swift", "target-membership": [ "F1A-TV/compile-sources" ] },
-                { "path": "ChannelType.swift", "target-membership": [ "F1A-TV/compile-sources" ] },
-                { "path": "APIStreamType.swift", "target-membership": [ "F1A-TV/compile-sources" ] },
-                { "path": "APILanguageType.swift", "target-membership": [ "F1A-TV/compile-sources" ] },
-                { "path": "AlternateUniverseDrivers.swift", "target-membership": [ "F1A-TV/compile-sources" ] },
-                { "path": "MenuPageType.swift", "target-membership": [ "F1A-TV/compile-sources" ] },
-                { "path": "APIVersionType.swift", "target-membership": [ "F1A-TV/compile-sources" ] },
-                { "path": "DriverChannelSortType.swift", "target-membership": [ "F1A-TV/compile-sources" ] },
               ],
             }, {
               "kind": "group",
@@ -403,18 +293,6 @@
             { "path": "Formula1-Regular.ttf", "target-membership": [ "F1A-TV/resources" ] },
             { "path": "Formula1-Wide.ttf", "target-membership": [ "F1A-TV/resources" ] },
           ],
-        }, {
-          "kind": "group",
-          "path": "Models",
-          "children": [
-            { "path": "AccountProfile.swift", "target-membership": [ "F1A-TV/compile-sources" ] },
-            { "path": "PlaybackEntitlement.swift", "target-membership": [ "F1A-TV/compile-sources" ] },
-            { "path": "CatalogModels.swift", "target-membership": [ "F1A-TV/compile-sources" ] },
-            { "path": "LiveTimeline.swift", "target-membership": [ "F1A-TV/compile-sources" ] },
-            { "path": "MultiviewSetup.swift", "target-membership": [ "F1A-TV/compile-sources" ] },
-            { "path": "PlayerLayoutGeometry.swift", "target-membership": [ "F1A-TV/compile-sources" ] },
-            { "path": "DefaultFeed.swift", "target-membership": [ "F1A-TV/compile-sources" ] },
-          ],
         },
         { "path": "PlayerLayoutManager.swift" },
         { "path": "AppDelegate.swift", "target-membership": [ "F1A-TV/compile-sources" ] },
@@ -445,7 +323,7 @@
           ],
         },
         { "path": "Info.plist" },
-        { "path": "Localizable.xcstrings", "target-membership": [ "F1A-TV/resources" ] },
+        { "path": "Extensions/FairPlayerPresentation.swift", "target-membership": [ "F1A-TV/compile-sources" ] },
       ],
     }, {
       "kind": "group",
@@ -484,6 +362,10 @@
           "product-name": "Alamofire",
           "build-phase": { "build-phase": "frameworks" },
         }, {
+          "package": "F1Core",
+          "product-name": "F1Core",
+          "build-phase": { "build-phase": "frameworks" },
+        }, {
           "package": "Kingfisher",
           "product-name": "Kingfisher",
           "build-phase": { "build-phase": "frameworks" },
@@ -504,7 +386,7 @@
         "CODE_SIGN_ENTITLEMENTS": "F1A-TV/F1A-TV.entitlements",
         "CODE_SIGN_IDENTITY": "Apple Development",
         "CODE_SIGN_STYLE": "Automatic",
-        "CURRENT_PROJECT_VERSION": "26.1003.1",
+        "CURRENT_PROJECT_VERSION": "26.1010.1",
         "INFOPLIST_FILE": "$(SRCROOT)/F1A-TV/Info.plist",
         "INFOPLIST_KEY_CFBundleDisplayName": "Vroom TV",
         "INFOPLIST_KEY_LSApplicationCategoryType": "public.app-category.entertainment",

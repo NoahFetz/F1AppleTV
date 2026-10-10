@@ -1,3 +1,6 @@
+#if canImport(F1Core)
+import F1Core
+#endif
 import UIKit
 
 /// Shared management screen; player callers additionally provide save/load actions.

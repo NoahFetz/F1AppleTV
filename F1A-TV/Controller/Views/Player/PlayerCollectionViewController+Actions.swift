@@ -1,3 +1,6 @@
+#if canImport(F1Core)
+import F1Core
+#endif
 //
 //  PlayerCollectionViewController+Actions.swift
 //  F1A-TV
@@ -38,7 +41,7 @@ extension PlayerCollectionViewController {
         self.pauseAll()
         entitlementTasks.values.forEach { $0.cancel() }; entitlementTasks.removeAll(); entitlementGenerations.removeAll()
         reportingTask?.cancel(); reportingTask = nil
-        self.playerItems.forEach { $0.player?.stopStream() }
+        self.playerItems.forEach { $0.thumbnails?.reset(); $0.player?.stopStream() }
         displayCriteriaTask?.cancel(); displayCriteriaTask = nil
         defaultsTasks.values.forEach { $0.cancel() }; defaultsTasks.removeAll()
         self.setPreferredDisplayCriteria(displayCriteria: nil)
@@ -126,6 +129,7 @@ extension PlayerCollectionViewController {
 
         let playerItem = self.playerItems[removedIndex]
         entitlementTasks.removeValue(forKey: id)?.cancel(); entitlementGenerations.removeValue(forKey: id)
+        playerItem.thumbnails?.reset()
         playerItem.player?.stopStream()
 
         liveCoordinator.cancel()

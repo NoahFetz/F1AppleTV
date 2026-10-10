@@ -1,3 +1,6 @@
+#if canImport(F1Core)
+import F1Core
+#endif
 //
 //  PlayerCollectionViewController+PlayerManagement.swift
 //  F1A-TV
@@ -128,7 +131,7 @@ extension PlayerCollectionViewController {
                 try Task.checkCancellation()
                 guard let self, self.entitlementGenerations[playerId] == generation, !Task.isCancelled, self.playerItems.contains(where: { $0.id == playerId }) else { return }
                 self.entitlementTasks.removeValue(forKey: playerId)
-                self.didLoadStreamEntitlement(playerId: playerId, streamEntitlement: entitlement)
+                self.didLoadStreamEntitlement(playerId: playerId, streamEntitlement: entitlement, contentId: contentId)
             } catch {
                 guard let self, self.entitlementGenerations[playerId] == generation, !Task.isCancelled, self.playerItems.contains(where: { $0.id == playerId }), !(error is CancellationError) else { return }
                 self.entitlementTasks.removeValue(forKey: playerId)
@@ -138,15 +141,22 @@ extension PlayerCollectionViewController {
         }
     }
 
-    func didLoadStreamEntitlement(playerId: String, streamEntitlement: PlaybackEntitlement) {
+    func didLoadStreamEntitlement(playerId: String, streamEntitlement: PlaybackEntitlement, contentId: String) {
         if let index = self.playerItems.firstIndex(where: {$0.id == playerId}) {
             var playerItem = self.playerItems[index]
+            playerItem.thumbnails?.reset()
             
             playerItem.entitlement = streamEntitlement
             
-            playerItem.player = FairPlayer()
+            playerItem.player = FairPlayer(); playerItem.player?.onPlaybackError = tvPlaybackError
             playerItem.player?.fairPlayService = services.fairPlay
             playerItem.player?.playStream(streamEntitlement: streamEntitlement)
+            if let player = playerItem.player {
+                let playback = services.playback
+                playerItem.thumbnails = StreamThumbnailProvider(player: player) {
+                    try await playback.entitlement(PlaybackTarget(uri: contentId, requiresVideoDetails: false))
+                }
+            }
             playerItem.player?.appliesMediaSelectionCriteriaAutomatically = false
             let fromStart = self.playFromStart
             self.playFromStart = false

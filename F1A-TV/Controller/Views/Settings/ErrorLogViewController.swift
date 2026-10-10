@@ -1,3 +1,6 @@
+#if canImport(F1Core)
+import F1Core
+#endif
 import UIKit
 
 final class ErrorLogViewController: UITableViewController {
@@ -63,6 +66,7 @@ final class ErrorLogViewController: UITableViewController {
             if let index = context.itemIndex { details += " · " + String(format: "diagnostics_catalog_item".localizedString, index + 1) }
         }
         if let status = entry.httpStatus { details += "\nHTTP: \(status)" }
+        if let causes = entry.underlyingErrors, !causes.isEmpty { details += "\n" + causes.map { "\($0.domain): \($0.code)" }.joined(separator: " → ") }
         stack.addArrangedSubview(TVDesign.label(details, size: 24))
         stack.addArrangedSubview(TVDesign.button("close".localizedString) { [weak panel] in panel?.dismiss(animated: true) })
         present(panel, animated: true)

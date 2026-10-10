@@ -1,3 +1,6 @@
+#if canImport(F1Core)
+import F1Core
+#endif
 import UIKit
 
 /// An empty layout slot remains quiet; focus belongs to its compact native action.

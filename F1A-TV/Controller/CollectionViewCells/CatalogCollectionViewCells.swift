@@ -1,3 +1,6 @@
+#if canImport(F1Core)
+import F1Core
+#endif
 import UIKit
 import Kingfisher
 
@@ -80,6 +83,7 @@ final class CatalogCardCell: UICollectionViewCell {
     private let cardButton = CatalogCardFocusButton(type: .custom)
     private let titleLabel = FontAdjustedUILabel()
     private let detailLabel = FontAdjustedUILabel()
+    private let descriptionLabel = FontAdjustedUILabel()
     private let actionButton = TVActionButton(type: .custom)
     private let flag = UIImageView()
     private let badge = CatalogSeriesBadge()
@@ -125,7 +129,9 @@ final class CatalogCardCell: UICollectionViewCell {
         let actions = UIStackView(arrangedSubviews: [actionButton, moreButton, UIView()]); actions.spacing = 16; actions.alignment = .center
         actionButton.widthAnchor.constraint(equalToConstant: 300).isActive = true
         moreButton.widthAnchor.constraint(equalToConstant: 180).isActive = true
-        [accentContainer, titleLabel, details, badge, actions].forEach { textStack.addArrangedSubview($0) }
+        [accentContainer, titleLabel, details, descriptionLabel, badge, actions].forEach { textStack.addArrangedSubview($0) }
+        descriptionLabel.font = .systemFont(ofSize: 24)
+        descriptionLabel.numberOfLines = 3
         moreButton.setTitle("catalog_more".localizedString, for: .normal)
         moreButton.addAction(UIAction { [weak self] _ in self?.onMore?() }, for: .primaryActionTriggered)
         actionButton.contentHorizontalAlignment = .center
@@ -153,10 +159,8 @@ final class CatalogCardCell: UICollectionViewCell {
         titleLabel.text = viewAllTitle ?? loadingTitle ?? title ?? metadata?.longDescription ?? ""
         titleLabel.font = UIFont(name: "Formula1-Display-Bold", size: style == .hero ? 36 : 24)
         detailLabel.font = .systemFont(ofSize: style == .hero ? 24 : 21)
-        detailLabel.numberOfLines = style == .hero ? 3 : 2
-        if style == .hero {
-            detailLabel.text = metadata?.longDescription
-        } else if item?.objectType == .Video {
+        detailLabel.numberOfLines = 2
+        if item?.objectType == .Video {
             detailLabel.text = [metadata?.uiDuration, metadata?.contentSubtype]
                 .compactMap { $0 }.filter { !$0.isEmpty }.joined(separator: " · ")
         } else {
@@ -164,9 +168,11 @@ final class CatalogCardCell: UICollectionViewCell {
                 .compactMap { $0 }.filter { !$0.isEmpty }.joined(separator: "\n")
         }
         detailLabel.isHidden = detailLabel.text?.isEmpty ?? true
+        descriptionLabel.text = style == .hero ? metadata?.longDescription : nil
+        descriptionLabel.isHidden = artworkOnly || descriptionLabel.text?.isEmpty != false
         seriesName = metadata?.race?.series ?? item?.series
         badge.configure(seriesName)
-        badge.isHidden = artworkOnly || item?.objectType != .Video
+        badge.isHidden = artworkOnly || (style != .hero && item?.objectType != .Video) || seriesName?.isEmpty != false
         flag.kf.cancelDownloadTask(); flag.image = nil; flag.isHidden = true
         if let country = metadata?.race?.meetingCountryKey, !country.isEmpty, !artworkOnly {
             flag.isHidden = false
@@ -210,7 +216,7 @@ final class CatalogCardCell: UICollectionViewCell {
         }
         NSLayoutConstraint.activate(styleConstraints)
         artwork.configure(metadata?.pictureUrl, focusScale: style == .hero ? 1 : 1.025)
-        accessibilityLabel = [titleLabel.text, detailLabel.text, style == .hero ? actionButton.title(for: .normal) : nil].compactMap { $0 }.joined(separator: ", ")
+        accessibilityLabel = [titleLabel.text, detailLabel.text, descriptionLabel.text, seriesName, style == .hero ? actionButton.title(for: .normal) : nil].compactMap { $0 }.joined(separator: ", ")
         actionButton.accessibilityLabel = accessibilityLabel
         cardButton.accessibilityLabel = accessibilityLabel
         updateAppearance()
@@ -220,7 +226,7 @@ final class CatalogCardCell: UICollectionViewCell {
         super.prepareForReuse()
         artwork.reset()
         flag.kf.cancelDownloadTask(); flag.kf.setImage(with: Optional<URL>.none)
-        titleLabel.text = nil; detailLabel.text = nil; seriesName = nil; badge.configure(nil)
+        titleLabel.text = nil; detailLabel.text = nil; descriptionLabel.text = nil; seriesName = nil; badge.configure(nil)
         accessibilityLabel = nil; cardButton.accessibilityLabel = nil; actionButton.accessibilityLabel = nil
         onAction = nil; onMore = nil
     }
@@ -236,6 +242,7 @@ final class CatalogCardCell: UICollectionViewCell {
         let foreground: UIColor = focused && style != .hero ? .black : .white
         titleLabel.textColor = foreground
         detailLabel.textColor = foreground.withAlphaComponent(0.85)
+        descriptionLabel.textColor = foreground.withAlphaComponent(0.85)
         if !badge.isHidden { badge.configure(seriesName, foreground: foreground) }
         transform = focused ? CGAffineTransform(scaleX: 1.025, y: 1.025) : .identity
         layer.borderWidth = focused ? 3 : 0
@@ -323,7 +330,7 @@ final class CatalogBannerCell: UICollectionViewCell {
         titleLabel.font = TVTypography.heading(44)
         titleLabel.numberOfLines = 2
         detailsLabel.font = .systemFont(ofSize: 24)
-        descriptionLabel.numberOfLines = 2
+        descriptionLabel.numberOfLines = 3
         more.setTitle("catalog_more".localizedString, for: .normal)
         more.addAction(UIAction { [weak self] _ in self?.onMore?() }, for: .primaryActionTriggered)
         let stack = UIStackView(arrangedSubviews: [countryStack, titleLabel, detailsLabel, badge, descriptionLabel, more])
@@ -340,6 +347,8 @@ final class CatalogBannerCell: UICollectionViewCell {
             shade.leadingAnchor.constraint(equalTo: contentView.leadingAnchor), shade.trailingAnchor.constraint(equalTo: contentView.trailingAnchor),
             stack.leadingAnchor.constraint(equalTo: contentView.leadingAnchor, constant: 32), stack.trailingAnchor.constraint(equalTo: contentView.trailingAnchor, constant: -32),
             stack.centerYAnchor.constraint(equalTo: contentView.centerYAnchor),
+            titleLabel.widthAnchor.constraint(equalTo: stack.widthAnchor),
+            descriptionLabel.widthAnchor.constraint(equalTo: stack.widthAnchor),
             flag.widthAnchor.constraint(equalToConstant: 42), flag.heightAnchor.constraint(equalToConstant: 30)
         ])
         isAccessibilityElement = false
@@ -356,19 +365,38 @@ final class CatalogBannerCell: UICollectionViewCell {
         descriptionLabel.text = description; descriptionLabel.isHidden = description.isEmpty
         more.isHidden = description.count <= 220
         isAccessibilityElement = floating && more.isHidden
-        countryLabel.text = meeting?.meetingCountryName
+        countryLabel.text = meeting?.meetingCountryName?.uppercased()
+        countryLabel.isHidden = countryLabel.text?.isEmpty != false
         titleLabel.text = meeting?.meetingOfficialName.flatMap { $0.isEmpty ? nil : $0 } ?? metadata?.title
         let round = meeting?.championshipMeetingOrdinal.flatMap { $0.isEmpty ? nil : $0 }.map { "\("catalog_round".localizedString) \($0)" }
         detailsLabel.text = [round, meeting?.meetingDisplayDate].compactMap { $0 }.filter { !$0.isEmpty }.joined(separator: "  |  ")
         flag.kf.cancelDownloadTask()
         flag.image = nil
+        flag.isHidden = true
         if let countryID = meeting?.meetingCountryKey, !countryID.isEmpty {
+            flag.isHidden = false
             flag.kf.setImage(with: URL(string: "https://ott-img.formula1.com/countries/\(countryID).png"))
         }
         artwork.isHidden = floating; shade.isHidden = floating
         contentView.layer.cornerRadius = floating ? 0 : 12
         artwork.configure(floating ? nil : metadata?.pictureUrl)
-        accessibilityLabel = [countryLabel.text, titleLabel.text, detailsLabel.text].compactMap { $0 }.joined(separator: ", ")
+        accessibilityLabel = [countryLabel.text, titleLabel.text, detailsLabel.text, meeting?.series ?? item.series, descriptionLabel.text].compactMap { $0 }.joined(separator: ", ")
+    }
+    static func height(for item: ContentItem, width: CGFloat, floating: Bool) -> CGFloat {
+        func textHeight(_ text: String?, font: UIFont, lines: Int) -> CGFloat {
+            guard let text, !text.isEmpty else { return 0 }
+            let rect = (text as NSString).boundingRect(with: CGSize(width: max(100, width - 64), height: .greatestFiniteMagnitude), options: [.usesLineFragmentOrigin, .usesFontLeading], attributes: [.font: font], context: nil)
+            return min(ceil(rect.height), ceil(font.lineHeight * CGFloat(lines)))
+        }
+        let title = item.race?.meetingOfficialName.flatMap { $0.isEmpty ? nil : $0 } ?? item.title
+        let description = item.longDescription ?? ""
+        let height = 64 + textHeight(title, font: TVTypography.heading(44), lines: 2)
+            + textHeight(description, font: .systemFont(ofSize: 24), lines: 3)
+            + (item.race?.meetingCountryName?.isEmpty == false ? 38 : 0)
+            + (item.race != nil ? 38 : 0)
+            + ((item.race?.series ?? item.series)?.isEmpty == false ? 32 : 0)
+            + (description.count > 220 ? 80 : 0)
+        return max(floating ? 260 : 420, height)
     }
     override func prepareForReuse() {
         super.prepareForReuse()

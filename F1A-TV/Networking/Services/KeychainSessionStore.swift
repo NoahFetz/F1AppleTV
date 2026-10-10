@@ -1,3 +1,6 @@
+#if canImport(F1Core)
+import F1Core
+#endif
 import Foundation
 
 /// Existing storage keys and registration encoding remain unchanged.

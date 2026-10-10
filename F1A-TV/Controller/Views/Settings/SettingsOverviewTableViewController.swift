@@ -1,3 +1,6 @@
+#if canImport(F1Core)
+import F1Core
+#endif
 import UIKit
 
 /// Programmatic settings panels; the historic name is retained for existing callers.
@@ -30,6 +33,7 @@ final class SettingsOverviewTableViewController: UIViewController {
         choice("Background", values: ["Follow hero", "Static branding"], selected: settings.followsHeroBackground ? 0 : 1) { self.settings.followsHeroBackground = $0 == 0 }
         section("Previews")
         choice("Live previews", values: ["On", "Off"], selected: settings.livePreviews ? 0 : 1) { self.settings.livePreviews = $0 == 0 }
+        choice("settings_scrub_previews".localizedString, values: ["Off", "On"], selected: settings.scrubPreviews ? 1 : 0) { self.settings.scrubPreviews = $0 == 1 }
         choice("Preview quality", values: ["360p", "540p"], selected: settings.previewHeight == 540 ? 1 : 0) { self.settings.previewHeight = $0 == 0 ? 360 : 540 }
         section("Playback")
         choice("default_feed".localizedString, values: ["international_feed_title".localizedString, "f1_live_feed_title".localizedString], selected: settings.defaultFeed == .f1Live ? 1 : 0) { self.settings.defaultFeed = $0 == 1 ? .f1Live : .international }

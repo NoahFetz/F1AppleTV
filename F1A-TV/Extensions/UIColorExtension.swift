@@ -1,3 +1,6 @@
+#if canImport(F1Core)
+import F1Core
+#endif
 //
 //  UIColorExtension.swift
 //  F1oA-TV

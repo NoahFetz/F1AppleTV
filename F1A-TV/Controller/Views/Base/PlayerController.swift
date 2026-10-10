@@ -1,3 +1,6 @@
+#if canImport(F1Core)
+import F1Core
+#endif
 //
 //  PlayerController.swift
 //  F1oA-TV
@@ -101,7 +104,7 @@ class PlayerController: NSObject, @preconcurrency AVPlayerViewControllerDelegate
     private func didLoadStreamEntitlement(streamEntitlement: PlaybackEntitlement) {
         var localPlayerItem = PlayerItem()
         
-        localPlayerItem.player = FairPlayer()
+        localPlayerItem.player = FairPlayer(); localPlayerItem.player?.onPlaybackError = tvPlaybackError
         localPlayerItem.player?.fairPlayService = services?.fairPlay
         localPlayerItem.player?.playStream(streamEntitlement: streamEntitlement)
         self.playerItem = localPlayerItem
@@ -141,6 +144,10 @@ class PlayerController: NSObject, @preconcurrency AVPlayerViewControllerDelegate
         self.presentedPlayerController = playerViewController
         
         playerViewController.player = player
+        // Native transport and trick-play remain available independently of the
+        // custom multiview preview preference.
+        playerViewController.showsPlaybackControls = true
+        playerViewController.requiresLinearPlayback = false
         
         playerViewController.delegate = self
         playerViewController.allowsPictureInPicturePlayback = true
