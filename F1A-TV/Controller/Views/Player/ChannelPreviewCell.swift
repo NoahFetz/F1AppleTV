@@ -13,6 +13,7 @@ final class ChannelPreviewCell: UITableViewCell {
     private let titleLabel = UILabel()
     private let subtitleLabel = UILabel()
     private let addedIcon = UIImageView(image: UIImage(systemName: "checkmark.circle.fill"))
+    private let actionLabel = UILabel()
     private let spinner = UIActivityIndicatorView(style: .medium)
     private var playerLayer: AVPlayerLayer?
     private var displayObservation: NSKeyValueObservation?
@@ -47,10 +48,13 @@ final class ChannelPreviewCell: UITableViewCell {
         subtitleLabel.textColor = UIColor.white.withAlphaComponent(0.8)
         subtitleLabel.lineBreakMode = .byTruncatingTail
         addedIcon.tintColor = .white
+        actionLabel.font = .systemFont(ofSize: 20, weight: .semibold)
+        actionLabel.textColor = .white
+        actionLabel.setContentCompressionResistancePriority(.required, for: .horizontal)
         let nameMaterial = PlayerMaterial.makeView(cornerRadius: 18)
         [previewView, subtitleLabel].forEach { $0.translatesAutoresizingMaskIntoConstraints = false; contentView.addSubview($0) }
         [artworkView, fallbackIcon, spinner, nameMaterial].forEach { $0.translatesAutoresizingMaskIntoConstraints = false; previewView.addSubview($0) }
-        [titleLabel, addedIcon].forEach { $0.translatesAutoresizingMaskIntoConstraints = false; nameMaterial.contentView.addSubview($0) }
+        [titleLabel, actionLabel, addedIcon].forEach { $0.translatesAutoresizingMaskIntoConstraints = false; nameMaterial.contentView.addSubview($0) }
         let subtitleHeight = subtitleLabel.heightAnchor.constraint(equalToConstant: 30)
         let subtitleTop = subtitleLabel.topAnchor.constraint(equalTo: previewView.bottomAnchor, constant: 10)
         subtitleHeightConstraint = subtitleHeight
@@ -80,7 +84,9 @@ final class ChannelPreviewCell: UITableViewCell {
             nameMaterial.topAnchor.constraint(equalTo: previewView.topAnchor, constant: 14),
             nameMaterial.heightAnchor.constraint(equalToConstant: 48),
             titleLabel.leadingAnchor.constraint(equalTo: nameMaterial.contentView.leadingAnchor, constant: 14),
-            titleLabel.trailingAnchor.constraint(equalTo: addedIcon.leadingAnchor, constant: -10),
+            titleLabel.trailingAnchor.constraint(equalTo: actionLabel.leadingAnchor, constant: -10),
+            actionLabel.trailingAnchor.constraint(equalTo: addedIcon.leadingAnchor, constant: -6),
+            actionLabel.centerYAnchor.constraint(equalTo: nameMaterial.contentView.centerYAnchor),
             titleLabel.centerYAnchor.constraint(equalTo: nameMaterial.contentView.centerYAnchor),
             addedIcon.trailingAnchor.constraint(equalTo: nameMaterial.contentView.trailingAnchor, constant: -14),
             addedIcon.centerYAnchor.constraint(equalTo: nameMaterial.contentView.centerYAnchor),
@@ -147,8 +153,10 @@ final class ChannelPreviewCell: UITableViewCell {
     }
 
     func setAdded(_ added: Bool) {
-        addedIcon.isHidden = !added
-        accessibilityValue = added ? "Added" : nil
+        addedIcon.isHidden = false
+        addedIcon.image = UIImage(systemName: added ? "minus.circle.fill" : "plus.circle.fill")
+        actionLabel.text = (added ? "stream_remove" : "stream_add").localizedString
+        accessibilityValue = actionLabel.text
     }
 
     func setPreviewPlayer(_ player: AVPlayer?) {

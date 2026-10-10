@@ -11,6 +11,64 @@ import F1Core
 import Foundation
 import AVKit
 
+/// Playback owners register real feeds only; muted browsing previews must not
+/// keep the TV awake. A fullscreen transition can temporarily have two owners.
+@MainActor
+final class PlaybackIdleTimer {
+    static let shared = PlaybackIdleTimer()
+    @MainActor private final class Owner {
+        weak var object: AnyObject?
+        let players: [AVPlayer]
+        var observations: [NSKeyValueObservation] = []
+        var itemObservations: [ObjectIdentifier: NSKeyValueObservation] = [:]
+        init(_ object: AnyObject, players: [AVPlayer]) { self.object = object; self.players = players }
+    }
+    private var owners: [ObjectIdentifier: Owner] = [:]
+    private init() {
+        NotificationCenter.default.addObserver(self, selector: #selector(refresh), name: UIApplication.didBecomeActiveNotification, object: nil)
+        NotificationCenter.default.addObserver(self, selector: #selector(refresh), name: UIApplication.willResignActiveNotification, object: nil)
+        NotificationCenter.default.addObserver(self, selector: #selector(refresh), name: UIApplication.didEnterBackgroundNotification, object: nil)
+    }
+    func setPlayers(_ players: [AVPlayer], owner: AnyObject) {
+        let identity = ObjectIdentifier(owner)
+        guard !players.isEmpty else { remove(identity); return }
+        let entry = Owner(owner, players: players)
+        owners[identity] = entry
+        for player in players {
+            player.preventsDisplaySleepDuringVideoPlayback = true
+            let changed: () -> Void = { [weak self] in
+                Task { @MainActor in self?.refresh() }
+            }
+            entry.observations.append(player.observe(\.timeControlStatus, options: [.new]) { _, _ in changed() })
+            entry.observations.append(player.observe(\.rate, options: [.new]) { _, _ in changed() })
+            entry.observations.append(player.observe(\.currentItem, options: [.new]) { [weak self, weak entry, weak player] _, _ in
+                Task { @MainActor in
+                    guard let self, let entry, let player else { return }
+                    self.observeItemStatus(player, owner: entry); self.refresh()
+                }
+            })
+            observeItemStatus(player, owner: entry)
+        }
+        refresh()
+    }
+    private func observeItemStatus(_ player: AVPlayer, owner: Owner) {
+        let identity = ObjectIdentifier(player)
+        owner.itemObservations[identity] = player.currentItem?.observe(\.status, options: [.new]) { [weak self] _, _ in
+            Task { @MainActor in self?.refresh() }
+        }
+    }
+    func remove(_ identity: ObjectIdentifier) { owners.removeValue(forKey: identity); refresh() }
+    @objc private func refresh(_ notification: Notification? = nil) {
+        owners = owners.filter { $0.value.object != nil }
+        let active = notification?.name != UIApplication.willResignActiveNotification && UIApplication.shared.applicationState == .active
+        UIApplication.shared.isIdleTimerDisabled = active && owners.values.contains { owner in
+            owner.players.contains { player in
+                player.currentItem != nil && player.currentItem?.status != .failed && player.timeControlStatus != .paused
+            }
+        }
+    }
+}
+
 @MainActor
 class PlayerController: NSObject, @preconcurrency AVPlayerViewControllerDelegate {
     private var entitlementTask: Task<Void, Never>?
@@ -41,6 +99,8 @@ class PlayerController: NSObject, @preconcurrency AVPlayerViewControllerDelegate
     }
     
     deinit {
+        let identity = ObjectIdentifier(self)
+        Task { @MainActor in PlaybackIdleTimer.shared.remove(identity) }
         entitlementTask?.cancel()
         defaultsTask?.cancel()
         if let nativeTimeObserver { observedPlayer?.removeTimeObserver(nativeTimeObserver) }
@@ -51,6 +111,7 @@ class PlayerController: NSObject, @preconcurrency AVPlayerViewControllerDelegate
     @objc func avPlayerDidDismiss(_ notification: Notification) {
         guard let dismissed = notification.object as? AVPlayerViewController,
               dismissed === presentedPlayerController else { return }
+        PlaybackIdleTimer.shared.setPlayers([], owner: self)
         defaultsTask?.cancel()
         liveCoordinator.cancel()
         if let nativeTimeObserver { observedPlayer?.removeTimeObserver(nativeTimeObserver) }
@@ -137,6 +198,7 @@ class PlayerController: NSObject, @preconcurrency AVPlayerViewControllerDelegate
     }
     
     func openPlayer(player: AVPlayer, fullscreenPlayerDismissedProtocol: FullscreenPlayerDismissedProtocol? = nil, isLive: Bool? = nil) {
+        PlaybackIdleTimer.shared.setPlayers([player], owner: self)
         self.fullscreenPlayerDismissedProtocol = fullscreenPlayerDismissedProtocol
         if let isLive { liveSession = isLive }
         

@@ -57,6 +57,13 @@ final class SettingsOverviewTableViewController: UIViewController {
             let captionCodes = ["off"] + codes
             choice(name + " · Captions", values: ["Off"] + languages, selected: captionCodes.firstIndex(of: captions ?? "default") ?? 1, legacy: captions == nil ? legacyCaptions : nil) { self.settings.captionDefaults[id] = captionCodes[$0] }
         }
+        var liveTracks = settings.discoveredF1LiveAudioTracks
+        if let selected = settings.f1LiveAudioTrack, !liveTracks.contains(selected) { liveTracks.append(selected) }
+        choice("f1_live_audio_default".localizedString, values: ["f1_live_audio_inherit".localizedString] + liveTracks,
+               selected: settings.f1LiveAudioTrack.flatMap { liveTracks.firstIndex(of: $0).map { $0 + 1 } } ?? 0) {
+            self.settings.f1LiveAudioTrack = $0 == 0 ? nil : liveTracks[$0 - 1]
+        }
+        if liveTracks.isEmpty { stack.addArrangedSubview(TVDesign.label("f1_live_audio_hint".localizedString, size: 22)) }
         section("Channels")
         choice("Driver sorting", values: DriverChannelSortType.allCases.map { $0.getDisplayName() }, selected: settings.driverChannelSorting.rawValue) { self.settings.driverChannelSorting = DriverChannelSortType(rawValue: $0) ?? DriverChannelSortType() }
         choice("Fun driver names", values: ["Off", "On"], selected: settings.showFunNames ? 1 : 0) { self.settings.showFunNames = $0 == 1 }

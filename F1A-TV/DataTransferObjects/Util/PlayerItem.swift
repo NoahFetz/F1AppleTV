@@ -17,6 +17,7 @@ struct PlayerItem: Identifiable {
     var entitlement: PlaybackEntitlement?
     var position: Int
     var player: FairPlayer?
+    var hasFailed = false
     // Owned by the feed so reopening the controls reuses the native/key session.
     var thumbnails: StreamThumbnailProvider?
     var playerAsset: AVURLAsset? { player?.currentItem?.asset as? AVURLAsset }

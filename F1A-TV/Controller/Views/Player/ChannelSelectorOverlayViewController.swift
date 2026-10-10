@@ -8,7 +8,7 @@ class ChannelSelectorOverlayViewController: BaseViewController {
     @IBOutlet weak var contentStackView: UIStackView!
     var channelsTableView: UITableView?
     var channelItems = [ContentItem]()
-    var selectionReturnProtocol: ChannelSelectionProtocol?
+    weak var selectionReturnProtocol: ChannelSelectionProtocol?
     var activeChannelKeys = Set<String>()
     weak var referencePlayer: AVPlayer?
     var referencePlayerProvider: (() -> AVPlayer?)?
@@ -72,7 +72,7 @@ class ChannelSelectorOverlayViewController: BaseViewController {
         material.widthAnchor.constraint(equalToConstant: 520).isActive = true
         contentStackView.addArrangedSubview(material)
         let title = UILabel()
-        title.text = "multiplayer_channel_selector_add_channel_title".localizedString
+        title.text = "manage_streams".localizedString
         title.font = .systemFont(ofSize: 34, weight: .bold)
         title.textColor = .white
         title.numberOfLines = 2
@@ -140,9 +140,14 @@ extension ChannelSelectorOverlayViewController: UITableViewDelegate, UITableView
 
     func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
         let item = channelItems[indexPath.row]
-        guard activeChannelKeys.insert(ChannelPreviewCell.channelKey(item)).inserted else { return }
-        (tableView.cellForRow(at: indexPath) as? ChannelPreviewCell)?.setAdded(true)
-        selectionReturnProtocol?.didSelectChannel(channelItem: item)
+        let key = ChannelPreviewCell.channelKey(item)
+        if activeChannelKeys.remove(key) != nil {
+            selectionReturnProtocol?.didRemoveChannel(channelItem: item)
+        } else {
+            activeChannelKeys.insert(key)
+            selectionReturnProtocol?.didSelectChannel(channelItem: item)
+        }
+        (tableView.cellForRow(at: indexPath) as? ChannelPreviewCell)?.setAdded(activeChannelKeys.contains(key))
     }
 
     func tableView(_ tableView: UITableView, didEndDisplaying cell: UITableViewCell, forRowAt indexPath: IndexPath) {

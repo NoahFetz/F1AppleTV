@@ -60,6 +60,8 @@ class ControlStripOverlayViewController: BaseViewController {
     private var timelineStartTime: Float64 = 0
     private var timelineDuration: Float64 = 0
     private var hasNotifiedDismissal = false
+    private var isScrubbing = false
+    private var scrubTargetTime: Double?
 
     override var preferredFocusEnvironments: [UIFocusEnvironment] {
         if let lastFocusedControl, lastFocusedControl.window != nil { return [lastFocusedControl] }
@@ -92,6 +94,7 @@ class ControlStripOverlayViewController: BaseViewController {
 
     override func viewWillDisappear(_ animated: Bool) {
         super.viewWillDisappear(animated)
+        timelineSeekingFinished()
         if isBeingDismissed { notifyDismissal() }
         self.removeTimeObserver()
         self.previewImageRequestId = nil
@@ -283,6 +286,13 @@ class ControlStripOverlayViewController: BaseViewController {
         actions.addArrangedSubview(makeSessionButton(title: "saved_setups".localizedString, symbol: "bookmark") { [weak self] in
             self?.controlStripActionProtocol?.showSetupPicker()
         })
+        actions.addArrangedSubview(makeSessionButton(title: "restart_streams".localizedString, symbol: "arrow.clockwise") { [weak self] in
+            guard let self else { return }
+            self.dismiss(animated: true) { [weak self] in
+                self?.notifyDismissal()
+                self?.controlStripActionProtocol?.restartStreams()
+            }
+        })
         let spacer = UIView()
         spacer.setContentHuggingPriority(.defaultLow, for: .horizontal)
         actions.addArrangedSubview(spacer)
@@ -327,6 +337,8 @@ class ControlStripOverlayViewController: BaseViewController {
         slider.value = 0
         slider.expectedLayoutWidth = 1200
         slider.stepValue = 1 / 120
+        slider.panSensitivity = 0.25
+        slider.allowsMomentum = false
         slider.focusScaleFactor = 1.04
         slider.minimumTrackTintColor = .white
         slider.maximumTrackTintColor = UIColor.white.withAlphaComponent(0.28)
@@ -449,6 +461,8 @@ class ControlStripOverlayViewController: BaseViewController {
         self.volumeSlider?.translatesAutoresizingMaskIntoConstraints = false
         self.volumeSlider?.requiresSelectToAdjust = true
         self.volumeSlider?.stepValue = 1 / 16
+        self.volumeSlider?.panSensitivity = 0.5
+        self.volumeSlider?.allowsMomentum = false
         self.volumeSlider?.focusScaleFactor = 1.04
         self.volumeSlider?.minimumTrackTintColor = .white
         self.volumeSlider?.maximumTrackTintColor = UIColor.white.withAlphaComponent(0.28)
@@ -615,12 +629,16 @@ class ControlStripOverlayViewController: BaseViewController {
         guard self.timelineDuration > 0 else { return }
 
         let targetTime = self.timelineStartTime + (Float64(slider.value) * self.timelineDuration)
-        self.controlStripActionProtocol?.seekPlayersTo(time: targetTime)
+        isScrubbing = true
+        scrubTargetTime = targetTime
         self.updateTimelineLabels(currentTime: targetTime)
         self.showScrubPreview(at: targetTime, sliderValue: slider.value)
     }
 
     @objc func timelineSeekingFinished() {
+        guard isScrubbing, let targetTime = scrubTargetTime else { return }
+        isScrubbing = false
+        self.controlStripActionProtocol?.seekPlayersTo(time: targetTime)
         self.controlStripActionProtocol?.didFinishSeeking()
     }
 
@@ -906,6 +924,13 @@ extension ControlStripOverlayViewController {
             liveButton?.isEnabled = LiveTimeline.target(start: range.start.seconds, end: CMTimeRangeGetEnd(range).seconds) != nil
             liveButton?.setTitle((LiveTimeline.isAtLive(position: player.currentTime().seconds, end: CMTimeRangeGetEnd(range).seconds) ? "live_status" : "go_live").localizedString, for: .normal)
         } else { liveButton?.isEnabled = false }
+        // Keep the thumb and live-window origin fixed until the displayed
+        // stream finishes the seek, not just until the gesture ends.
+        guard !isScrubbing else { return }
+        if scrubTargetTime != nil,
+           let id = playerItem?.id,
+           controlStripActionProtocol?.isSeekingPlayer(id: id) == true { return }
+        scrubTargetTime = nil
         let bounds = self.timelineBounds(for: player)
         self.timelineStartTime = bounds.start
         self.timelineDuration = bounds.duration

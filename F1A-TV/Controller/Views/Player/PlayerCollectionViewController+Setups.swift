@@ -20,7 +20,7 @@ extension PlayerCollectionViewController {
             guard let self else { return nil }
             let streams = self.playerItems.compactMap { item -> SavedStream? in
                 guard let channel = item.contentItem.channel else { return nil }
-                return SavedStream(selection: StreamSelection(channel: channel), volume: item.player?.volume ?? 1, muted: item.player?.isMuted ?? (item.position != 0))
+                return SavedStream(selection: StreamSelection(channel: channel), volume: item.player?.volume ?? self.setupAudio[item.id]?.volume ?? 1, muted: item.player?.isMuted ?? self.setupAudio[item.id]?.muted ?? (item.position != 0))
             }
             guard !streams.isEmpty else { return nil }
             return MultiviewSetup(name: "setup_default_name".localizedString + " " + String(MultiviewSetupStore.shared.load().count + 1), layout: self.layoutChoice, streams: streams)
@@ -35,23 +35,29 @@ extension PlayerCollectionViewController {
     func applySetup(_ setup: MultiviewSetup) {
         let resolved = SetupResolver.resolve(setup, channels: channelItems.compactMap(\.channel))
         guard !resolved.channels.isEmpty else { showMissingStreams(); return }
-        let anchor = playerItems.first?.player.map(PlaybackPositionSnapshot.init)
+        rememberPlaybackPosition()
+        let anchor = lastPlaybackPosition
         let previous = playerItems
-        liveCoordinator.cancel(); synchronizationGeneration = UUID()
+        cancelSynchronization()
         var next = [PlayerItem]()
         for (index, channel) in resolved.channels.enumerated() {
             guard let item = channelItems.first(where: { $0.channel?.id == channel.id }) else { continue }
             var playerItem = previous.first(where: { $0.contentItem.channel?.id == channel.id }) ?? PlayerItem(contentItem: item, position: index)
+            if playerItem.hasFailed || playerItem.player?.currentItem?.status == .failed {
+                discardPlayerResources(id: playerItem.id)
+                playerItem.player = nil; playerItem.thumbnails = nil; playerItem.hasFailed = false
+            }
             playerItem.position = index
             let audio = resolved.audio[index]
             if initializedPlayerIDs.contains(playerItem.id) { playerItem.player?.volume = audio.volume; playerItem.player?.isMuted = audio.muted }
             else { setupAudio[playerItem.id] = audio }
-            if let anchor { startupAnchors[playerItem.id] = (anchor, synchronizationGeneration) }
+            if let anchor, !initializedPlayerIDs.contains(playerItem.id) { startupAnchors[playerItem.id] = (anchor, synchronizationGeneration) }
             next.append(playerItem)
         }
         let retained = Set(next.map(\.id))
         for removed in previous where !retained.contains(removed.id) {
             entitlementTasks.removeValue(forKey: removed.id)?.cancel(); entitlementGenerations.removeValue(forKey: removed.id)
+            startupTimeouts.removeValue(forKey: removed.id)?.cancel()
             defaultsTasks.removeValue(forKey: removed.id)?.cancel(); readyObservations.removeValue(forKey: removed.id)
             initializedPlayerIDs.remove(removed.id); defaultsAppliedPlayerIDs.remove(removed.id)
             setupAudio.removeValue(forKey: removed.id); startupAnchors.removeValue(forKey: removed.id)
@@ -61,6 +67,7 @@ extension PlayerCollectionViewController {
         playerItems = next; orderChannels(); layoutChoice = setup.layout.afterAdding(count: next.count)
         lastFocusedPlayer = IndexPath(item: 0, section: 0); controlTargetPlayerId = nil
         refreshPlayerLayout()
+        updatePlaybackIdleTimer()
         for item in next where item.player == nil && entitlementTasks[item.id] == nil {
             guard let channel = item.contentItem.channel else { continue }
             loadStreamEntitlement(playerId: item.id, contentId: channel.target.uri)
@@ -72,9 +79,17 @@ extension PlayerCollectionViewController {
     }
     func goLive() {
         guard isLiveSession, let reference = playerItems.first?.player else { return }
-        synchronizationGeneration = UUID(); startupAnchors.removeAll(); wantsPlayback = true
+        cancelSynchronization(); startupAnchors.removeAll(); wantsPlayback = true
         let ref = AVLiveSeekSession(reference)
         let sessions = playerItems.compactMap(\.player).filter { $0 !== reference }.map(AVLiveSeekSession.init)
         liveCoordinator.jump(reference: ref, sessions: [ref] + sessions)
+    }
+
+    func restartStreams() {
+        rememberPlaybackPosition()
+        let anchor = lastPlaybackPosition
+        cancelSynchronization()
+        let ids = playerItems.map(\.id)
+        for id in ids { restartPlayer(id: id, anchor: anchor) }
     }
 }

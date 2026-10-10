@@ -17,10 +17,12 @@ protocol ControlStripActionProtocol: AnyObject {
     func rewindPlayer()
     func forwardPlayer()
     func seekPlayersTo(time: Float64)
+    func isSeekingPlayer(id: String) -> Bool
     func didFinishSeeking()
     func showChannelSelectorOverlay()
     func swapToMainPlayer(id: String)
     func showLayoutPicker()
     func showSetupPicker()
     func goLive()
+    func restartStreams()
 }

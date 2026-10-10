@@ -26,11 +26,15 @@ public struct PlayerSettings: Codable, Identifiable {
     // ISO language identifiers; "default" and "off" have explicit meanings.
     public var audioDefaults = [Int: String]()
     public var captionDefaults = [Int: String]()
+    // F1 Live can expose multiple commentary tracks in the same language.
+    public var f1LiveAudioTrack: String?
+    public var discoveredF1LiveAudioTracks: [String] = []
 
     public enum CodingKeys: String, CodingKey {
         case id, preferredChannelLanguage, preferredChannelCaptions, preferredChannelVolume, preferredChannelMute
         case driverChannelSorting, showFunNames, followsHeroBackground, livePreviews, scrubPreviews, previewHeight
         case startupMaximumHeight, liveStart, defaultFeed, audioDefaults, captionDefaults
+        case f1LiveAudioTrack, discoveredF1LiveAudioTracks
     }
     public init(from decoder: Decoder) throws {
         self.init()
@@ -51,6 +55,8 @@ public struct PlayerSettings: Codable, Identifiable {
         defaultFeed = (try? c.decode(DefaultFeed.self, forKey: .defaultFeed)) ?? .international
         audioDefaults = try c.decodeIfPresent([Int: String].self, forKey: .audioDefaults) ?? [:]
         captionDefaults = try c.decodeIfPresent([Int: String].self, forKey: .captionDefaults) ?? [:]
+        f1LiveAudioTrack = try c.decodeIfPresent(String.self, forKey: .f1LiveAudioTrack)
+        discoveredF1LiveAudioTracks = try c.decodeIfPresent([String].self, forKey: .discoveredF1LiveAudioTracks) ?? []
     }
 
     public init() {

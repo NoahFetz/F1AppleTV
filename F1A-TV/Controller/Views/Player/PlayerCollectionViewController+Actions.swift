@@ -14,8 +14,7 @@ import UIKit
 extension PlayerCollectionViewController {
 
     @objc func playPausePressed() {
-        liveCoordinator.cancel()
-        synchronizationGeneration = UUID()
+        cancelSynchronization()
         self.reportCurrentPlayTime()
 
         if let firstPlayer = self.playerItems.first {
@@ -33,19 +32,27 @@ extension PlayerCollectionViewController {
     }
 
     @objc func menuPressed() {
-        liveCoordinator.cancel()
-        synchronizationGeneration = UUID()
+        stopPlayback()
+        self.dismiss(animated: true)
+    }
+
+    func stopPlayback() {
+        guard !isExitingPlayback else { return }
+        cancelSynchronization()
         readyObservations.removeAll()
         self.reportCurrentPlayTime()
+        isExitingPlayback = true
+        positionTimer?.invalidate(); positionTimer = nil
+        pendingSeekTime = nil
 
         self.pauseAll()
         entitlementTasks.values.forEach { $0.cancel() }; entitlementTasks.removeAll(); entitlementGenerations.removeAll()
-        reportingTask?.cancel(); reportingTask = nil
+        startupTimeouts.values.forEach { $0.cancel() }; startupTimeouts.removeAll()
         self.playerItems.forEach { $0.thumbnails?.reset(); $0.player?.stopStream() }
         displayCriteriaTask?.cancel(); displayCriteriaTask = nil
         defaultsTasks.values.forEach { $0.cancel() }; defaultsTasks.removeAll()
         self.setPreferredDisplayCriteria(displayCriteria: nil)
-        self.dismiss(animated: true)
+        updatePlaybackIdleTimer()
     }
 
     @objc func swipeUpRegognized() {
@@ -95,29 +102,32 @@ extension PlayerCollectionViewController {
     }
 
     func rewindPlayer() {
-        liveCoordinator.cancel()
-        synchronizationGeneration = UUID()
+        cancelSynchronization()
         self.reportCurrentPlayTime()
 
         self.rewindAllPlayersBy(seconds: 15)
     }
 
     func forwardPlayer() {
-        liveCoordinator.cancel()
-        synchronizationGeneration = UUID()
+        cancelSynchronization()
         self.reportCurrentPlayTime()
 
         self.forwardAllPlayersBy(seconds: 15)
     }
 
     func seekPlayersTo(time: Float64) {
-        liveCoordinator.cancel()
-        synchronizationGeneration = UUID()
+        cancelSynchronization()
         self.seekAllPlayersTo(time: time)
+    }
+
+    func isSeekingPlayer(id: String) -> Bool {
+        // Secondary feeds seek after the reference lands. Keep their timeline
+        // protected through both phases of the shared seek.
+        pendingSeekTime != nil || restoringPlayerIDs.contains(id)
     }
     
     func didFinishSeeking() {
-        self.reportCurrentPlayTime()
+        // Progress is reported after the reference seek finishes.
     }
 
     func willClosePlayer(id: String) {
@@ -128,12 +138,12 @@ extension PlayerCollectionViewController {
         }
 
         let playerItem = self.playerItems[removedIndex]
+        startupTimeouts.removeValue(forKey: id)?.cancel()
         entitlementTasks.removeValue(forKey: id)?.cancel(); entitlementGenerations.removeValue(forKey: id)
         playerItem.thumbnails?.reset()
         playerItem.player?.stopStream()
 
-        liveCoordinator.cancel()
-        synchronizationGeneration = UUID()
+        cancelSynchronization()
         readyObservations.removeValue(forKey: id)
         defaultsTasks.removeValue(forKey: id)?.cancel()
         initializedPlayerIDs.remove(id); defaultsAppliedPlayerIDs.remove(id); setupAudio.removeValue(forKey: id)
@@ -142,6 +152,7 @@ extension PlayerCollectionViewController {
         self.orderChannels()
         if let main = playerItems.first { setPreferredChannelSettings(playerItem: main) }
         refreshPlayerLayout()
+        updatePlaybackIdleTimer()
 
     }
 }
@@ -154,8 +165,7 @@ extension PlayerCollectionViewController {
         guard newIndex != 0 else { return } // Already main
 
         if self.collectionView.collectionViewLayout is PlayerGridLayout {
-            liveCoordinator.cancel()
-            synchronizationGeneration = UUID()
+            cancelSynchronization()
             let focusedID = self.playerItems[newIndex].id
             // Store reference to players and their settings before swap
             let previousMainPlayer = self.playerItems[0].player

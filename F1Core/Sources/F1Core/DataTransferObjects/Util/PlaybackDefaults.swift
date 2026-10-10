@@ -3,7 +3,7 @@ import AVFoundation
 /// Startup media preferences shared by the native and multiview players.
 public enum PlaybackDefaults {
     @MainActor
-    public static func apply(to item: AVPlayerItem, channel: ChannelType, settings: PlayerSettings, isCurrent: () -> Bool) async {
+    public static func apply(to item: AVPlayerItem, channel: ChannelType, settings: PlayerSettings, isF1Live: Bool = false, isCurrent: () -> Bool) async {
         guard !Task.isCancelled, isCurrent() else { return }
         let id = channel.getIdentifier()
         for (kind, preference, legacy) in [
@@ -12,6 +12,10 @@ public enum PlaybackDefaults {
         ] {
             guard let group = try? await item.asset.loadMediaSelectionGroup(for: kind) else { continue }
             guard !Task.isCancelled, isCurrent() else { return }
+            if kind == .audible, isF1Live, let preferred = settings.f1LiveAudioTrack,
+               let option = group.options.first(where: { $0.displayName == preferred }) {
+                item.select(option, in: group); continue
+            }
             if preference == "off", group.allowsEmptySelection { item.select(nil, in: group); continue }
             if preference == "default" { item.selectMediaOptionAutomatically(in: group); continue }
             let option: AVMediaSelectionOption?

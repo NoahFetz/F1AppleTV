@@ -19,7 +19,7 @@ public struct PlaybackPositionSnapshot {
         } else { target = seconds }
         let fallback = {
             guard isCurrent(), target.isFinite, player.currentItem === item else { completion(false); return }
-            player.seek(to: CMTime(seconds: max(0, target), preferredTimescale: 600)) { done in DispatchQueue.main.async { completion(done) } }
+            player.seek(to: CMTime(seconds: max(0, target), preferredTimescale: 600), toleranceBefore: .zero, toleranceAfter: .zero) { done in DispatchQueue.main.async { completion(done) } }
         }
         if let date, item.currentDate() != nil {
             player.seek(to: date) { done in DispatchQueue.main.async { if done { completion(true) } else { fallback() } } }
@@ -179,7 +179,7 @@ public enum StreamSynchronization {
             let range = item.seekableTimeRanges.last?.timeRangeValue
             let lower = range?.start.seconds ?? 0
             let upper = range.map { CMTimeRangeGetEnd($0).seconds - 0.1 } ?? (item.duration.seconds.isFinite ? item.duration.seconds : target)
-            player.seek(to: CMTime(seconds: max(lower, min(target, max(lower, upper))), preferredTimescale: 600)) { done in
+            player.seek(to: CMTime(seconds: max(lower, min(target, max(lower, upper))), preferredTimescale: 600), toleranceBefore: .zero, toleranceAfter: .zero) { done in
                 DispatchQueue.main.async { completion(done) }
             }
         }

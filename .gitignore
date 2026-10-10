@@ -61,6 +61,7 @@ Carthage/Build
 *.trace
 *.xcarchive/
 *.ipa
+*.dmg
 archive/
 export/
 _XcodeTaskExportOptions.plist

@@ -114,6 +114,8 @@ public final class TvOSSlider: UIControl {
 
     /// Enables native-style accelerated stepping when left or right is held.
     public var allowsPressRepeat = true
+    public var panSensitivity: Float = 1
+    public var allowsMomentum = true
 
     /// Requires Select before the slider captures directional input.
     public var requiresSelectToAdjust = false
@@ -574,7 +576,8 @@ public final class TvOSSlider: UIControl {
     @objc
     private func panGestureWasTriggered(panGestureRecognizer: UIPanGestureRecognizer) {
         let translation = panGestureRecognizer.translation(in: self)
-        guard abs(translation.x) >= abs(translation.y) else {
+        guard trackView.bounds.width > 0 else { return }
+        if (panGestureRecognizer.state == .began || panGestureRecognizer.state == .changed) && abs(translation.x) < abs(translation.y) {
             return
         }
 
@@ -590,7 +593,7 @@ public final class TvOSSlider: UIControl {
             thumbViewCenterXConstraintConstant = Float(thumbViewCenterXConstraint.constant)
             sendActions(for: .editingDidBegin)
         case .changed:
-            let centerX = thumbViewCenterXConstraintConstant + horizontalTranslation
+            let centerX = thumbViewCenterXConstraintConstant + horizontalTranslation * panSensitivity
             let percent = centerX / Float(trackView.frame.width)
             value = minimumValue + ((maximumValue - minimumValue) * percent)
             if isContinuous {
@@ -599,7 +602,7 @@ public final class TvOSSlider: UIControl {
         case .ended, .cancelled:
             thumbViewCenterXConstraintConstant = Float(thumbViewCenterXConstraint.constant)
 
-            if abs(horizontalVelocity) > fineTunningVelocityThreshold {
+            if allowsMomentum && panGestureRecognizer.state == .ended && abs(horizontalVelocity) > fineTunningVelocityThreshold {
                 let direction: Float = horizontalVelocity > 0 ? 1 : -1
                 deceleratingVelocity = abs(horizontalVelocity) > decelerationMaxVelocity ? decelerationMaxVelocity * direction : horizontalVelocity
                 deceleratingTimer = Timer.scheduledTimer(timeInterval: 0.01, target: self, selector: #selector(handleDeceleratingTimer(timer:)), userInfo: nil, repeats: true)

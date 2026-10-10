@@ -107,4 +107,8 @@ extension PlayerCollectionViewController {
     func didSelectChannel(channelItem: ContentItem) {
         self.loadStreamEntitlement(channelItem: channelItem)
     }
+    func didRemoveChannel(channelItem: ContentItem) {
+        guard let item = playerItems.first(where: { $0.contentItem.previewIdentity == channelItem.previewIdentity }) else { return }
+        willClosePlayer(id: item.id)
+    }
 }

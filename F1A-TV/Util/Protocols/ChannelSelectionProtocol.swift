@@ -10,6 +10,7 @@ import F1Core
 
 import Foundation
 
-protocol ChannelSelectionProtocol {
+protocol ChannelSelectionProtocol: AnyObject {
     func didSelectChannel(channelItem: ContentItem)
+    func didRemoveChannel(channelItem: ContentItem)
 }

@@ -15,7 +15,18 @@ class PlayerCollectionViewController: BaseCollectionViewController, ChannelSelec
     var services: AppServices!
     var entitlementGenerations = [String: UUID]()
     var entitlementTasks = [String: Task<Void, Never>]()
-    var reportingTask: Task<Void, Never>?
+    lazy var progressReporter = PlaybackProgressReporter(deliver: { [playback = services.playback] progress in
+        try await playback.report(contentID: progress.contentID, subtype: progress.subtype, position: progress.position, timestamp: progress.timestamp)
+    }, onError: { recordServiceFailure($0, operation: .action) })
+    var startupTimeouts = [String: DispatchWorkItem]()
+    var pendingSeekTime: Double?
+    var pendingSeekReferenceID: String?
+    var restoringPlayerIDs = Set<String>()
+    var playerSeekGenerations = [String: UUID]()
+    var lastPlaybackPosition: PlaybackPositionSnapshot?
+    var isExitingPlayback = false
+    var positionTimer: Timer?
+    var startedFromBeginning = false
     var displayCriteriaTask: Task<Void, Never>?
     var defaultsTasks = [String: Task<Void, Never>]()
     var defaultsAppliedPlayerIDs = Set<String>()
@@ -55,9 +66,26 @@ class PlayerCollectionViewController: BaseCollectionViewController, ChannelSelec
             UserInteractionHelper.instance.showError(title: "error".localizedString, message: "go_live_failed".localizedString)
         }
         NotificationCenter.default.addObserver(self, selector: #selector(playerResolutionChanged), name: FairPlayer.resolutionDidChange, object: nil)
+        NotificationCenter.default.addObserver(self, selector: #selector(playbackWillResignActive), name: UIApplication.willResignActiveNotification, object: nil)
+        positionTimer = Timer.scheduledTimer(withTimeInterval: 1, repeats: true) { [weak self] _ in
+            Task { @MainActor in self?.rememberPlaybackPosition() }
+        }
     }
 
-    deinit { displayCriteriaTask?.cancel(); defaultsTasks.values.forEach { $0.cancel() }; entitlementTasks.values.forEach { $0.cancel() }; reportingTask?.cancel(); NotificationCenter.default.removeObserver(self) }
+    override func viewWillDisappear(_ animated: Bool) {
+        super.viewWillDisappear(animated)
+        if isBeingDismissed { stopPlayback() }
+    }
+    @objc private func playbackWillResignActive() { reportCurrentPlayTime() }
+
+    deinit {
+        displayCriteriaTask?.cancel(); defaultsTasks.values.forEach { $0.cancel() }; entitlementTasks.values.forEach { $0.cancel() }
+        startupTimeouts.values.forEach { $0.cancel() }
+        positionTimer?.invalidate()
+        let identity = ObjectIdentifier(self)
+        Task { @MainActor in PlaybackIdleTimer.shared.remove(identity) }
+        NotificationCenter.default.removeObserver(self)
+    }
 
     @objc private func playerResolutionChanged(_ notification: Notification) {
         guard let player = notification.object as? FairPlayer, player === playerItems.first?.player,
@@ -68,6 +96,7 @@ class PlayerCollectionViewController: BaseCollectionViewController, ChannelSelec
     func initialize(channelItems: [ContentItem], playFromStart: Bool? = false) {
         self.channelItems = channelItems
         self.playFromStart = playFromStart ?? false
+        self.startedFromBeginning = self.playFromStart
         
         if let channel = PlaybackSelection.initialChannel(in: channelItems.compactMap(\.channel), preference: CredentialHelper.getPlayerSettings().defaultFeed),
            let item = channelItems.first(where: { $0.channel?.id == channel.id }) {
@@ -175,6 +204,11 @@ class PlayerCollectionViewController: BaseCollectionViewController, ChannelSelec
         default:
             print("Shouldn't happen (Hopefully ^^)")
         }
+
+        if currentItem.hasFailed {
+            cell.subtitleLabel.text = "stream_failed_retry".localizedString
+            cell.loadingSpinner?.stopAnimating()
+        }
         
         if let player = currentItem.player, player.currentItem != nil {
             cell.startPlayer(player: player)
@@ -200,6 +234,10 @@ class PlayerCollectionViewController: BaseCollectionViewController, ChannelSelec
         
         // Capture the selected tile before the overlay takes focus.
         self.lastFocusedPlayer = indexPath
+        if playerItems[indexPath.item].hasFailed {
+            restartPlayer(id: playerItems[indexPath.item].id)
+            return
+        }
         self.showControlStripOverlay(for: indexPath)
     }
     
