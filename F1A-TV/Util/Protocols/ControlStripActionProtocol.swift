@@ -10,7 +10,15 @@ import F1Core
 
 import Foundation
 
-protocol ControlStripActionProtocol: AnyObject {
+@MainActor protocol ControlStripActionProtocol: AnyObject {
+    var transportReference: PlayerItem? { get }
+    var transportIsPlaying: Bool { get }
+    func beginTransportPreview() -> MultiviewScrubSession?
+    func commitTransportPreview(_ session: MultiviewScrubSession, time: Double)
+    func cancelTransportPreview(_ session: MultiviewScrubSession, restorePlayback: Bool)
+    func audioMixSnapshot() -> [AudioMixStreamState]
+    func setStreamVolume(id: String, volume: Float)
+    func setStreamMuted(id: String, muted: Bool)
     func willClosePlayer(id: String)
     func enterFullScreenPlayer(id: String)
     func playPausePlayer()

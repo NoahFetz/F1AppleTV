@@ -8,6 +8,7 @@ F1 TV credentials.
 | Check | Command |
 | --- | --- |
 | Backend, authentication and FairPlay ownership | `bash Tests/run-backend-tests.sh` |
+| Phone sign-in, device polling, refresh rotation and cancellation | `swift test --package-path F1Core --filter DeviceAuthenticationTests` |
 | Catalog, presentation, settings, diagnostics and preview pool | `bash Tests/run-catalog-tests.sh` |
 | FairPlay request format | `bash Tests/run-fairplay-tests.sh` |
 | Playlist, rendition selection and preview playlists | `bash Tests/run-resolution-tests.sh` |
@@ -16,11 +17,432 @@ F1 TV credentials.
 | String catalog | `python3 Tests/verify-localizations.py` |
 | Actual Alamofire transport with mocked responses | `F1_ALAMOFIRE_SOURCE=/path/to/resolved/Alamofire bash Tests/run-transport-tests.sh` |
 | Multiview layouts, saved setups, default feed and Go Live | `bash Tests/run-multiview-tests.sh` |
+| Remote timeline state, scanning and pending seeks | `bash Tests/run-player-interaction-tests.sh` |
+| tvOS controller recovery, precise seeking, replay progress and idle guard | `DEVELOPER_DIR=/path/to/Xcode.app/Contents/Developer bash Tests/run-tvos-playback-tests.sh` |
+| Shared package, desktop synchronization and saved windows | `bash Tests/run-desktop-tests.sh` |
+| Desktop window geometry, pinning and control visibility | `bash Tests/run-player-window-tests.sh` |
 
 The transport check needs an existing resolved Alamofire checkout; it does not
 download packages. Signing is needed for simulator account/Keychain checks.
 DRM-protected playback requires a physical Apple TV. Automated and simulator
 results do not establish authenticated hardware compatibility.
+
+Build and release automation now belongs to Xcode Cloud. The GitHub Actions
+workflows and their custom Mac notarization/tag-packaging helpers were removed
+on 2026-10-10. The local checks above remain available; configure hosted Cloud
+test actions or verification scripts separately. Earlier release-workflow
+validation notes below describe the tooling that existed at that time.
+
+## Remote-friendly tvOS multiview controls (2026-10-25)
+
+- The strip opens on Play/Pause. While playing, directional timeline clicks skip
+  ten seconds; while paused, movement only previews. Select or Play/Pause confirms
+  and resumes all streams. Back, leaving the timeline, dismissal and backgrounding
+  cancel unconfirmed previews. The shared timeline uses the synchronization
+  reference rather than the tile whose language/quality settings are selected.
+- Holding a direction starts continuous scanning at 24/48/96 media seconds per
+  second, labeled 2x/3x/4x. Swipes use relative time, without momentum. The optional
+  thumbnail setting and timestamp-only default are unchanged.
+- Audio opens an all-stream mixer. Each row is a single focus target: Up/Down
+  navigates, Left/Right adjusts five percent, Select toggles mute, and Back returns
+  to Audio. Level changes preserve mute and existing channel preference storage.
+- The Foundation transport suite passes 14 tests, the real-controller simulator
+  harness passes 42 checks, and the existing multiview suite passes 19 tests.
+  The normal tvOS simulator build passes; 168 string keys validate in six languages.
+- Device Hub virtual-remote checks verified row adjustment and vertical focus,
+  Back-to-Audio, timeline preview/cancel, Down-to-controls, and Select-to-confirm
+  synchronized local playback. Long-name/scrolling mixer screenshots are captured
+  by the controller runner. Physical touch remotes, authenticated F1/FairPlay,
+  and real live streams still require Apple TV testing.
+- The controller runner normally removes its disposable simulator. Setting
+  `F1_TV_KEEP_SIMULATOR=1` keeps that simulator and opens a local-video interactive
+  strip after the checks; its ID is written to `simulator-id.txt` in the run folder.
+
+## Optional scrub frames and CDN startup diagnosis (2026-10-09)
+
+- Timestamp-only scrubbing is now the default for both custom player interfaces.
+  Settings can enable frame previews. Legacy settings decode the new preference
+  as off without changing feed-preview preferences. The scrub player is created
+  only on demand and released when its preview closes; automatic warm-up was removed.
+- Authenticated inspection confirms actual encrypted I-frame samples, not just
+  advertised tracks: the sampled 480×270 preview fragment contained one frame
+  and 15,035 bytes, versus 288 frames and 305,074 bytes for a matching regular
+  segment. The 5.76-second frame cadence limits temporal precision.
+- The existing app log showed playback and preview `NSURLErrorDomain -1102`
+  failures at 16:48. A signed, sandboxed native probe reproduced the playback
+  error with underlying `CoreMediaErrorDomain -12660`; AVFoundation's native log
+  identified HTTP 403 Forbidden from media delivery. SDR failed on one run and
+  HDR on another, while native-master playback succeeded. The reason for the
+  intermittent CDN rejection is not established; stale entitlements are a
+  recovery hypothesis, not a verified cause.
+- Entitlement requests bypass caches. Mac preparation retries a confirmed CDN
+  403 once with a fresh entitlement, retaining the original timeout and stale
+  completion guards. License errors, cancellation and unrelated errors are not
+  retried. Diagnostics retain safe HTTP status and underlying domain/code only.
+  Exhausted failures keep a visible per-feed Retry state.
+- **60 shared-core, 42 backend, 35 catalog, six FairPlay and 48 playlist/native
+  playback tests passed**, including actual AVFoundation 403 metadata, bounded
+  retry policy, legacy preference decoding and diagnostic privacy. Credential
+  regressions and all 120 localization keys in six languages passed. Signed
+  standalone Mac Debug and standalone tvOS Simulator builds passed.
+- Running Mac Settings shows Scrubbing frame previews off. A local three-feed
+  run issued fresh master requests after a rejected media playlist. Final feed
+  state could not be confirmed because native UI automation lost its window
+  binding when two development copies shared the same bundle identifier.
+  Protected-playback recovery, physical Apple TV and protected live playback
+  were not checked in this pass. No commits or pushes were made.
+
+## Native protected scrub previews (2026-10-09, preceding optional default)
+
+- Inspected authenticated Singapore Practice 1 and Sprint Qualifying HLS masters
+  using the existing Mac session. Both advertise 13 I-frame renditions and no
+  image playlists. The smallest SDR rendition is 480×270, with sampled frame
+  intervals of 5.76 seconds. No credentials or signed URLs were saved to the repo.
+- Reproduced `AVFoundationErrorDomain -11838` (operation not supported for asset)
+  with AVAssetImageGenerator on the protected master. Generation from a direct
+  I-frame asset timed out. The shared provider now renders that rendition with a
+  separate paused, muted FairPlayer/AVPlayerLayer. Both custom scrub UIs host it;
+  native tvOS fullscreen controls remain in place.
+- The final provider produced ready protected replay layers at 120, 245 and 500
+  seconds on this Mac, at 480×270. Main playback remained paused and its position
+  unchanged. Warm runs took approximately 0.08–0.28 seconds; initial native-player
+  preparation in the earlier independent probe took approximately 1.2 seconds.
+- 47 playlist/native-playback checks pass, including continuous scrub request
+  coalescing, cancel/reopen, independent audio/position, preview reset, low-resolution
+  selection and program-date alignment after a main-feed seek. All 58 shared-core
+  tests pass. Signed macOS Debug and standalone tvOS Simulator builds pass.
+- Authenticated protected live previews, physical Apple TV rendering and manual
+  pointer/remote interaction with the final UI were not exercised in this pass.
+  Build and fixture results do not establish those runtime checks.
+
+## HDR default, desktop styling and release workflow (2026-10-09)
+
+- Automatic now requests HDR HLS variants on all displays, with single-range
+  fallback retained. Display rendering remains standard-range on SDR screens;
+  an explicit SDR source is still available. Startup quality preferences still
+  determine the initial resolution.
+- Sidebar icons explicitly follow the red selected-state styling, including
+  Account, Settings and Error Log. Horizontal rows expand their viewport through
+  the page padding while preserving first-card and heading alignment.
+- Added independent macOS validation and manual Developer ID release workflows.
+  Both release jobs validate/build the selected existing tag. The release job
+  signs arm64/x86_64, notarizes, staples, validates Gatekeeper, then packages the
+  final ZIP/checksum and optionally attaches them to a draft release.
+- Universal unsigned Release archive and signed development build pass. The
+  archived executable contains arm64 and x86_64. Workflow syntax passes actionlint
+  (the documented preview xcode-27 label is allowed). Six offline packaging tests
+  cover safe tags, accepted/rejected/timed-out notarization, debugger entitlement
+  rejection, ticket-before-ZIP ordering and credential-file cleanup. Window tests
+  pass and localization verifies 118 keys in six languages.
+- Visual checks confirm the selected Home icon is red and catalog artwork reaches
+  the right pane edge. Actual CI Developer ID signing/notarization and release
+  publication were not performed in that pass. Its release instructions and
+  GitHub workflow have since been removed. Changes remained local.
+
+## Stream startup and standalone Xcode verification (2026-10-09)
+
+- Reproduced protected startup failure using the stored browser session on this
+  Mac: filtered SDR HLS failed with `NSURLErrorDomain -1102` and underlying
+  `CoreMediaErrorDomain -12660`; the original service master played successfully.
+  AVFoundation's default reference restrictions treat the custom-scheme,
+  in-memory master as local. The corrected asset policy allows CDN media and
+  custom FairPlay key references, retains remote-to-local restrictions, and the
+  parser rejects `file:` and unsupported media schemes.
+- With the final policy, the same protected stream reached ready-to-play,
+  produced a ready AVPlayerLayer, and advanced playback time. The completed
+  macOS app also started Singapore Practice 1 on the first attempt, advanced
+  beyond 22 seconds, and displayed English audio. A failure warning was verified
+  in the app. This establishes protected replay on this Mac; prolonged live
+  playback, HDR fidelity and physical Apple TV playback remain separate checks.
+- Desktop preparation now has a 45-second deadline and prepared feeds have
+  20 seconds to begin playback. Deliberately paused groups do not expire the
+  playback deadline. Failures stop that feed, display a catalog warning and
+  player Retry state, and permit other feeds to continue. Attempt IDs reject
+  stale errors/completions after close or retry. Optional track/HDR metadata
+  refresh runs after transport joins, and first seeks use the coordinator's
+  bounded seek handling. A first live feed may start before its seekable range
+  appears so AVFoundation can populate the range and synchronize it.
+- Inspected encrypted MP4 initialization segments for Singapore Sprint
+  Qualifying (1000010389) and Practice 1 (1000010392). Their actual `encv` video
+  sample entries are **2880 x 1620 SDR** and **3840 x 2160 HLG**, matching the
+  HLS manifest. This is encoded video size, not an API display error. It does
+  not establish a service-wide resolution limit. Credentials, media URLs and
+  video data were not logged or saved.
+- Reproduced `Missing package product F1Core` with both standalone Xcode project
+  windows open. Closing both and reopening tvOS alone resolves package ownership.
+  A fresh Xcode session built standalone F1A-TV for Apple TV 4K (3rd generation)
+  successfully at 15:51. Opening both standalone windows simultaneously remains
+  unsupported in this Xcode version; use the combined workspace for concurrent
+  editing. Both projects retain their direct local package reference and build
+  independently without the combined workspace.
+- Final validation: **58 core tests**, **42 playlist/playback/preview tests**,
+  macOS Debug build and tvOS Simulator Debug build passed. Added startup deadline,
+  paused-start, stale-attempt, missing-range bootstrap, reference-policy and
+  local-file rejection coverage. `git diff --check` passes. No staging, commits
+  or pushes were performed.
+
+## Authenticated range inspection and source organization (2026-10-09)
+
+- Used the existing macOS browser session from Keychain to request real
+  BIG_SCREEN_HLS entitlements and manifests. The Singapore Sprint Qualifying
+  (1000010389) and Practice 1 (1000010392) manifests each contain seven HLG HDR
+  variants (270p–2160p) and six SDR variants (270p–1620p), including separate
+  1080p streams. Practice 1 Highlights and Tech Talk have AVC variants without
+  VIDEO-RANGE; HLS treats omitted range as SDR. Only sanitized codec, resolution
+  and range metadata was printed. Credentials and signed media URLs were never
+  saved or logged. No account settings or stored sessions were changed.
+- macOS now selects the actual HLS range together with resolution. Automatic
+  follows the display; explicit HDR selects HLG/PQ and can be rendered in SDR on
+  an SDR display. SDR selects the SDR variants. Menus report the available ranges
+  and single-range fallback, and quality choices reflect the chosen range.
+  macOS preview feeds explicitly prefer SDR. Existing tvOS callers retain the
+  automatic/native range behavior.
+- Native HLS range switching shares the quality-switch snapshot, audio/caption
+  restoration, stale completion guards, timeout and rollback. Tests check
+  same-resolution HDR/SDR filtering, range-specific quality lists, omitted-range
+  SDR handling and single-range fallback. The live manifests establish variant
+  availability; protected HDR rendering and visual HDR fidelity are separate
+  checks and have not been verified on an HDR display.
+- Reorganized physical macOS folders and Xcode groups into App, Catalog,
+  Playback, Account, Settings, Diagnostics, Services, Appearance, Resources and
+  Configuration. Updated entitlements, icon generation and test-script paths.
+  Both projects have no missing file references. Removed 15 empty tvOS groups
+  and 12 empty folders from disk, including newly empty parent folders.
+- Both projects pass standalone command-line builds using `-project`, with
+  direct local references to F1Core. macOS Debug and universal Release pass;
+  tvOS Simulator Debug passes with dependency pins unchanged. The standalone
+  F1A-TV project also built successfully in the Xcode GUI at 15:17. The combined
+  workspace is optional for single-project builds and required to avoid local
+  package ownership conflicts when editing both projects together.
+
+Validation after the final changes: the resolution/playback/preview suite passes
+40 tests (including native local HLS playback), F1Core passes 51 tests, and the
+window/control suite passes. The unavailable-language test now sets an explicit
+English automatic-selection criterion and checks the selected language after a
+German manual override. This verifies fallback behavior independently of system
+subtitle preferences and AVFoundation's bookkeeping flag.
+
+HLS range metadata follows the
+[Apple HLS authoring specification](https://developer.apple.com/streaming/hls-authoring-specification-for-apple-devices.html).
+
+
+## Traffic lights, HDR output, dragging and Xcode recovery (2026-10-09)
+
+- The window suite passes traffic-light hiding/reveal, cancellation of a
+  superseded fade, native video drag hit testing, AVKit SDR rendering, and
+  Automatic/HDR fallback on SDR displays. Existing idle, geometry and pinning
+  checks also pass.
+- macOS Debug and universal Release builds pass. Dynamic range changes only the
+  AVPlayerView rendering policy, preserving session position and playback.
+  Source HDR metadata is checked asynchronously with stale-item guards. Real
+  HDR color reproduction and switching between HDR/SDR physical displays have
+  not been validated with authenticated media.
+- The actual Xcode GUI was switched from the stale standalone tvOS project to
+  F1AppleTV.xcworkspace. F1Core loaded as a package, and the F1A-TV scheme built
+  successfully for Apple TV 4K (3rd generation) at 1080p. The workspace is left
+  open with that scheme selected. This goes beyond the previous CLI-only build
+  verification. Dependency pins are unchanged.
+- Both the normal Xcode build and fixture build contain AppIcon.icns and
+  CFBundleIconFile/CFBundleIconName metadata. The app refreshes its runtime icon
+  and AppKit's named-image cache from that resource. The native About panel was
+  visually verified to show the red Vroom TV icon in the rebuilt fixture app.
+- The running local HLS fixture hides the traffic lights together with the
+  playback controls. Its dynamic-range menu reports the current C34H89x display
+  as SDR and offers Automatic, SDR and HDR. These checks used an isolated app
+  bundle and local media; authenticated HDR playback remains unverified.
+
+To include the compiled icon check in the window suite:
+
+```sh
+F1_MAC_ICON_BUNDLE=/path/to/F1A-Mac.app bash Tests/run-player-window-tests.sh
+```
+
+## Desktop window behavior and shared Xcode workspace (2026-10-09)
+
+- The native window/control checks pass: aspect-preserving restoration inside
+  visible screen bounds, full-size content beneath the transparent title bar,
+  floating/normal levels, idle hiding, mouse entry/exit, interaction holds,
+  superseded timers and teardown cancellation.
+- The isolated three-window HLS fixture showed video beneath the title bar,
+  controls disappearing when idle, keyboard playback revealing them, and the
+  Always on Top button reporting its active state. Native window zoom retained
+  16:9, and fullscreen on the ultrawide display preserved the picture with
+  side letterboxing; exiting restored the original window.
+- macOS Debug/universal Release and tvOS Simulator build successfully from
+  F1AppleTV.xcworkspace.
+  The remote dependency pins are unchanged.
+- Xcode's missing F1Core error was reproduced with both standalone projects
+  open. Resolve Package Versions revealed the underlying diagnostic:
+  **Couldn't load F1Core because it is already opened from another project or
+  workspace**. Close those project windows and open the shared workspace so
+  both schemes use one package graph. No package source or tvOS dependency
+  versions needed changing.
+
+## Desktop schedule, cards, icon and scrub thumbnails (2026-10-09)
+
+- **51 shared-core tests passed**, including image-playlist tile decoding,
+  two-second frame caching, shared sheet caching, superseded requests and reset
+  cancellation. The existing 34 catalog checks pass.
+- macOS Debug/universal Release and tvOS Simulator builds pass. Both applications
+  now use the same CGImage thumbnail provider; the tvOS wrapper retains its
+  existing UIImage presentation and supported rendition policy.
+- **12 rendition-selection, six preview-playlist and 17 of 18 native playback
+  checks passed**. The new scrub check loads an HLS image thumbnail while leaving
+  the main player's time and paused state unchanged. The sole failure remains
+  the previously reproduced automatic-caption-eligibility baseline assertion.
+- In the isolated native app, one-/two-line card artwork, titles and metadata
+  aligned. Clicking the hero artwork opened the event. The schedule showed day
+  columns, equal-height session cards, series filters and disabled future events.
+- Local native timeline dragging moved the linked session from 60 to about 122
+  seconds while paused. Mid-drag bubble capture was not completed: the native
+  automation intermittently lost the selected window. Thumbnail decoding,
+  cancellation and isolation are covered by fixture tests; protected live/replay
+  thumbnails still require real-account validation.
+- The icon generator reuses the tvOS source, preserves its proportions, and
+  outputs all ten standard macOS icon slots. Xcode packaged AppIcon.icns and
+  Assets.car and set the bundle icon metadata. No source tvOS artwork was changed.
+- Startup-quality labels use verbatim strings, preventing numeric grouping of
+  1080p/2160p by SwiftUI's localized number interpolation.
+
+The desktop fixture server now supplies an HLS JPEG image rendition for manual
+scrub/hover preview checks. No account credentials were used. All work remains
+local without staging, commits or pushes.
+
+## macOS catalog parity and warm previews (2026-10-09)
+
+The latest catalog/player refinements were checked separately from authenticated
+playback:
+
+- **49 F1Core tests passed**, including three artwork-size checks and ten preview
+  coordinator checks: hidden warm feeds, immediate joins/reopening, paused intent,
+  program-date alignment/fallback, replay/live-lag range clamping, buffering
+  recovery, scrub/quality/pending-seek suppression, reference removal, unavailable
+  references, timeout and stale completions after removal/reset.
+- **41 backend, 34 catalog, 12 resolution-selection and six preview-playlist checks
+  passed**; all 118 localization keys remain present in six languages.
+- Native AVFoundation: **16 of 17 checks passed**, including both new cached
+  preview checks. A preview plays the lower rendition from a cached manifest even
+  when its master URL is unreachable; closing before cached preparation prevents
+  the obsolete completion from installing an item. The remaining failure is the
+  previously reproduced baseline assertion in
+  `testAsynchronousDefaultsRespectUnavailableLanguageAndStaleOwnership`, where
+  the current SDK reports automatic caption-selection eligibility differently.
+- macOS Debug and universal Release and tvOS Simulator builds pass.
+- In the isolated native fixture app, the season/home heroes retained artwork
+  after entering and leaving fullscreen on the 3440-pixel-wide display. Formula 1
+  headings, Titillium text, red accents/pagination, country flags and neutral
+  action buttons rendered; the redundant title above the hero was absent.
+- The local three-feed picker opened with warm thumbnails at the main feed's
+  paused 60-second position, reopened without recreating those players and
+  followed resumed playback. The language menu showed the selected audio and
+  Captions Off checkmarks; selecting CC updated its active selection immediately.
+  Menus refreshed after a local resolution switch. Local HLS does not validate
+  real multilingual protected feeds.
+
+The public resizer rejected the old 6400-by-720 artwork request with HTTP 400 and
+accepted bounded requests. Desktop requests now preserve aspect ratio within a
+2560-pixel limit and keep the last successful image during resizing. tvOS requests
+retain their existing default sizing. Preview players stay separate from main
+players, use their own FairPlay sessions, align every half second, and release
+when their session ends. Hidden previews remain paused in a bounded warm pool.
+
+Real authenticated sign-in, renewal/logout, protected live/replay playback and
+physical trackpad input remain separate account/hardware checks. No credentials
+were accessed for these refinements. No commits or pushes were made.
+
+## macOS UI refinements (2026-10-09)
+
+After the desktop UI and browser-first sign-in changes:
+
+- F1Core: **36 tests passed**, including eight browser session tests for decoding,
+  rejection of incomplete sessions, authorization headers, renewal, concurrent
+  refresh, logout with failed fallback unregistration, stale refresh completion,
+  cancelled credential writes and storage failures.
+- Existing backend suite: **41 passed**. macOS Debug and universal Release builds
+  and the tvOS Simulator build pass. The existing string-catalog check passes.
+- A separate fixture app with its own bundle identifier and Keychain namespace
+  verified the opposing hero arrows, changing artwork backdrop, Liquid Glass
+  playback controls, searchable anchored feed popover, playing previews, paused
+  preview alignment, focusing an existing feed, group keyboard pause/skip and
+  independent quality changes while paused.
+- The official F1 browser sign-in form loaded in the native sheet. Essential-cookie
+  selection, cancellation and the collapsed manual fallback were exercised.
+  No account identifier or password was entered.
+- Horizontal input automation produced zero horizontal deltas, so physical
+  trackpad paging remains a manual check. The AppKit handler supports phased
+  trackpad input and discrete horizontal wheels, while retaining vertical scroll.
+- Authenticated browser sign-in, real renewal/logout and protected replay/live
+  playback require a real F1 TV account. Synthetic sessions and unencrypted HLS
+  previews do not establish those results. The previously documented caption
+  assertion failure on the current SDK remains a separate baseline finding.
+
+## Shared core and macOS validation (2026-10-09)
+
+Both applications now link the local F1Core package. The tvOS project retains its
+existing project format and resolved dependency versions. Credentials, CoreData
+migration, settings and the tvOS setup archive retain their original storage
+contracts. macOS has a separate Keychain service and preference/setup archive.
+For desktop playback fixtures, run `bash Scripts/serve-desktop-playback-fixture.sh`
+from the repository root, then use **Development → Open Local HLS Fixture** in
+the Mac Debug build with the loopback URL printed by the script.
+
+| Check | Result |
+| --- | --- |
+| Backend/authentication/FairPlay ownership | 41 passed |
+| Catalog/presentation/preferences/diagnostics | 34 passed |
+| tvOS multiview and semantic setups | 19 passed |
+| FairPlay license request format | 6 passed |
+| Alamofire transport | 2 passed |
+| F1Core package | 28 passed: 25 coordinator/window/setup checks and 3 networking/localization checks |
+| Resolution selection and preview playlists | 12 + 6 passed |
+| Native local AVFoundation playback | 14 passed, 1 existing caption-default assertion failed |
+| Credential regression harness | All 9 scenarios passed |
+| Localization | 118 keys in all 6 languages; compiled resource tables match in both apps |
+| macOS Debug and Release | Build succeeded; Release contains arm64 and x86_64 |
+| tvOS Simulator Debug | Build succeeded |
+
+The native playback failure is
+`testAsynchronousDefaultsRespectUnavailableLanguageAndStaleOwnership`, which
+expects `mediaSelectionCriteriaCanBeAppliedAutomatically(to:)` to remain true
+after an unavailable caption-language preference. The same assertion failed on
+the untouched revision with the installed Xcode 27.2 beta 2/macOS SDK. It is not
+an extraction regression. Overall, 162 of 163 XCTest checks passed, with the
+credential harness and localization verification counted separately. Application
+sources compile without warnings; Xcode still emits its App Intents metadata
+notice and the existing two tvOS simulator linker warnings.
+
+Coordinator coverage includes group transport, late joins in playing and paused
+sessions, program dates and relative live lag, clamped seeks, the drift threshold,
+buffer recovery, quality/scrubbing suppression, reference removal/failure,
+readiness and seek deadlines, stale callbacks after reset/removal/retry, and
+preserving an advancing or paused setup anchor. Setup tests cover missing feeds,
+driver identity, invalid/offscreen geometry and independent tvOS storage.
+
+Running macOS checks exercised public catalog artwork, featured paging, event
+schedules and Back, settings, and browser sign-in preparation reaching
+"Ready to sign in" without submitting credentials. A disposable app copy with
+a separate preference domain played three generated HLS feeds. Group pause,
+ten-second seeking, scrubbing, per-window volume/mute and quality selection,
+native fullscreen, saving/restoring all three windows and their audio settings,
+preserving the current paused position during restoration, cancellation of
+session replacement, and closing the catalog while feed windows remained open
+were checked. Playback and keyboard controls continued after closing the
+reference feed and the catalog. Feed-picker search was checked; opening/focusing
+its selected feed still needs a manual check because UI automation did not
+reliably activate the picker row. Debug fixtures use the normal player preparation path without
+requesting account entitlements; fixture routing is absent from Release builds.
+
+The tvOS 27.2 simulator rendered Home, opened the current season and Singapore
+event schedule, and returned through Back after package extraction. The existing
+native local-media suite also exercised the shared FairPlayer implementation.
+
+An International live feed was observed rendering in the main desktop app during
+validation. That observation does not establish DRM protection, full sign-in or
+refresh/logout compatibility. Authenticated fresh sign-in, refresh/logout,
+protected replay, sustained linked live playback, real language/caption tracks,
+and physical display reconnection still need a signed real-Mac check. Physical
+Apple TV navigation/playback and DRM remain separate device checks. Synthetic
+responses, local HLS and builds do not establish those results.
 
 The dated notes below record validation of individual changes. Later notes
 supersede earlier test counts, warning counts and implementation details; the
@@ -445,3 +867,189 @@ decrypt protected media or reproduce every hardware loading path. The generic
 tvOS build passes with no app-source warnings; its existing App Intents metadata
 warning remains. Retry the affected streams on a physical Apple TV using the
 updated build to confirm intermittent startup, renewals and concurrent previews.
+
+## Preview lifetime and catalog parity (2026-10-10)
+
+Scrubbing retains one independent paused, muted native preview player per active
+feed after its first request. Default suspension has no idle expiry; closing or
+replacing the feed resets the provider. tvOS owns the provider in `PlayerItem`,
+across control-overlay presentations, and resets feeds removed by saved layouts.
+Both custom clients mount the native preview surface during loading and can retry
+confirmed HTTP 403 failures once with fresh preview access. The standalone tvOS
+AVKit player explicitly permits native controls/scrubbing, independently of the
+custom preview preference; native thumbnails still require usable stream tracks.
+
+Validation: 60 F1Core tests and 54 local HLS/playlist tests passed. The new native
+lifetime check retains the identical paused player beyond the former 15-second
+expiry, reuses its renderer, and verifies reset releases it without seeking the
+main feed. Mac, tvOS Simulator and physical-target tvOS Debug builds passed.
+Mac UI checks covered native row highlighting, sidebar reselection, the filled
+Home icon, conditional Back, and event metadata over background artwork. tvOS simulator checks covered
+video duration/category plus description and event country/date/round metadata.
+Signed-in Mac account fields and successful authenticated protected scrubbing on
+physical Apple TV were not runtime-verified. Existing build warnings remain.
+
+Mac hover follow-up: leaving the narrow timeline now hides the preview without
+cancelling first-frame preparation. The SwiftUI overlay remains mounted while
+hidden, preserving the native video host and paused renderer for re-entry.
+Failed previews may retry on a new hover session, while continuous pointer
+movement cannot repeatedly restart rejected assets. Closing the feed or disabling
+previews still resets all preview work. The Mac build and 56 local HLS/playlist
+checks passed, including two Mac model regressions for hover exit/re-entry and
+rejection/cleanup. Authenticated protected preview rendering was not exercised;
+the Mac Error Log also contained historical preview HTTP 403 rejections.
+
+
+## Issues #89 and #90: tvOS playback recovery and idle prevention (2026-10-10)
+
+- The isolated tvOS regression app exercises the actual controllers with local,
+  unencrypted video and mock services. Its 24 checks pass: precise late joins,
+  superseded seeks, preview-only scrub adjustment followed by a shared seek,
+  thumb stability during pending/repeated seeks and release after completion or
+  cancellation,
+  playback/pause/fullscreen/foreground idle ownership, failed-layout recovery,
+  restart position and audio restoration, tile retry, picker removal, and final
+  replay reporting after exit. The runner creates and removes only its own
+  simulator and uses a separate app identifier. It needs ffmpeg and a compatible
+  installed tvOS simulator runtime.
+- The native regression reproduced a joining feed landing at 10 seconds when
+  the main feed was at 8 seconds. Synchronization and saved-position seeks now
+  use zero tolerances. Per-feed seek IDs discard obsolete callbacks, including
+  canceled restoration seeks during restart. Startup failures/timeouts remain
+  removable and retryable. Scrub touch sensitivity is reduced and momentum is
+  disabled; actual seeking happens on release. Timeline refresh preserves the
+  scrub position until the displayed feed finishes seeking, including secondary
+  synchronization, so gesture release cannot briefly restore the old position.
+- No existing app code disabled AVPlayer display-sleep prevention. Playback now
+  explicitly enables it and has an additional idle-timer guard for real feeds,
+  including buffering, pause, failure, fullscreen ownership and foreground
+  transitions. Physical Apple TV screensaver timing still requires verification.
+- Replay progress has an owned, serialized reporting queue: exiting cannot
+  cancel the final report or drop it behind an in-flight intermediate report.
+  Start-from-beginning no longer gets overwritten by a stored resume position.
+- F1 Live has an independent named audio-track default. Actual track names are
+  discovered during playback; missing named choices fall back to existing
+  additional-feed settings. Legacy settings retain their behavior. Authenticated
+  F1 Live commentary selection and physical remote sensitivity are unverified.
+- Shared-core tests: 64 passed. Multiview model/live-coordinator tests: 19 passed.
+  Native resolution/playlist/playback tests: 56 passed with normal AVFoundation
+  and localhost access; sandboxed media loading was denied by the environment.
+  tvOS simulator and device-target builds passed. All 128 localization keys
+  verify in six languages. These results do not establish FairPlay playback or
+  physical Apple TV behavior. Changes are left uncommitted.
+
+## Issue #91: phone sign-in on tvOS (2026-10-22)
+
+The TV login screen now uses F1's device authorization flow. It displays the
+provider's QR URL and user code, waits for phone approval, and supports a new code,
+cancellation and expiry. Completed credentials are stored in Keychain; the app
+never receives the password entered on the phone.
+
+- All **82 shared-core tests pass**, including 18 device-authentication tests for
+  provider intervals/backoff, denial/expiry, cancellation, superseded codes,
+  persistence failure, refresh rotation, concurrent refresh, logout ownership,
+  authorization headers and F1's actual refresh response shape.
+- All **24 existing tvOS controller playback regressions pass**.
+- A signed isolated simulator app completed real phone approval and Keychain
+  persistence. After fixing the refresh-response decoder, its **10 final checks
+  pass**: QR generation/decoding and cancellation, Keychain storage, real OAuth
+  renewal, restored credentials, authorized replay metadata/entitlement, native
+  decoded replay video after renewal, and logout cleanup. The QR/cancel checks
+  use a synthetic code; the renewal/playback checks use the approved live session.
+- A separate native probe also renewed the live OAuth credential, fetched replay
+  metadata with 26 channels and a playback entitlement, and decoded 1280×720 video
+  while the playback clock advanced. No account secrets were added to fixtures,
+  source or logs. The isolated apps use their own simulators, which are removed
+  after the checks. The app builds successfully and all six translations pass.
+
+F1 currently returns an OAuth access token valid for one hour and a separate
+subscription/playback JWT valid for four days. Refresh rotates the OAuth
+credential but omits the playback JWT, even when requesting the original scope.
+The app retains the existing playback JWT only until its original expiry. If F1
+does not reissue it at expiry, the session is cleared and a new phone pairing is
+required. Native playback verification used a replay; protected FairPlay/live
+playback and physical Apple TV behavior remain separate checks.
+
+## macOS OAuth sign-in and renewal (2026-10-22)
+
+The Mac now signs in on F1's official page in its native browser sheet and stores
+OAuth refresh/playback credentials in a separate Keychain record. F1's web OAuth
+client successfully exchanges a PKCE authorization code but does not issue a
+refresh token, even with `offline_access`. The Mac therefore opens the device
+grant's `verification_uri_complete` locally. After credential entry, it completes
+only the matching, prefilled verification automatically. There is no phone, QR
+scan, code entry or additional confirmation click in the Mac flow.
+
+`Tests/run-mac-oauth-tests.sh` runs the production Mac browser code and Keychain
+store in an isolated app identity. Its **16 checks pass**: automatic verification,
+host/route/code matching, delayed prefill, one-time approval, error recovery,
+main-frame-only injection, ephemeral cookie isolation, retry/cancellation races,
+and Keychain restoration/clearing. It uses synthetic credentials and never reads
+the production Mac Keychain service. The verification helper never reads website
+passwords or tokens.
+
+The final automatic-verification flow was also completed in a live Mac sign-in
+without an extra confirmation click, and all eight live checks passed again.
+The production Mac and tvOS simulator targets both build successfully.
+
+All **83 shared-core tests pass**, including coverage for discarding superseded
+browser/registration credentials. A real Mac sign-in also passed **eight checks**:
+playback/refresh token issuance, Keychain persistence, a real OAuth refresh,
+restoration from Keychain, replay metadata and entitlement, native decoded video
+with the renewed login, and sign-out cleanup. OAuth expiry was advanced only in
+the isolated Keychain record to exercise renewal; the actual playback JWT's
+expiry was preserved. The existing four-day playback-token limit still applies
+when F1's refresh response omits a replacement subscription JWT.
+
+Existing browser sessions remain usable. Account offers a fresh sign-in to enable
+OAuth renewal. Password/challenge preparation and website localStorage polling
+are no longer used for new Mac sign-ins.
+
+## macOS sign-in completion latency (2026-10-25)
+
+The Mac previously polled throughout browser sign-in and could leave F1's
+completed page visible until the next provider interval (observed as five
+seconds). It now observes F1's exact HTTPS completion route, including in-place
+hash navigation, and starts its first token request immediately. This uses the
+browser return channel described in RFC 8628 section 3.5. If the server still
+returns `authorization_pending` or `slow_down`, subsequent requests retain the
+provider's interval/backoff rules. tvOS keeps its original polling behavior.
+
+A native “Finishing sign-in…” indicator replaces the completed webpage while the
+request and Keychain save finish; the completion page alone never signs the
+account in. Polling starts after a one-minute fallback timeout if the browser
+completion cannot be observed. Cancellation/retry also clears the completion
+observer and waiter, so an older window cannot complete a newer attempt.
+
+Validation: **86 shared-core tests** and **32 native Mac OAuth checks** pass,
+including immediate first retrieval, pending/slow-down intervals, expired/stale
+approval, F1-style same-document navigation, origin/route rejection, deferred
+polling, token/persistence gating, cancellation, failed exchanges and fallback.
+The Mac and tvOS simulator targets build successfully. This timing change was
+verified with native browser fixtures;
+another authenticated F1 sign-in was not requested.
+
+## Login and account localization audit (2026-10-25)
+
+The TV pairing instructions already used the shared catalog. The Mac account,
+browser sheet, renewal prompt, progress states, sign-in/sign-out failures and
+injected verification status now also use F1Core translations. Account labels,
+subscription-state display names and country names are localized on both
+platforms. Unknown server subscription states display a translated “Unknown”;
+entitlement decisions continue to use the original server value.
+
+There are **161 keys in all six supported languages**: English, German, Spanish,
+French, Dutch and Portuguese (Portugal). F1's own account page manages its own
+translations; the Mac supplies the matching language through F1's existing
+`user-language` preference in the ephemeral browser store before page scripts
+initialize. F1 currently uses its own regional variants for Spanish and Portuguese.
+The app's injected status uses the app translation, encoded as JSON so translated
+quotes, backslashes and line breaks cannot break the verification script.
+
+Validation: **88 core tests** and **46 native Mac checks** pass. Native tests cover
+all six injected translations/language preferences, escaping and origin isolation.
+Mac and tvOS simulator builds pass, and `verify-localizations.py --app` confirms
+all six compiled F1Core translation tables match the catalog in both apps. The
+checker also rejects missing keys and hard-coded login labels/status messages.
+The isolated Mac test app now packages the shared resource bundle, matching the
+production apps. No authenticated sign-in was needed for this localization audit.

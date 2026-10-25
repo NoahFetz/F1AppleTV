@@ -28,6 +28,11 @@ if [[ "${1:-}" == "--playback" ]]; then
         sed -e '/#EXT-X-ENDLIST/d' -e 's/#EXT-X-PLAYLIST-TYPE:VOD/#EXT-X-PLAYLIST-TYPE:EVENT/' -e 's|^\([01]_[0-9]*\.ts\)$|../\1|' \
             "$build_dir/hls/variant$variant.m3u8" > "$build_dir/hls/live/variant$variant.m3u8"
     done
+    ffmpeg -hide_banner -loglevel error -i "$build_dir/hls/variant0.m3u8" -frames:v 1 -vf scale=160:90 "$build_dir/hls/thumbnail.jpg"
+    mkdir -p "$build_dir/hls/iframes"
+    ffmpeg -hide_banner -loglevel error -i "$build_dir/hls/variant1.m3u8" -c:v copy -an \
+        -f hls -hls_time 2 -hls_playlist_type vod -hls_flags iframes_only \
+        -hls_segment_filename "$build_dir/hls/iframes/frame_%03d.ts" "$build_dir/hls/iframes/frames.m3u8"
     python3 - "$build_dir/hls" <<'PYFIXTURE'
 import pathlib, sys
 root = pathlib.Path(sys.argv[1])
@@ -39,6 +44,23 @@ protected = '\n'.join('../' + line if line.endswith('.ts') else line for line in
 (root / 'fairplay' / 'media.m3u8').write_text(protected + '\n')
 master = (root / 'master.m3u8').read_text().replace('variant0.m3u8', 'media.m3u8').replace('variant1.m3u8', '../variant1.m3u8')
 (root / 'fairplay' / 'master.m3u8').write_text(master)
+images = root / 'images'
+images.mkdir()
+(images / 'images.m3u8').write_text('#EXTM3U\n#EXT-X-IMAGES-ONLY\n#EXT-X-TARGETDURATION:30\n#EXTINF:30,\n../thumbnail.jpg\n#EXT-X-ENDLIST\n')
+image_master = (root / 'master.m3u8').read_text().replace('variant0.m3u8', '../variant0.m3u8').replace('variant1.m3u8', '../variant1.m3u8')
+(images / 'master.m3u8').write_text(image_master.replace('#EXTM3U', '#EXTM3U\n#EXT-X-IMAGE-STREAM-INF:URI="images.m3u8"', 1))
+(root / 'iframes' / 'master.m3u8').write_text(image_master.replace('#EXTM3U', '#EXTM3U\n#EXT-X-I-FRAME-STREAM-INF:BANDWIDTH=120000,RESOLUTION=160x90,URI="frames.m3u8"', 1))
+dated = root / 'dated'
+dated.mkdir()
+date = '#EXT-X-PROGRAM-DATE-TIME:2026-10-09T12:00:00.000Z\n'
+for variant in [0, 1]:
+    text = (root / f'variant{variant}.m3u8').read_text().replace('#EXTINF:', date + '#EXTINF:', 1)
+    text = '\n'.join('../' + line if line.endswith('.ts') else line for line in text.splitlines())
+    (dated / f'variant{variant}.m3u8').write_text(text + '\n')
+text = (root / 'iframes' / 'frames.m3u8').read_text().replace('#EXTINF:', date + '#EXTINF:', 1)
+text = '\n'.join('../iframes/' + line if line.endswith('.ts') else line for line in text.splitlines())
+(dated / 'frames.m3u8').write_text(text + '\n')
+(dated / 'master.m3u8').write_text((root / 'iframes' / 'master.m3u8').read_text().replace('../variant', 'variant'))
 tracks = root / 'tracks'
 tracks.mkdir()
 master = (root / 'master.m3u8').read_text()
@@ -63,24 +85,26 @@ test_libraries="$(xcrun --sdk macosx --show-sdk-platform-path)/Developer/usr/lib
 xcrun --sdk macosx swiftc -swift-version 5 -parse-as-library -module-cache-path "$build_dir/cache" \
     -F "$test_frameworks" -Xlinker -rpath -Xlinker "$test_frameworks" \
     -I "$test_libraries" -L "$test_libraries" -Xlinker -rpath -Xlinker "$test_libraries" \
-    "$root"/F1A-TV/Util/M3U8Parser/Models/Tags/*.swift \
-    "$root"/F1A-TV/Util/M3U8Parser/Models/Playlist/*.swift \
-    "$root"/F1A-TV/Util/M3U8Parser/Parser/HLSResolutionPlaylist.swift \
-    "$root"/F1A-TV/Util/M3U8Parser/Parser/HLSPreviewPlaylist.swift \
-    "$root"/F1A-TV/DataTransferObjects/Util/FairPlayer.swift \
-    "$root"/F1A-TV/Extensions/AVPlayerItemExtension.swift \
-    "$root"/F1A-TV/DataTransferObjects/Util/PlaybackDefaults.swift \
-    "$root"/F1A-TV/DataTransferObjects/Util/PlayerSettings.swift \
-    "$root"/F1A-TV/Models/DefaultFeed.swift \
-    "$root"/F1A-TV/Util/Enum/ChannelType.swift \
-    "$root"/F1A-TV/Util/Enum/DriverChannelSortType.swift \
-    "$root"/F1A-TV/DataTransferObjects/Util/AppErrorStore.swift \
-    "$root"/F1A-TV/Networking/FairPlayLicenseRequest.swift \
-    "$root"/F1A-TV/Models/PlaybackEntitlement.swift \
-    "$root"/F1A-TV/Networking/Services/FairPlayKeyLoader.swift \
-    "$root"/F1A-TV/Networking/Services/AVFoundationFairPlayAdapter.swift \
-    "$root"/F1A-TV/Networking/Services/HTTPTransport.swift \
-    "$root"/F1A-TV/Networking/CatalogRequest.swift \
+    "$root"/F1Core/Sources/F1Core/Util/M3U8Parser/Models/Tags/*.swift \
+    "$root"/F1Core/Sources/F1Core/Util/M3U8Parser/Models/Playlist/*.swift \
+    "$root"/F1Core/Sources/F1Core/Util/M3U8Parser/Parser/HLSResolutionPlaylist.swift \
+    "$root"/F1Core/Sources/F1Core/Util/M3U8Parser/Parser/HLSPreviewPlaylist.swift \
+    "$root"/F1Core/Sources/F1Core/DataTransferObjects/Util/FairPlayer.swift \
+    "$root"/F1Core/Sources/F1Core/Playback/PlaybackThumbnailProvider.swift \
+    "$root"/F1A-Mac/Playback/ScrubPreviewModel.swift \
+    "$root"/F1Core/Sources/F1Core/Extensions/AVPlayerItemExtension.swift \
+    "$root"/F1Core/Sources/F1Core/DataTransferObjects/Util/PlaybackDefaults.swift \
+    "$root"/F1Core/Sources/F1Core/DataTransferObjects/Util/PlayerSettings.swift \
+    "$root"/F1Core/Sources/F1Core/Models/DefaultFeed.swift \
+    "$root"/F1Core/Sources/F1Core/Util/Enum/ChannelType.swift \
+    "$root"/F1Core/Sources/F1Core/Util/Enum/DriverChannelSortType.swift \
+    "$root"/F1Core/Sources/F1Core/DataTransferObjects/Util/AppErrorStore.swift \
+    "$root"/F1Core/Sources/F1Core/Networking/FairPlayLicenseRequest.swift \
+    "$root"/F1Core/Sources/F1Core/Models/PlaybackEntitlement.swift \
+    "$root"/F1Core/Sources/F1Core/Networking/Services/FairPlayKeyLoader.swift \
+    "$root"/F1Core/Sources/F1Core/Networking/Services/AVFoundationFairPlayAdapter.swift \
+    "$root"/F1Core/Sources/F1Core/Networking/Services/HTTPTransport.swift \
+    "$root"/F1Core/Sources/F1Core/Networking/CatalogRequest.swift \
     "$root"/Tests/PlaybackTestSupport.swift \
     "$root"/Tests/FairPlayerResolutionTests.swift \
     "$root"/Tests/PreviewPlaylistTests.swift \

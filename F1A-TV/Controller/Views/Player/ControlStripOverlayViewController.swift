@@ -24,8 +24,7 @@ class ControlStripOverlayViewController: BaseViewController {
     var removeChannelButton: UIButton?
     var addChannelButton: UIButton?
     var swapToMainButton: UIButton?
-    var muteChannelButton: UIButton?
-    var volumeSlider: TvOSSlider?
+    var audioMixerButton: UIButton?
     var enterFullScreenButton: UIButton?
     var rewindButton: UIButton?
     var playPauseButton: UIButton?
@@ -34,6 +33,7 @@ class ControlStripOverlayViewController: BaseViewController {
     var captionSelectorButton: UIButton?
     var resolutionSelectorButton: UIButton?
     private var lastFocusedControl: UIView?
+    private var hasFocusedControls = false
     private var liveButton: UIButton?
     var isLiveSession = false
     private var resolutionObserver: NSObjectProtocol?
@@ -44,7 +44,7 @@ class ControlStripOverlayViewController: BaseViewController {
     private var editingLabel: UILabel?
     private var elapsedTimeLabel: UILabel?
     private var remainingTimeLabel: UILabel?
-    private var timelineSlider: TvOSSlider?
+    private(set) var timelineSlider: RemoteTimelineControl?
     private var timelineStackView: UIStackView?
     private var scrubPreviewView: UIView?
     private var scrubPreviewImageView: UIImageView?
@@ -56,19 +56,22 @@ class ControlStripOverlayViewController: BaseViewController {
     private var scrubPreviewHideTimer: Timer?
     private var thumbnailProvider: StreamThumbnailProvider?
     private var previewImageRequestId: UUID?
+    private var requestedPreviewTime: Double?
     private var timeObserverToken: Any?
     private var timelineStartTime: Float64 = 0
     private var timelineDuration: Float64 = 0
     private var hasNotifiedDismissal = false
-    private var isScrubbing = false
-    private var scrubTargetTime: Double?
+    private(set) var transport = MultiviewTransportState()
+    private var scrubSession: MultiviewScrubSession?
+    private var scanTimer: Timer?
+    private var scanTick: CFTimeInterval = 0
+    private var refreshTimer: Timer?
+    private var observedPlayer: AVPlayer?
+    private var timelineReferenceID: String?
+    private var backgroundObserver: NSObjectProtocol?
 
     override var preferredFocusEnvironments: [UIFocusEnvironment] {
         if let lastFocusedControl, lastFocusedControl.window != nil { return [lastFocusedControl] }
-        if let timelineSlider = timelineSlider {
-            return [timelineSlider]
-        }
-
         if let playPauseButton = playPauseButton {
             return [playPauseButton]
         }
@@ -83,18 +86,31 @@ class ControlStripOverlayViewController: BaseViewController {
 
     override func didUpdateFocus(in context: UIFocusUpdateContext, with coordinator: UIFocusAnimationCoordinator) {
         super.didUpdateFocus(in: context, with: coordinator)
-        if let next = context.nextFocusedView, next.isDescendant(of: view) { lastFocusedControl = next }
+        if context.previouslyFocusedView === timelineSlider && context.nextFocusedView !== timelineSlider {
+            cancelTimelinePreview()
+        }
+        if hasFocusedControls, let next = context.nextFocusedView, next.isDescendant(of: view) {
+            lastFocusedControl = next
+        }
     }
 
     override func viewDidAppear(_ animated: Bool) {
         super.viewDidAppear(animated)
+        if !hasFocusedControls {
+            hasFocusedControls = true
+            DispatchQueue.main.async { [weak self] in self?.focusControl(self?.playPauseButton) }
+        }
         if timeObserverToken == nil { addPeriodicTimeObserver() }
         observeThumbnailState()
+        refreshTimer = Timer.scheduledTimer(withTimeInterval: 0.25, repeats: true) { [weak self] _ in
+            MainActor.assumeIsolated { self?.updateTimeline() }
+        }
     }
 
     override func viewWillDisappear(_ animated: Bool) {
         super.viewWillDisappear(animated)
-        timelineSeekingFinished()
+        cancelTimelinePreview()
+        refreshTimer?.invalidate(); refreshTimer = nil
         if isBeingDismissed { notifyDismissal() }
         self.removeTimeObserver()
         self.previewImageRequestId = nil
@@ -119,6 +135,9 @@ class ControlStripOverlayViewController: BaseViewController {
 
     deinit {
         mediaMenuTask?.cancel()
+        scanTimer?.invalidate()
+        refreshTimer?.invalidate()
+        if let observer = backgroundObserver { NotificationCenter.default.removeObserver(observer) }
         if let observer = resolutionObserver { NotificationCenter.default.removeObserver(observer) }
         self.removeTimeObserver()
     }
@@ -134,9 +153,12 @@ class ControlStripOverlayViewController: BaseViewController {
     func setupViewController() {
         self.view.backgroundColor = UIColor.black.withAlphaComponent(0.12)
 
-        let swipeDownRecognizer = UISwipeGestureRecognizer(target: self, action: #selector(self.swipeDownRegognized))
-        swipeDownRecognizer.direction = .down
-        self.view.addGestureRecognizer(swipeDownRecognizer)
+        let back = UITapGestureRecognizer(target: self, action: #selector(self.backPressed))
+        back.allowedPressTypes = [NSNumber(value: UIPress.PressType.menu.rawValue)]
+        self.view.addGestureRecognizer(back)
+        backgroundObserver = NotificationCenter.default.addObserver(forName: UIApplication.willResignActiveNotification, object: nil, queue: .main) { [weak self] _ in
+            MainActor.assumeIsolated { self?.cancelTimelinePreview(restorePlayback: false) }
+        }
 
         let playPauseGesture = UITapGestureRecognizer(target: self, action: #selector(self.playPausePressed))
         playPauseGesture.allowedPressTypes = [NSNumber(value: UIPress.PressType.playPause.rawValue)]
@@ -145,9 +167,6 @@ class ControlStripOverlayViewController: BaseViewController {
         self.setupOverlayLayout()
         self.addPeriodicTimeObserver()
         if let player = self.playerItem?.player {
-            if CredentialHelper.getPlayerSettings().scrubPreviews {
-                self.thumbnailProvider = self.playerItem?.thumbnails
-            }
             self.resolutionObserver = NotificationCenter.default.addObserver(forName: FairPlayer.resolutionDidChange, object: player, queue: .main) { [weak self] _ in
                 MainActor.assumeIsolated {
                     guard let self = self else { return }
@@ -203,7 +222,7 @@ class ControlStripOverlayViewController: BaseViewController {
         headerStackView.spacing = 6
 
         let editingLabel = UILabel()
-        editingLabel.text = "EDITING SELECTED STREAM"
+        editingLabel.text = "multiview_selected_stream".localizedString
         editingLabel.textColor = ConstantsUtil.brandingRed
         editingLabel.font = UIFont.systemFont(ofSize: 20, weight: .bold)
         editingLabel.backgroundShadow()
@@ -296,6 +315,11 @@ class ControlStripOverlayViewController: BaseViewController {
         let spacer = UIView()
         spacer.setContentHuggingPriority(.defaultLow, for: .horizontal)
         actions.addArrangedSubview(spacer)
+        let scope = UILabel()
+        scope.text = "multiview_all_streams".localizedString
+        scope.font = .systemFont(ofSize: 22, weight: .medium)
+        scope.textColor = UIColor.white.withAlphaComponent(0.8)
+        actions.addArrangedSubview(scope)
         return actions
     }
 
@@ -330,26 +354,19 @@ class ControlStripOverlayViewController: BaseViewController {
         let elapsedLabel = self.makeTimeLabel(text: "--:--", alignment: .left)
         let remainingLabel = self.makeTimeLabel(text: "--:--", alignment: .right)
 
-        let slider = TvOSSlider()
+        let slider = RemoteTimelineControl()
         slider.translatesAutoresizingMaskIntoConstraints = false
-        slider.minimumValue = 0
-        slider.maximumValue = 1
         slider.value = 0
-        slider.expectedLayoutWidth = 1200
-        slider.stepValue = 1 / 120
-        slider.panSensitivity = 0.25
-        slider.allowsMomentum = false
-        slider.focusScaleFactor = 1.04
-        slider.minimumTrackTintColor = .white
-        slider.maximumTrackTintColor = UIColor.white.withAlphaComponent(0.28)
-        slider.thumbTintColor = .white
-        slider.addTarget(self, action: #selector(self.timelineSliderChanged), for: .valueChanged)
-        slider.addTarget(self, action: #selector(self.timelineSeekingFinished), for: .editingDidEnd)
+        slider.onStep = { [weak self] in self?.timelineStep($0) }
+        slider.onHold = { [weak self] in self?.timelineHold($0) }
+        slider.onPanSeconds = { [weak self] in self?.timelinePan(seconds: $0) }
+        slider.onConfirm = { [weak self] in self?.playPausePressed() }
+        slider.accessibilityLabel = "multiview_playback_position".localizedString
 
         NSLayoutConstraint.activate([
             elapsedLabel.widthAnchor.constraint(equalToConstant: 112),
             remainingLabel.widthAnchor.constraint(equalToConstant: 112),
-            slider.heightAnchor.constraint(equalToConstant: 44)
+            slider.heightAnchor.constraint(equalToConstant: 60)
         ])
 
         self.elapsedTimeLabel = elapsedLabel
@@ -388,8 +405,7 @@ class ControlStripOverlayViewController: BaseViewController {
 
         self.setupFlexibleSpacerView()
 
-        self.setupMuteButton()
-        self.setupVolumeSlider()
+        self.setupAudioMixerButton()
         self.setupLanguageSelectorButton()
         self.setupCaptionSelectorButton()
         self.setupResolutionSelectorButton()
@@ -404,14 +420,14 @@ class ControlStripOverlayViewController: BaseViewController {
     }
 
     func setupRewindButton() {
-        self.rewindButton = self.makeControlButton(normalSymbolName: "gobackward.15", focusedSymbolName: "gobackward.15", accessibilityLabel: "Rewind 15 seconds")
+        self.rewindButton = self.makeControlButton(normalSymbolName: "gobackward.10", focusedSymbolName: "gobackward.10", accessibilityLabel: "Rewind 10 seconds")
         self.rewindButton?.addTarget(self, action: #selector(self.rewindPressed), for: .primaryActionTriggered)
         self.controlsBarView?.addArrangedSubview(self.rewindButton ?? UIView())
     }
 
     func setupPlayPauseButton() {
         self.playPauseButton = self.makeControlButton(normalSymbolName: "pause.fill", focusedSymbolName: "pause.fill", accessibilityLabel: "Play or pause", pointSize: 38)
-        self.updatePlayPauseButtonStatus(paused: self.playerItem?.player?.timeControlStatus == .paused)
+        self.updatePlayPauseButtonStatus(paused: self.controlStripActionProtocol?.transportIsPlaying != true)
         self.playPauseButton?.addTarget(self, action: #selector(self.playPausePressed), for: .primaryActionTriggered)
         self.controlsBarView?.addArrangedSubview(self.playPauseButton ?? UIView())
     }
@@ -424,7 +440,7 @@ class ControlStripOverlayViewController: BaseViewController {
     }
 
     func setupForwardButton() {
-        self.forwardButton = self.makeControlButton(normalSymbolName: "goforward.15", focusedSymbolName: "goforward.15", accessibilityLabel: "Forward 15 seconds")
+        self.forwardButton = self.makeControlButton(normalSymbolName: "goforward.10", focusedSymbolName: "goforward.10", accessibilityLabel: "Forward 10 seconds")
         self.forwardButton?.addTarget(self, action: #selector(self.forwardPressed), for: .primaryActionTriggered)
         self.controlsBarView?.addArrangedSubview(self.forwardButton ?? UIView())
     }
@@ -447,59 +463,29 @@ class ControlStripOverlayViewController: BaseViewController {
         self.controlsBarView?.addArrangedSubview(self.swapToMainButton ?? UIView())
     }
 
-    func setupMuteButton() {
-        self.muteChannelButton = self.makeControlButton(normalSymbolName: "speaker.wave.2.fill", focusedSymbolName: "speaker.wave.2.fill", accessibilityLabel: "Mute channel")
-        self.updateMuteButtonStatus()
-        self.muteChannelButton?.addTarget(self, action: #selector(self.muteChannelPressed), for: .primaryActionTriggered)
-        self.controlsBarView?.addArrangedSubview(self.muteChannelButton ?? UIView())
+    func setupAudioMixerButton() {
+        let button = self.makeControlButton(normalSymbolName: "speaker.wave.2.fill", focusedSymbolName: "speaker.wave.2.fill", accessibilityLabel: "multiview_audio_mixer_title".localizedString)
+        button.accessibilityIdentifier = "multiview.audioMixer"
+        button.addTarget(self, action: #selector(showAudioMixer), for: .primaryActionTriggered)
+        audioMixerButton = button
+        controlsBarView?.addArrangedSubview(button)
     }
 
-    func setupVolumeSlider() {
-        let sliderWidth: CGFloat = 220
-
-        self.volumeSlider = TvOSSlider()
-        self.volumeSlider?.translatesAutoresizingMaskIntoConstraints = false
-        self.volumeSlider?.requiresSelectToAdjust = true
-        self.volumeSlider?.stepValue = 1 / 16
-        self.volumeSlider?.panSensitivity = 0.5
-        self.volumeSlider?.allowsMomentum = false
-        self.volumeSlider?.focusScaleFactor = 1.04
-        self.volumeSlider?.minimumTrackTintColor = .white
-        self.volumeSlider?.maximumTrackTintColor = UIColor.white.withAlphaComponent(0.28)
-        self.volumeSlider?.thumbTintColor = .white
-        self.volumeSlider?.expectedLayoutWidth = sliderWidth
-        self.volumeSlider?.value = self.playerItem?.player?.volume ?? 0
-
-        NSLayoutConstraint.activate([
-            (self.volumeSlider ?? UIView()).widthAnchor.constraint(equalToConstant: sliderWidth),
-            (self.volumeSlider ?? UIView()).heightAnchor.constraint(equalToConstant: 44)
-        ])
-
-        self.volumeSlider?.addTarget(self, action: #selector(self.volumeSliderChanged), for: .valueChanged)
-        self.volumeSlider?.adjustmentStateDidChange = { [weak self] isAdjusting in
-            self?.updateVolumeAdjustmentPresentation(isAdjusting: isAdjusting)
+    @objc func showAudioMixer() {
+        cancelTimelinePreview()
+        focusControl(audioMixerButton)
+        let mixer = AudioMixerViewController()
+        mixer.modalPresentationStyle = .overCurrentContext
+        mixer.selectedStreamID = playerItem?.id
+        mixer.snapshot = { [weak self] in self?.controlStripActionProtocol?.audioMixSnapshot() ?? [] }
+        mixer.onVolume = { [weak self] id, volume in self?.controlStripActionProtocol?.setStreamVolume(id: id, volume: volume) }
+        mixer.onMute = { [weak self] id, muted in self?.controlStripActionProtocol?.setStreamMuted(id: id, muted: muted) }
+        mixer.onPlayPause = { [weak self] in self?.controlStripActionProtocol?.playPausePlayer() }
+        mixer.onDismiss = { [weak self] in
+            DispatchQueue.main.async { [weak self] in self?.focusControl(self?.audioMixerButton) }
         }
-        self.controlsBarView?.addArrangedSubview(self.volumeSlider ?? UIView())
-    }
-
-    func updateVolumeAdjustmentPresentation(isAdjusting: Bool) {
-        let inactiveAlpha: CGFloat = isAdjusting ? 0.42 : 1
-
-        UIView.animate(withDuration: 0.18) {
-            self.timelineStackView?.alpha = inactiveAlpha
-            self.controlsBarView?.arrangedSubviews.forEach { view in
-                if let volumeSlider = self.volumeSlider, view !== volumeSlider {
-                    view.alpha = inactiveAlpha
-                }
-            }
-        }
-    }
-
-    func updateMuteButtonStatus() {
-        let symbolName = (self.playerItem?.player?.isMuted ?? true) ? "speaker.slash.fill" : "speaker.wave.2.fill"
-        let image = UIImage(systemName: symbolName, withConfiguration: UIImage.SymbolConfiguration(pointSize: 28, weight: .semibold))
-        self.muteChannelButton?.setImage(image, for: .normal)
-        self.muteChannelButton?.setImage(image, for: .focused)
+        lastFocusedControl = audioMixerButton
+        present(mixer, animated: true)
     }
 
     func setupLanguageSelectorButton() {
@@ -604,42 +590,103 @@ class ControlStripOverlayViewController: BaseViewController {
         self.swipeDownRegognized()
     }
 
-    @objc func muteChannelPressed() {
-        let muted = !(self.playerItem?.player?.isMuted ?? false)
-        self.playerItem?.player?.isMuted = muted
-        self.updateMuteButtonStatus()
-
-        var playerSettings = CredentialHelper.getPlayerSettings()
-        playerSettings.setPreferredMute(for: self.playerItem?.contentItem.channelType ?? ChannelType(), mute: muted)
-        CredentialHelper.setPlayerSettings(playerSettings: playerSettings)
+    func timelineStep(_ direction: TransportDirection) {
+        updateTimeline()
+        guard timelineDuration > 0 else { return }
+        if transport.phase == .scanning {
+            if transport.changeScanSpeed(direction) { commitTimelinePreview() }
+            else { renderTimelineTarget() }
+            return
+        }
+        let playing = controlStripActionProtocol?.transportIsPlaying ?? false
+        if !playing, !ensurePreviewSession() { return }
+        transport.step(direction, playing: playing)
+        if transport.isPreviewing { renderTimelineTarget() }
+        else if let target = transport.target {
+            controlStripActionProtocol?.seekPlayersTo(time: target)
+            renderTimelineTarget()
+        }
     }
 
-    @objc func volumeSliderChanged(slider: TvOSSlider) {
-        let newVolume = slider.value
-        self.playerItem?.player?.volume = newVolume
-
-        var playerSettings = CredentialHelper.getPlayerSettings()
-        playerSettings.setPreferredVolume(for: self.playerItem?.contentItem.channelType ?? ChannelType(), volume: newVolume)
-        CredentialHelper.setPlayerSettings(playerSettings: playerSettings)
-
-        print("Setting player volume to \(newVolume)")
+    func timelinePan(seconds: Double) {
+        guard seconds != 0, controlStripActionProtocol?.transportIsPlaying != true || transport.isPreviewing else { return }
+        guard ensurePreviewSession() else { return }
+        scanTimer?.invalidate(); scanTimer = nil
+        transport.pan(seconds: seconds)
+        renderTimelineTarget()
     }
 
-    @objc func timelineSliderChanged(slider: TvOSSlider) {
-        guard self.timelineDuration > 0 else { return }
-
-        let targetTime = self.timelineStartTime + (Float64(slider.value) * self.timelineDuration)
-        isScrubbing = true
-        scrubTargetTime = targetTime
-        self.updateTimelineLabels(currentTime: targetTime)
-        self.showScrubPreview(at: targetTime, sliderValue: slider.value)
+    func timelineHold(_ direction: TransportDirection) {
+        updateTimeline()
+        guard ensurePreviewSession() else { return }
+        transport.startScan(direction)
+        scanTimer?.invalidate()
+        scanTick = CACurrentMediaTime()
+        let timer = Timer(timeInterval: 0.1, repeats: true) { [weak self] _ in
+            MainActor.assumeIsolated {
+                guard let self else { return }
+                let now = CACurrentMediaTime()
+                self.transport.advanceScan(seconds: now - self.scanTick)
+                self.scanTick = now
+                self.renderTimelineTarget()
+                if self.transport.phase != .scanning { self.scanTimer?.invalidate(); self.scanTimer = nil }
+            }
+        }
+        scanTimer = timer
+        RunLoop.main.add(timer, forMode: .common)
+        renderTimelineTarget()
     }
 
-    @objc func timelineSeekingFinished() {
-        guard isScrubbing, let targetTime = scrubTargetTime else { return }
-        isScrubbing = false
-        self.controlStripActionProtocol?.seekPlayersTo(time: targetTime)
-        self.controlStripActionProtocol?.didFinishSeeking()
+    private func ensurePreviewSession() -> Bool {
+        guard timelineDuration > 0 else { return false }
+        if scrubSession == nil { scrubSession = controlStripActionProtocol?.beginTransportPreview() }
+        if scrubSession != nil { focusControl(timelineSlider) }
+        return scrubSession != nil
+    }
+
+    func focusControl(_ control: UIView?) {
+        guard let control, control.window != nil else { return }
+        lastFocusedControl = control
+        setNeedsFocusUpdate(); updateFocusIfNeeded()
+        let system = UIFocusSystem.focusSystem(for: control)
+        system?.requestFocusUpdate(to: control)
+        system?.updateFocusIfNeeded()
+    }
+
+    func commitTimelinePreview() {
+        guard let session = scrubSession, let time = transport.target else { return }
+        scanTimer?.invalidate(); scanTimer = nil
+        scrubSession = nil
+        transport.markSeeking()
+        controlStripActionProtocol?.commitTransportPreview(session, time: time)
+        hideScrubPreview()
+        updateTimeline()
+    }
+
+    @discardableResult
+    func cancelTimelinePreview(restorePlayback: Bool = true) -> Bool {
+        let hadPreview = scrubSession != nil || transport.isPreviewing
+        guard hadPreview else { return false }
+        scanTimer?.invalidate(); scanTimer = nil
+        if let session = scrubSession { controlStripActionProtocol?.cancelTransportPreview(session, restorePlayback: restorePlayback) }
+        scrubSession = nil
+        transport.cancel()
+        hideScrubPreview()
+        return true
+    }
+
+    private func renderTimelineTarget() {
+        guard timelineDuration > 0 else { return }
+        let progress = Float((transport.displayTime - timelineStartTime) / timelineDuration)
+        timelineSlider?.value = min(max(progress, 0), 1)
+        timelineSlider?.accessibilityValue = formatTime(max(0, transport.displayTime - timelineStartTime))
+        updateTimelineLabels(currentTime: transport.displayTime)
+        if transport.isPreviewing { showScrubPreview(at: transport.displayTime, sliderValue: progress) }
+    }
+
+    @objc func backPressed() {
+        if cancelTimelinePreview() { updateTimeline(); return }
+        swipeDownRegognized()
     }
 
     @objc func enterFullScreenPressed() {
@@ -650,18 +697,20 @@ class ControlStripOverlayViewController: BaseViewController {
     }
 
     @objc func rewindPressed() {
-        self.controlStripActionProtocol?.rewindPlayer()
-        self.updateTimeline()
+        timelineStep(.backward)
     }
 
     @objc func playPausePressed() {
-        self.updatePlayPauseButtonStatus(paused: self.playerItem?.player?.timeControlStatus != .paused)
+        if transport.isPreviewing { commitTimelinePreview(); return }
         self.controlStripActionProtocol?.playPausePlayer()
+        self.updateTimeline()
+        if controlStripActionProtocol?.transportIsPlaying == false {
+            focusControl(timelineSlider)
+        }
     }
 
     @objc func forwardPressed() {
-        self.controlStripActionProtocol?.forwardPlayer()
-        self.updateTimeline()
+        timelineStep(.forward)
     }
 
     @objc func languageSelectPressed() { showMediaSelectMenu(type: .audio) }
@@ -695,6 +744,7 @@ class ControlStripOverlayViewController: BaseViewController {
     }
 
     @objc func swipeDownRegognized() {
+        cancelTimelinePreview()
         self.dismiss(animated: true) { [weak self] in
             self?.notifyDismissal()
         }
@@ -736,6 +786,8 @@ extension ControlStripOverlayViewController {
         timeLabel.textColor = .white
         timeLabel.font = UIFont.monospacedDigitSystemFont(ofSize: 22, weight: .bold)
         timeLabel.textAlignment = .center
+        timeLabel.adjustsFontSizeToFitWidth = true
+        timeLabel.minimumScaleFactor = 0.7
         timeLabel.backgroundColor = .clear
 
         let videoView = ScrubVideoPreviewView()
@@ -780,7 +832,7 @@ extension ControlStripOverlayViewController {
             statusStack.centerYAnchor.constraint(equalTo: videoView.centerYAnchor),
             timeMaterial.centerXAnchor.constraint(equalTo: previewView.centerXAnchor),
             timeMaterial.bottomAnchor.constraint(equalTo: previewView.bottomAnchor),
-            timeMaterial.widthAnchor.constraint(equalToConstant: 140),
+            timeMaterial.widthAnchor.constraint(equalToConstant: 220),
             timeMaterial.heightAnchor.constraint(equalToConstant: 44),
             timeLabel.leadingAnchor.constraint(equalTo: timeMaterial.contentView.leadingAnchor, constant: 8),
             timeLabel.trailingAnchor.constraint(equalTo: timeMaterial.contentView.trailingAnchor, constant: -8),
@@ -801,7 +853,7 @@ extension ControlStripOverlayViewController {
         guard let scrubPreviewView = self.scrubPreviewView else { return }
 
         self.scrubPreviewHideTimer?.invalidate()
-        self.scrubPreviewTimeLabel?.text = self.formatTime(max(0, time - self.timelineStartTime))
+        self.scrubPreviewTimeLabel?.text = self.formatTime(max(0, time - self.timelineStartTime)) + (transport.scanLabel.map { "  " + $0 } ?? "")
         self.updateScrubPreviewPosition(for: sliderValue)
 
         if scrubPreviewView.isHidden {
@@ -819,6 +871,7 @@ extension ControlStripOverlayViewController {
 
     private func scheduleScrubPreviewHide(after delay: TimeInterval) {
         self.scrubPreviewHideTimer?.invalidate()
+        guard !transport.isPreviewing else { return }
         self.scrubPreviewHideTimer = Timer.scheduledTimer(withTimeInterval: delay, repeats: false) { [weak self] _ in
             self?.hideScrubPreview()
         }
@@ -828,6 +881,7 @@ extension ControlStripOverlayViewController {
         guard let scrubPreviewView = self.scrubPreviewView, !scrubPreviewView.isHidden else { return }
 
         self.previewImageRequestId = nil
+        self.requestedPreviewTime = nil
         self.thumbnailProvider?.suspend()
         self.scrubPreviewVideoView?.install(nil)
         self.scrubPreviewVideoView?.isHidden = true
@@ -855,6 +909,8 @@ extension ControlStripOverlayViewController {
 
     func requestScrubPreviewImage(at time: Float64) {
         guard let thumbnailProvider else { self.scheduleScrubPreviewHide(after: 1.25); return }
+        if requestedPreviewTime == time && previewImageRequestId != nil { return }
+        requestedPreviewTime = time
         let requestId = UUID()
         self.previewImageRequestId = requestId
         if self.scrubPreviewVideoView?.isHidden != false && self.scrubPreviewImageView?.isHidden != false {
@@ -897,58 +953,57 @@ extension ControlStripOverlayViewController {
 // MARK: - Timeline
 extension ControlStripOverlayViewController {
     func addPeriodicTimeObserver() {
-        guard let player = self.playerItem?.player else { return }
-
-        self.removeTimeObserver()
-
-        let interval = CMTime(seconds: 0.5, preferredTimescale: CMTimeScale(NSEC_PER_SEC))
-        self.timeObserverToken = player.addPeriodicTimeObserver(forInterval: interval, queue: .main) { [weak self] _ in
+        guard timeObserverToken == nil, let player = observedPlayer else { return }
+        let interval = CMTime(seconds: 0.5, preferredTimescale: 600)
+        timeObserverToken = player.addPeriodicTimeObserver(forInterval: interval, queue: .main) { [weak self] _ in
             self?.updateTimeline()
         }
     }
 
     func removeTimeObserver() {
-        guard let token = self.timeObserverToken else { return }
+        guard let token = timeObserverToken else { return }
+        observedPlayer?.removeTimeObserver(token)
+        timeObserverToken = nil
+    }
 
-        self.playerItem?.player?.removeTimeObserver(token)
-        self.timeObserverToken = nil
+    private func bindTimelineReference(_ reference: PlayerItem?) {
+        removeTimeObserver()
+        thumbnailProvider?.onNativeState = nil
+        thumbnailProvider?.suspend()
+        timelineReferenceID = reference?.id
+        observedPlayer = reference?.player
+        thumbnailProvider = CredentialHelper.getPlayerSettings().scrubPreviews ? reference?.thumbnails : nil
+        observeThumbnailState()
+        addPeriodicTimeObserver()
     }
 
     func updateTimeline() {
-        guard let player = self.playerItem?.player else {
-            self.timelineSlider?.isEnabled = false
+        let reference = controlStripActionProtocol?.transportReference
+        if timelineReferenceID != reference?.id || observedPlayer !== reference?.player {
+            cancelTimelinePreview()
+            bindTimelineReference(reference)
+        }
+        guard let reference, let player = reference.player else {
+            transport.synchronize(referenceID: nil, position: 0, lower: 0, upper: 0, seeking: false)
+            timelineSlider?.isEnabled = false
             return
         }
-
         if let range = player.currentItem?.seekableTimeRanges.last?.timeRangeValue {
             liveButton?.isEnabled = LiveTimeline.target(start: range.start.seconds, end: CMTimeRangeGetEnd(range).seconds) != nil
             liveButton?.setTitle((LiveTimeline.isAtLive(position: player.currentTime().seconds, end: CMTimeRangeGetEnd(range).seconds) ? "live_status" : "go_live").localizedString, for: .normal)
         } else { liveButton?.isEnabled = false }
-        // Keep the thumb and live-window origin fixed until the displayed
-        // stream finishes the seek, not just until the gesture ends.
-        guard !isScrubbing else { return }
-        if scrubTargetTime != nil,
-           let id = playerItem?.id,
-           controlStripActionProtocol?.isSeekingPlayer(id: id) == true { return }
-        scrubTargetTime = nil
-        let bounds = self.timelineBounds(for: player)
-        self.timelineStartTime = bounds.start
-        self.timelineDuration = bounds.duration
-
-        guard bounds.duration > 0 else {
-            self.timelineSlider?.isEnabled = false
-            self.elapsedTimeLabel?.text = "--:--"
-            self.remainingTimeLabel?.text = "--:--"
-            return
+        let seeking = controlStripActionProtocol?.isSeekingPlayer(id: reference.id) == true
+        if !transport.isPreviewing && !(transport.phase == .seeking && seeking) {
+            let bounds = timelineBounds(for: player)
+            timelineStartTime = bounds.start
+            timelineDuration = bounds.duration
         }
-
-        self.timelineSlider?.isEnabled = true
-        self.timelineSlider?.stepValue = Float(15 / bounds.duration)
-
-        let currentTime = CMTimeGetSeconds(player.currentTime())
-        let progress = Float((currentTime - bounds.start) / bounds.duration)
-        self.timelineSlider?.value = min(max(progress, 0), 1)
-        self.updateTimelineLabels(currentTime: currentTime)
+        transport.synchronize(referenceID: reference.id, position: player.currentTime().seconds,
+                              lower: timelineStartTime, upper: max(timelineStartTime, timelineStartTime + timelineDuration - 0.1), seeking: seeking)
+        timelineSlider?.isEnabled = timelineDuration > 0
+        updatePlayPauseButtonStatus(paused: controlStripActionProtocol?.transportIsPlaying != true)
+        if timelineDuration > 0 { renderTimelineTarget() }
+        else { elapsedTimeLabel?.text = "--:--"; remainingTimeLabel?.text = "--:--" }
     }
 
     func updateTimelineLabels(currentTime: Float64) {

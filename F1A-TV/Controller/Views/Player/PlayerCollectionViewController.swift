@@ -50,6 +50,7 @@ class PlayerCollectionViewController: BaseCollectionViewController, ChannelSelec
     var liveCoordinator = LivePlaybackCoordinator()
     var synchronizationGeneration = UUID()
     var wantsPlayback = true
+    var transportPreviewSession: MultiviewScrubSession?
     var startupAnchors = [String: (PlaybackPositionSnapshot, UUID)]()
     var isLiveSession: Bool { channelItems.contains { $0.contentSubtype == "LIVE" } }
     var slotCount: Int { layoutChoice.slotCount(players: playerItems.count) }

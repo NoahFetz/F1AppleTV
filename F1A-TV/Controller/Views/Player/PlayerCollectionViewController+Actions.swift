@@ -38,6 +38,7 @@ extension PlayerCollectionViewController {
 
     func stopPlayback() {
         guard !isExitingPlayback else { return }
+        transportPreviewSession = nil
         cancelSynchronization()
         readyObservations.removeAll()
         self.reportCurrentPlayTime()
@@ -105,14 +106,14 @@ extension PlayerCollectionViewController {
         cancelSynchronization()
         self.reportCurrentPlayTime()
 
-        self.rewindAllPlayersBy(seconds: 15)
+        self.rewindAllPlayersBy(seconds: 10)
     }
 
     func forwardPlayer() {
         cancelSynchronization()
         self.reportCurrentPlayTime()
 
-        self.forwardAllPlayersBy(seconds: 15)
+        self.forwardAllPlayersBy(seconds: 10)
     }
 
     func seekPlayersTo(time: Float64) {

@@ -8,7 +8,7 @@ test_libraries="$(xcrun --sdk macosx --show-sdk-platform-path)/Developer/usr/lib
 xcrun --sdk macosx swiftc -swift-version 5 -parse-as-library -module-cache-path "$build_dir/cache" \
     -F "$test_frameworks" -Xlinker -rpath -Xlinker "$test_frameworks" \
     -I "$test_libraries" -L "$test_libraries" -Xlinker -rpath -Xlinker "$test_libraries" \
-    "$root/F1A-TV/Models/PlaybackEntitlement.swift" \
-    "$root/F1A-TV/Networking/FairPlayLicenseRequest.swift" \
+    "$root/F1Core/Sources/F1Core/Models/PlaybackEntitlement.swift" \
+    "$root/F1Core/Sources/F1Core/Networking/FairPlayLicenseRequest.swift" \
     "$root/Tests/FairPlayLicenseRequestTests.swift" -o "$build_dir/FairPlayLicenseRequestTests"
 "$build_dir/FairPlayLicenseRequestTests"

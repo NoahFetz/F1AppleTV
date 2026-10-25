@@ -10,7 +10,7 @@ xcrun swiftc -swift-version 5 -module-cache-path "$test_dir/cache" \
   Tests/Credentials/StorageDoubles.swift \
   "$test_dir/KeychainHelper.swift" \
   F1A-TV/Util/CredentialHelper.swift \
-  F1A-TV/DataTransferObjects/Util/AppErrorStore.swift \
+  F1Core/Sources/F1Core/DataTransferObjects/Util/AppErrorStore.swift \
   Tests/Credentials/main.swift \
   -o "$test_dir/credential-tests"
 "$test_dir/credential-tests"

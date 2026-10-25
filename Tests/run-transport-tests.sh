@@ -16,7 +16,7 @@ xcrun --sdk macosx swiftc -swift-version 5 -parse-as-library -module-cache-path 
     -F "$test_frameworks" -Xlinker -rpath -Xlinker "$test_frameworks" \
     -I "$test_libraries" -L "$test_libraries" -Xlinker -rpath -Xlinker "$test_libraries" \
     -I "$build_dir" -L "$build_dir" -lAlamofire -Xlinker -rpath -Xlinker "$build_dir" \
-    "$root"/F1A-TV/Networking/Services/{HTTPTransport,AlamofireHTTPTransport}.swift \
-    "$root"/F1A-TV/Networking/CatalogRequest.swift "$root"/F1A-TV/DataTransferObjects/Util/AppErrorStore.swift \
+    "$root"/F1Core/Sources/F1Core/Networking/Services/HTTPTransport.swift "$root"/F1A-TV/Networking/Services/AlamofireHTTPTransport.swift \
+    "$root"/F1Core/Sources/F1Core/Networking/CatalogRequest.swift "$root"/F1Core/Sources/F1Core/DataTransferObjects/Util/AppErrorStore.swift \
     "$root"/Tests/AlamofireTransportTests.swift -o "$build_dir/AlamofireTransportTests"
 "$build_dir/AlamofireTransportTests"
