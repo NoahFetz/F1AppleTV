@@ -26,6 +26,70 @@ final class ResolutionSelectionTests: XCTestCase {
     #EXT-X-CUSTOM-TAG:VALUE="preserve,me"
     """
 
+    private let rangeFixture = """
+    #EXTM3U
+    #EXT-X-SESSION-KEY:METHOD=SAMPLE-AES,URI="skd://asset",KEYFORMAT="com.apple.streamingkeydelivery"
+    #EXT-X-MEDIA:TYPE=AUDIO,GROUP-ID="audio",NAME="English",URI="audio.m3u8"
+    #EXT-X-STREAM-INF:BANDWIDTH=17000000,RESOLUTION=3840x2160,VIDEO-RANGE=HLG,AUDIO="audio"
+    hdr2160.m3u8
+    #EXT-X-STREAM-INF:BANDWIDTH=7900000,RESOLUTION=1920x1080,VIDEO-RANGE=HLG,AUDIO="audio"
+    hdr1080.m3u8
+    #EXT-X-STREAM-INF:BANDWIDTH=8000000,RESOLUTION=1920x1080,VIDEO-RANGE=PQ,AUDIO="audio"
+    pq1080.m3u8
+    #EXT-X-STREAM-INF:BANDWIDTH=9500000,RESOLUTION=2880x1620,VIDEO-RANGE=SDR,AUDIO="audio"
+    sdr1620.m3u8
+    #EXT-X-STREAM-INF:BANDWIDTH=6600000,RESOLUTION=1920x1080,VIDEO-RANGE=SDR,AUDIO="audio"
+    sdr1080.m3u8
+    """
+
+    func testSDRAndHDRSelectDifferentVariantsAtSameResolution() throws {
+        let playlist = try HLSResolutionPlaylist(text: rangeFixture, baseURL: baseURL)
+        let resolution = StreamResolution(attribute: "1920x1080")!
+        let sdr = String(decoding: try playlist.filtered(resolution: resolution, dynamicRange: .sdr), as: UTF8.self)
+        let hdr = String(decoding: try playlist.filtered(resolution: resolution, dynamicRange: .hdr), as: UTF8.self)
+        XCTAssertTrue(sdr.contains("sdr1080.m3u8"))
+        XCTAssertFalse(sdr.contains("hdr1080.m3u8"))
+        XCTAssertFalse(sdr.contains("pq1080.m3u8"))
+        XCTAssertTrue(hdr.contains("hdr1080.m3u8"))
+        XCTAssertTrue(hdr.contains("pq1080.m3u8"))
+        XCTAssertFalse(hdr.contains("sdr1080.m3u8"))
+        for output in [sdr, hdr] {
+            XCTAssertTrue(output.contains("skd://asset"))
+            XCTAssertTrue(output.contains("GROUP-ID=\"audio\""))
+        }
+    }
+
+    func testRangeSpecificQualityListsAndHighestSelection() throws {
+        let playlist = try HLSResolutionPlaylist(text: rangeFixture, baseURL: baseURL)
+        XCTAssertEqual(playlist.videoRanges, ["HLG", "PQ", "SDR"])
+        XCTAssertEqual(playlist.resolutions(for: .hdr).map(\.height), [2160, 1080])
+        XCTAssertEqual(playlist.resolutions(for: .sdr).map(\.height), [1620, 1080])
+        XCTAssertEqual(playlist.startupResolution(maximumHeight: nil, dynamicRange: .sdr)?.height, 1620)
+        XCTAssertEqual(playlist.startupResolution(maximumHeight: 2160, dynamicRange: .sdr)?.height, 1620)
+        XCTAssertEqual(playlist.startupResolution(maximumHeight: 1080, dynamicRange: .hdr)?.height, 1080)
+        XCTAssertThrowsError(try playlist.filtered(resolution: StreamResolution(attribute: "3840x2160"), dynamicRange: .sdr))
+    }
+
+    func testMissingRangeIsSDRAndHDRFallbackRemainsPlayable() throws {
+        let playlist = try HLSResolutionPlaylist(text: fixture, baseURL: baseURL)
+        XCTAssertEqual(playlist.videoRanges, ["SDR"])
+        XCTAssertEqual(playlist.effectiveDynamicRange(.hdr), .sdr)
+        XCTAssertEqual(try playlist.filtered(resolution: nil, dynamicRange: .hdr), try playlist.filtered(resolution: nil, dynamicRange: .sdr))
+        let hdrOnly = try HLSResolutionPlaylist(text: "#EXTM3U\n#EXT-X-STREAM-INF:BANDWIDTH=8000000,RESOLUTION=1920x1080,VIDEO-RANGE=HLG\nhdr.m3u8", baseURL: baseURL)
+        XCTAssertEqual(hdrOnly.effectiveDynamicRange(.sdr), .hdr)
+        XCTAssertEqual(hdrOnly.resolutions(for: .sdr).map(\.height), [1080])
+    }
+
+    func testFilteredMasterRejectsLocalFilesAndNonMediaSchemes() throws {
+        for reference in ["file:///private/tmp/video.m3u8", "ftp://cdn.example.com/video.m3u8"] {
+            let text = "#EXTM3U\n#EXT-X-STREAM-INF:BANDWIDTH=1000000,RESOLUTION=1920x1080\n" + reference
+            let playlist = try HLSResolutionPlaylist(text: text, baseURL: baseURL)
+            XCTAssertThrowsError(try playlist.filtered(resolution: nil))
+        }
+        let localAudio = fixture.replacingOccurrences(of: "../audio/en.m3u8?signature=a,b=c", with: "file:///private/tmp/audio.m3u8")
+        XCTAssertThrowsError(try HLSResolutionPlaylist(text: localAudio, baseURL: baseURL).filtered(resolution: nil))
+    }
+
     func testResolutionsAreSortedAndDeduplicated() throws {
         let playlist = try HLSResolutionPlaylist(text: fixture, baseURL: baseURL)
         XCTAssertEqual(playlist.resolutions.map { $0.label(in: playlist.resolutions) }, ["1080p", "720p", "540p"])

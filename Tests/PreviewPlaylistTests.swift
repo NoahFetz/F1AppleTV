@@ -21,6 +21,34 @@ final class PreviewPlaylistTests: XCTestCase {
         XCTAssertTrue(manifest.imagePlaylists.isEmpty)
     }
 
+    func testScrubbingPrefersSmallSDRTrackAndKeepsSignedQuery() throws {
+        let text = """
+        #EXTM3U
+        #EXT-X-I-FRAME-STREAM-INF:BANDWIDTH=100,RESOLUTION=160x90,VIDEO-RANGE=HLG,URI="hdr.m3u8"
+        #EXT-X-I-FRAME-STREAM-INF:BANDWIDTH=2000,RESOLUTION=640x360,VIDEO-RANGE=SDR,URI="large.m3u8"
+        #EXT-X-I-FRAME-STREAM-INF:BANDWIDTH=500,RESOLUTION=480x270,VIDEO-RANGE=SDR,URI="../small.m3u8?signature=a,b"
+        """
+        let manifest = HLSPreviewManifest(text: text, baseURL: baseURL)
+        let track = try XCTUnwrap(manifest.preferredIFrameRendition)
+        XCTAssertEqual(track.resolution?.height, 270)
+        XCTAssertEqual(track.videoRange, "SDR")
+        XCTAssertEqual(track.url.absoluteString, "https://cdn.example.com/redirected/small.m3u8?signature=a,b")
+    }
+
+    func testIFrameSelectionFallsBackToHDRAndRejectsUnsupportedURIs() throws {
+        let text = """
+        #EXTM3U
+        #EXT-X-I-FRAME-STREAM-INF:BANDWIDTH=100,URI="file:///tmp/frame.m3u8"
+        #EXT-X-I-FRAME-STREAM-INF:BANDWIDTH=100,URI="{$token}/frame.m3u8"
+        #EXT-X-I-FRAME-STREAM-INF:BANDWIDTH=2000,RESOLUTION=640x360,VIDEO-RANGE=HLG,URI="large.m3u8"
+        #EXT-X-I-FRAME-STREAM-INF:BANDWIDTH=500,RESOLUTION=480x270,VIDEO-RANGE=HLG,URI="small.m3u8"
+        """
+        let manifest = HLSPreviewManifest(text: text, baseURL: baseURL)
+        XCTAssertEqual(manifest.iFrameRenditions.count, 2)
+        XCTAssertEqual(manifest.preferredIFrameRendition?.resolution?.height, 270)
+        XCTAssertEqual(manifest.preferredIFrameRendition?.videoRange, "HLG")
+    }
+
     func testSpriteTileLookupAndBoundaries() throws {
         let text = """
         #EXTM3U

@@ -115,6 +115,15 @@ final class BrowserAuthenticationTests: XCTestCase {
         do { _ = try await work.value; XCTFail("Cancelled acceptance must fail") } catch { XCTAssertTrue(error is CancellationError) }
         let stored = try await store.load(), account = try await auth.account(); XCTAssertNil(stored); XCTAssertNil(account)
     }
+    func testDiscardingLegacyBrowserSessionAlsoClearsTheSupersededRegistration() async throws {
+        let store = BrowserMemoryStore(), fallbackStore = FallbackMemoryStore()
+        let (auth, fallback) = services(store: store, fallbackStore: fallbackStore)
+        _ = try await fallback.signIn(email: "fixture@example.invalid", password: "fixture", challenge: LoginChallenge("fixture"))
+        _ = try await auth.accept(BrowserAccountSession.decode(completedWebSession))
+        try await auth.discardStoredSession()
+        let account = try await auth.account(), browser = try await store.load(), registration = try await fallbackStore.load()
+        XCTAssertNil(account); XCTAssertNil(browser); XCTAssertNil(registration)
+    }
     func testConcurrentUnauthorizedRequestsShareOneRefresh() async throws {
         let transport = BrowserTransport(); let (auth, _) = services(transport)
         _ = try await auth.accept(BrowserAccountSession.decode(completedWebSession)); await transport.hold()

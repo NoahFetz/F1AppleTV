@@ -376,6 +376,24 @@ final class CatalogPageTests: XCTestCase {
         store.clear(); XCTAssertTrue(store.records().isEmpty)
         XCTAssertTrue(AppErrorStore(defaults: defaults, clock: { now }).records().isEmpty)
     }
+    func testErrorHistoryKeepsSafeUnderlyingCodesAndHTTPStatus() throws {
+        let suite = "errors-" + UUID().uuidString
+        let defaults = try XCTUnwrap(UserDefaults(suiteName: suite))
+        defer { defaults.removePersistentDomain(forName: suite) }
+        let nested = NSError(domain: "CoreMediaErrorDomain", code: -12660, userInfo: [NSLocalizedDescriptionKey: "HTTP 403 https://secret.test/?token=private"])
+        let error = NSError(domain: NSURLErrorDomain, code: -1102, userInfo: [NSUnderlyingErrorKey: nested, AppErrorStore.httpStatusKey: 403, NSURLErrorFailingURLStringErrorKey: "https://secret.test/private"])
+        let store = AppErrorStore(defaults: defaults)
+        store.record(error, operation: .playback)
+        let record = try XCTUnwrap(AppErrorStore(defaults: defaults).records().first)
+        XCTAssertEqual(record.httpStatus, 403)
+        XCTAssertEqual(record.underlyingErrors?.first?.domain, "CoreMediaErrorDomain")
+        XCTAssertEqual(record.underlyingErrors?.first?.code, -12660)
+        let data = try XCTUnwrap(defaults.data(forKey: "AppErrorHistory.v1"))
+        let serialized = String(decoding: data, as: UTF8.self)
+        XCTAssertFalse(serialized.contains("secret")); XCTAssertFalse(serialized.contains("private")); XCTAssertFalse(serialized.contains("token"))
+        store.record(NSError(domain: NSURLErrorDomain, code: -1102), operation: .playback)
+        XCTAssertEqual(store.records().count, 2, "Different underlying failures must remain distinguishable")
+    }
     func testErrorHistoryRetentionLimitCancellationAndMalformedData() throws {
         let suite = "errors-" + UUID().uuidString; let defaults = try XCTUnwrap(UserDefaults(suiteName: suite))
         defer { defaults.removePersistentDomain(forName: suite) }

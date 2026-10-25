@@ -1,6 +1,5 @@
 import SwiftUI
 import Security
-import WebKit
 import F1Core
 
 @MainActor final class MacPreferences: ObservableObject {
@@ -78,39 +77,43 @@ actor MacBrowserSessionStore: BrowserSessionCredentialStore {
     }
 }
 
-@MainActor final class MacLoginChallenge: ObservableObject, LoginChallengeProviding {
-    let browser: WKWebView
-    @Published var needsInteraction = false
-    init() {
-        let config = WKWebViewConfiguration(); config.websiteDataStore = .nonPersistent()
-        browser = WKWebView(frame: .zero, configuration: config)
+actor MacOAuthSessionStore: DeviceSessionCredentialStore {
+    private let service = (Bundle.main.bundleIdentifier ?? "ch.fetz-gr.F1A-Mac") + ".credentials"
+    private var query: [String: Any] {
+        [kSecClass as String: kSecClassGenericPassword, kSecAttrService as String: service, kSecAttrAccount as String: "oauth-session.v1"]
     }
-    func prepare() async throws -> LoginChallenge {
-        needsInteraction = false
-        let cookies = browser.configuration.websiteDataStore.httpCookieStore
-        for cookie in await cookies.allCookies() where cookie.name == "reese84" { await cookies.deleteCookie(cookie) }
-        browser.load(URLRequest(url: URL(string: "https://account.formula1.com/#/login")!))
-        defer { browser.stopLoading(); needsInteraction = false }
-        for attempt in 0..<60 {
-            try await Task.sleep(nanoseconds: 1_000_000_000)
-            try Task.checkCancellation()
-            if let cookie = await cookies.allCookies().first(where: { ($0.domain == "formula1.com" || $0.domain.hasSuffix(".formula1.com")) && $0.name == "reese84" && !$0.value.isEmpty }) {
-                return LoginChallenge(cookie.value)
-            }
-            if attempt >= 7 { needsInteraction = true }
+    func load() async throws -> DeviceAccountSession? {
+        var query = query; query[kSecReturnData as String] = true; query[kSecMatchLimit as String] = kSecMatchLimitOne
+        var value: CFTypeRef?
+        let status = SecItemCopyMatching(query as CFDictionary, &value)
+        if status == errSecItemNotFound { return nil }
+        guard status == errSecSuccess, let data = value as? Data else { throw NSError(domain: NSOSStatusErrorDomain, code: Int(status)) }
+        return try JSONDecoder().decode(DeviceAccountSession.self, from: data)
+    }
+    func save(_ session: DeviceAccountSession) async throws {
+        let attributes: [String:Any] = [kSecValueData as String:try JSONEncoder().encode(session), kSecAttrAccessible as String:kSecAttrAccessibleWhenUnlockedThisDeviceOnly]
+        var status = SecItemUpdate(query as CFDictionary, attributes as CFDictionary)
+        if status == errSecItemNotFound {
+            var insert = query; insert.merge(attributes) { _,new in new }
+            status = SecItemAdd(insert as CFDictionary,nil)
+            if status == errSecDuplicateItem { status = SecItemUpdate(query as CFDictionary,attributes as CFDictionary) }
         }
-        throw APIError.authentication
+        guard status == errSecSuccess else { throw NSError(domain:NSOSStatusErrorDomain,code:Int(status)) }
+    }
+    func clear() async throws {
+        let status = SecItemDelete(query as CFDictionary)
+        guard status == errSecSuccess || status == errSecItemNotFound else { throw NSError(domain:NSOSStatusErrorDomain,code:Int(status)) }
     }
 }
 
 @MainActor final class MacServices {
     let catalog: any CatalogService
-    let auth: F1BrowserAuthService
+    let auth: F1OAuthAuthService
     let playback: any PlaybackService
     let fairPlay: any FairPlayService
     let language: String
     let preferences = MacPreferences()
-    init() {
+    init(oauthTransport: any DeviceAuthTransport = URLSessionDeviceAuthTransport()) {
         var endpoints = APIEndpoints()
         endpoints.language = APILanguageType.fromAPIKey(apiKey: "api_endpoing_language_id".localizedString).getAPIKey()
         language = endpoints.language
@@ -118,7 +121,8 @@ actor MacBrowserSessionStore: BrowserSessionCredentialStore {
         let fallback = F1AuthService(client: client, endpoints: endpoints, storage: MacSessionStore(), nickname: "Vroom TV macOS", deviceFactory: {
             DeviceRegistrationRequestDeviceDto(deviceTypeCode: 12, deviceId: "\(UUID().uuidString)-macOS", physicalDeviceTypeCode: 1002)
         })
-        let auth = F1BrowserAuthService(fallback: fallback, client: client, endpoints: endpoints, store: MacBrowserSessionStore())
+        let legacy = F1BrowserAuthService(fallback: fallback, client: client, endpoints: endpoints, store: MacBrowserSessionStore())
+        let auth = F1OAuthAuthService(client: client, fallback: legacy, store: MacOAuthSessionStore(), transport: oauthTransport)
         self.auth = auth
         #if DEBUG
         if let directory = ProcessInfo.processInfo.environment["F1_CATALOG_FIXTURES"] {

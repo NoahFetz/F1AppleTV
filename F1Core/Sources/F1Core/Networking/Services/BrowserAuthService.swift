@@ -39,7 +39,7 @@ public protocol BrowserSessionCredentialStore: Sendable {
 
 /// Browser sessions use the website's subscriber retrieval flow. The original
 /// device registration/refresh implementation remains the manual-login fallback.
-public actor F1BrowserAuthService: AuthService, AuthorizedRequestSending {
+public actor F1BrowserAuthService: StoredAuthService {
     private let fallback: F1AuthService
     private let client: APIClient
     private let endpoints: APIEndpoints
@@ -117,6 +117,11 @@ public actor F1BrowserAuthService: AuthService, AuthorizedRequestSending {
         try await load(); try Task.checkCancellation()
         if let session { return session.subscriptionToken }
         return try await fallback.subscriptionToken()
+    }
+    public func discardStoredSession() async throws {
+        epoch = UUID(); let generation = epoch; refreshTask?.cancel(); refreshTask = nil
+        try await persist(nil, generation: generation); session = nil; loaded = true
+        try await fallback.discardStoredSession()
     }
     public func authorizedData(_ request: URLRequest, mode: AuthorizationMode) async throws -> Data {
         try await load()

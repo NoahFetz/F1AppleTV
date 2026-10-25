@@ -81,6 +81,12 @@ final class BackendServiceTests: XCTestCase {
     private func assertFailure(_ expected: APIError, _ action: () async throws -> Void) async {
         do { try await action(); XCTFail("Expected failure") } catch { XCTAssertEqual(error as? APIError, expected) }
     }
+    func testEntitlementRequestsBypassSignedURLCaches() throws {
+        let request = try APIEndpoints().entitlement("123")
+        XCTAssertEqual(request.cachePolicy, .reloadIgnoringLocalAndRemoteCacheData)
+        XCTAssertEqual(request.value(forHTTPHeaderField: "Cache-Control"), "no-cache")
+    }
+
     func testEndpointProvidersHeadersBodiesAndEncodedQueries() throws {
         let e = APIEndpoints(language: "DEU")
         let uri = "/2.0/R/DEU/BIG_SCREEN_HLS/ALL/PAGE/395?filter_Series=Formula+2&from=20"

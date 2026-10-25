@@ -6,7 +6,11 @@ selection, playback preferences, feed matching, diagnostics and translations.
 It has no UIKit, SwiftUI or AppKit dependency.
 
 Platform applications own navigation, windows, credential/settings storage and
-browser challenge preparation. The tvOS composition root retains its Alamofire
+sign-in presentation. tvOS uses phone/QR device authorization; macOS opens the
+prefilled verification page locally, without phone or manual code entry. Both use
+`F1OAuthAuthService` for Keychain session restoration, refresh-token rotation and
+playback authorization. Existing registrations/browser sessions remain available
+until a fresh OAuth sign-in replaces them. The tvOS composition root retains its Alamofire
 transport and CoreData-to-Keychain migration; macOS uses URLSession and a
 separate Keychain service. Both use the same API client and authorization policy.
 Registration nickname and device construction are injected into F1AuthService;

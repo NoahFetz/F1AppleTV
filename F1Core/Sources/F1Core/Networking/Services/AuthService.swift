@@ -20,6 +20,10 @@ public protocol AuthorizedRequestSending: Sendable {
     func subscriptionToken() async throws -> String
 }
 
+public protocol StoredAuthService: AuthService, AuthorizedRequestSending {
+    func discardStoredSession() async throws
+}
+
 public enum PlaybackAuthorizationHeaders {
     public static func apply(to request: URLRequest, subscriptionToken: String, accountSessionID: String, playbackSessionID: String, mode: AuthorizationMode) -> URLRequest {
         var request = request
@@ -30,7 +34,7 @@ public enum PlaybackAuthorizationHeaders {
     }
 }
 
-public actor F1AuthService: AuthService, AuthorizedRequestSending {
+public actor F1AuthService: StoredAuthService {
     private let client: APIClient
     private let endpoints: APIEndpoints
     private let storage: any SessionCredentialStore

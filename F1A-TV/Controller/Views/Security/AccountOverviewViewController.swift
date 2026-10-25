@@ -24,11 +24,11 @@ final class AccountOverviewViewController: UIViewController {
         if signedIn {
             let info = profile!
             stack.addArrangedSubview(TVDesign.label(info.firstName + " " + info.lastName, size: 36, bold: true))
-            stack.addArrangedSubview(TVDesign.label(info.email))
-            stack.addArrangedSubview(TVDesign.label("Subscription · " + info.subscriptionStatus))
-            stack.addArrangedSubview(TVDesign.label("Country · " + (IsoCountryCodes.find(key: info.country)?.name ?? info.country)))
-            stack.addArrangedSubview(TVDesign.label("Account ID · \(info.subscriberID)", size: 23))
-        } else { stack.addArrangedSubview(TVDesign.label("Sign in to watch content included in your F1 TV subscription.")) }
+            if !info.email.isEmpty { stack.addArrangedSubview(TVDesign.label(info.email)) }
+            stack.addArrangedSubview(TVDesign.label("account_subscription_title".localizedString + " · " + info.localizedSubscriptionStatus))
+            if !info.country.isEmpty { stack.addArrangedSubview(TVDesign.label("account_country_title".localizedString + " · " + (CoreLocalization.locale.localizedString(forRegionCode: info.country) ?? info.country))) }
+            stack.addArrangedSubview(TVDesign.label("account_id_title".localizedString + " · " + String(info.subscriberID), size: 23))
+        } else { stack.addArrangedSubview(TVDesign.label("account_subscription_sign_in_prompt".localizedString)) }
         status = TVDesign.label("", size: 24)
         stack.addArrangedSubview(status)
         action = TVDesign.button((loadFailed ? "action_retry" : signedIn ? "logout_button_title" : "login_button_title").localizedString) { [weak self] in
@@ -48,11 +48,11 @@ final class AccountOverviewViewController: UIViewController {
         accountTask?.cancel(); let auth = services.auth
         accountTask = Task { [weak self] in
             do { let profile = try await auth.account(); try Task.checkCancellation(); self?.profile = profile; self?.loadFailed = false; self?.render() }
-            catch { guard !Task.isCancelled, !(error is CancellationError) else { return }; recordServiceFailure(error, operation: .credentials); self?.loadFailed = true; self?.render(); self?.status.text = "Could not load account. Please retry." }
+            catch { guard !Task.isCancelled, !(error is CancellationError) else { return }; recordServiceFailure(error, operation: .credentials); self?.loadFailed = true; self?.render(); self?.status.text = "account_load_failed".localizedString }
         }
     }
     private func logoutPressed() {
-        isWorking = true; action.isEnabled = false; status.text = "Signing out…"
+        isWorking = true; action.isEnabled = false; status.text = "account_signing_out".localizedString
         accountTask?.cancel(); let auth = services.auth
         accountTask = Task { [weak self] in
             do {
@@ -62,7 +62,7 @@ final class AccountOverviewViewController: UIViewController {
                 guard !Task.isCancelled, !(error is CancellationError) else { return }
                 recordServiceFailure(error, operation: .logout)
                 self?.isWorking = false; self?.action.isEnabled = true
-                self?.status.text = "Could not sign out. Select Sign out to retry."
+                self?.status.text = "account_sign_out_failed".localizedString
             }
         }
     }

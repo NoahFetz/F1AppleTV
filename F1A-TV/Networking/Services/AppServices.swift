@@ -38,32 +38,22 @@ final class AppServices {
     static func live() -> AppServices {
         var endpoints = APIEndpoints(); endpoints.language = APILanguageType.fromAPIKey(apiKey: "api_endpoing_language_id".localizedString).getAPIKey()
         let client = APIClient(transport: AlamofireHTTPTransport())
-        let auth = F1AuthService(client: client, endpoints: endpoints, storage: KeychainSessionStore())
+        let legacy = F1AuthService(client: client, endpoints: endpoints, storage: KeychainSessionStore())
+        let auth = F1DeviceAuthService(client: client, fallback: legacy, store: KeychainDeviceSessionStore())
         return AppServices(catalog: F1CatalogService(client: client, endpoints: endpoints), auth: auth, playback: F1PlaybackService(endpoints: endpoints, auth: auth), fairPlay: F1FairPlayService(client: client, endpoints: endpoints, auth: auth), language: endpoints.language)
     }
 }
 
-/// Keeps the existing hidden-browser challenge mechanism, with ownership and cancellation scoped to Login.
+/// The phone/TV session is separate from the legacy registration so existing
+/// installations can keep playing until they choose to sign out or sign in.
 @MainActor
-final class BrowserLoginChallengeProvider: LoginChallengeProviding {
-    private weak var host: UIView?
-    init(host: UIView) { self.host = host }
-    func prepare() async throws -> LoginChallenge {
-        guard let host, let type = NSClassFromString("UIWebView") as? NSObject.Type else { throw APIError.authentication }
-        HTTPCookieStorage.shared.cookies?.filter { $0.domain.contains("formula1.com") && $0.name == "reese84" }.forEach(HTTPCookieStorage.shared.deleteCookie)
-        let browser: AnyObject = type.init()
-        guard let view = browser as? UIView else { throw APIError.authentication }
-        browser.loadRequest(URLRequest(url: URL(string: "https://account.formula1.com/#/login")!))
-        view.frame = host.bounds; view.alpha = 0; host.addSubview(view)
-        defer { view.removeFromSuperview() }
-        for attempt in 0..<11 {
-            try await Task.sleep(nanoseconds: 2_000_000_000)
-            if attempt == 0 { view.removeFromSuperview() }
-            try Task.checkCancellation()
-            if let cookie = HTTPCookieStorage.shared.cookies?.first(where: { $0.domain.contains("formula1.com") && $0.name == "reese84" && !$0.value.isEmpty }) {
-                return LoginChallenge(cookie.value)
-            }
-        }
-        throw APIError.authentication
+final class KeychainDeviceSessionStore: DeviceSessionCredentialStore {
+    private let key = "F1ATV_DeviceCodeSession.v1"
+    func load() async throws -> DeviceAccountSession? {
+        try KeychainHelper.readCodable(DeviceAccountSession.self, forKey: key)
     }
+    func save(_ session: DeviceAccountSession) async throws {
+        try KeychainHelper.saveCodable(session, forKey: key)
+    }
+    func clear() async throws { try KeychainHelper.delete(forKey: key) }
 }
