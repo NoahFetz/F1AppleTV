@@ -36,6 +36,8 @@ final class SettingsOverviewTableViewController: UIViewController {
         choice("settings_scrub_previews".localizedString, values: ["Off", "On"], selected: settings.scrubPreviews ? 1 : 0) { self.settings.scrubPreviews = $0 == 1 }
         choice("Preview quality", values: ["360p", "540p"], selected: settings.previewHeight == 540 ? 1 : 0) { self.settings.previewHeight = $0 == 0 ? 360 : 540 }
         section("Playback")
+        let players = TVPlayerPreference.allCases
+        choice("settings_player".localizedString, values: players.map { $0.tvDisplayName }, selected: players.firstIndex(of: settings.tvPlayerPreference) ?? 1) { self.settings.tvPlayerPreference = players[$0] }
         choice("default_feed".localizedString, values: ["international_feed_title".localizedString, "f1_live_feed_title".localizedString], selected: settings.defaultFeed == .f1Live ? 1 : 0) { self.settings.defaultFeed = $0 == 1 ? .f1Live : .international }
         stack.addArrangedSubview(TVDesign.button("saved_setups".localizedString) { [weak self] in
             self?.presentFullscreen(viewController: SetupPickerViewController())

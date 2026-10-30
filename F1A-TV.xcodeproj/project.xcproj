@@ -383,7 +383,7 @@
         "CODE_SIGN_ENTITLEMENTS": "F1A-TV/F1A-TV.entitlements",
         "CODE_SIGN_IDENTITY": "Apple Development",
         "CODE_SIGN_STYLE": "Automatic",
-        "CURRENT_PROJECT_VERSION": "26.1010.1",
+        "CURRENT_PROJECT_VERSION": "26.1030.1",
         "INFOPLIST_FILE": "$(SRCROOT)/F1A-TV/Info.plist",
         "INFOPLIST_KEY_CFBundleDisplayName": "Vroom TV",
         "INFOPLIST_KEY_LSApplicationCategoryType": "public.app-category.entertainment",

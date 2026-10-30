@@ -522,46 +522,57 @@ class PageOverviewCollectionViewController: BaseCollectionViewController {
         case nil: break
         }
     }
-    private func offerPlayback(_ video: VideoDetails) {
+    func offerPlayback(_ video: VideoDetails) {
+        guard !video.channels.isEmpty else { return }
         guard video.isLive else { prepareToStartStream(video, playFromStart: false); return }
         switch CredentialHelper.getPlayerSettings().liveStart {
         case .live: prepareToStartStream(video, playFromStart: false)
         case .beginning: prepareToStartStream(video, playFromStart: true)
         case .ask:
+            let requestID = videoRequestID
             let alert = UIAlertController(title: "stream_start_live_or_from_start_title".localizedString, message: "stream_start_live_or_from_start_message".localizedString, preferredStyle: .alert)
-            alert.addAction(UIAlertAction(title: "stream_start_live_or_from_start_live".localizedString, style: .default) { [weak self] _ in self?.prepareToStartStream(video, playFromStart: false) })
-            alert.addAction(UIAlertAction(title: "stream_start_live_or_from_start_start".localizedString, style: .default) { [weak self] _ in self?.prepareToStartStream(video, playFromStart: true) })
+            alert.addAction(UIAlertAction(title: "stream_start_live_or_from_start_live".localizedString, style: .default) { [weak self, weak alert] _ in
+                self?.finishPlaybackPrompt(alert, requestID: requestID) { $0.prepareToStartStream(video, playFromStart: false) }
+            })
+            alert.addAction(UIAlertAction(title: "stream_start_live_or_from_start_start".localizedString, style: .default) { [weak self, weak alert] _ in
+                self?.finishPlaybackPrompt(alert, requestID: requestID) { $0.prepareToStartStream(video, playFromStart: true) }
+            })
+            alert.addAction(UIAlertAction(title: "action_cancel".localizedString, style: .cancel))
             present(alert, animated: true)
         }
     }
+
+    private func finishPlaybackPrompt(_ alert: UIAlertController?, requestID: UUID, action: @escaping (PageOverviewCollectionViewController) -> Void) {
+        alert?.dismiss(animated: true) { [weak self] in
+            guard let self, self.videoRequestID == requestID, self.viewIfLoaded?.window != nil else { return }
+            action(self)
+        }
+    }
+
     private func prepareToStartStream(_ video: VideoDetails, playFromStart: Bool) {
-        guard video.channels.count > 1 else {
-            if let channel = PlaybackSelection.initialChannel(in: video.channels, preference: CredentialHelper.getPlayerSettings().defaultFeed) {
-                services.playerController.playStream(contentId: channel.target.uri, playFromStart: playFromStart, services: services, owner: self, channel: channel.kind, isLive: video.isLive)
-            }
-            return
+        let preference = CredentialHelper.getPlayerSettings().tvPlayerPreference.resolved(channelCount: video.channels.count)
+        switch preference {
+        case .native: services.playerController.playVideo(video, playFromStart: playFromStart, services: services, owner: self)
+        case .multiview: startMultiview(video, playFromStart: playFromStart)
+        case .ask:
+            let requestID = videoRequestID
+            let alert = UIAlertController(title: "player_prompt_title".localizedString, message: "player_prompt_message".localizedString, preferredStyle: .alert)
+            alert.addAction(UIAlertAction(title: "player_native".localizedString, style: .default) { [weak self, weak alert] _ in
+                self?.finishPlaybackPrompt(alert, requestID: requestID) { page in
+                    page.services.playerController.playVideo(video, playFromStart: playFromStart, services: page.services, owner: page)
+                }
+            })
+            alert.addAction(UIAlertAction(title: "player_multiview".localizedString, style: .default) { [weak self, weak alert] _ in
+                self?.finishPlaybackPrompt(alert, requestID: requestID) { $0.startMultiview(video, playFromStart: playFromStart) }
+            })
+            alert.addAction(UIAlertAction(title: "action_cancel".localizedString, style: .cancel))
+            present(alert, animated: true)
         }
-        let settings = CredentialHelper.getPlayerSettings()
-        let items = video.channels.map { channel -> ContentItem in
-            var item = channel.displayItem
-            if channel.kind == .MainFeed { item.title = "international_feed_title".localizedString }
-            else if channel.kind == .OnBoardCamera {
-                let name = [channel.driverFirstName, channel.driverLastName].compactMap { $0 }.joined(separator: " ")
-                let alternate = AlternateUniverseDrivers.fromOriginalName(originalName: name)
-                item.title = settings.showFunNames && alternate != .None ? alternate.getAlternateName() : name.isEmpty ? channel.title : name
-            } else {
-                let keys = ["TRACKER": "tracker_feed_title", "PIT LANE": "pit_lane_feed_title", "DATA": "data_feed_title", "F1 LIVE": "f1_live_feed_title"]
-                item.title = keys[channel.title].map { $0.localizedString } ?? channel.title
-            }
-            return item
-        }.sorted {
-            let lhs = $0.channelType ?? .MainFeed, rhs = $1.channelType ?? .MainFeed
-            if lhs != rhs { return lhs.getIdentifier() < rhs.getIdentifier() }
-            if settings.driverChannelSorting == .DriverNumber { return ($0.channel?.racingNumber ?? 0) < ($1.channel?.racingNumber ?? 0) }
-            return ($0.channel?.title ?? "") < ($1.channel?.title ?? "")
-        }
-        let player = services.viewer(channels: items, fromBeginning: playFromStart)
-        presentFullscreen(viewController: player)
+    }
+
+    private func startMultiview(_ video: VideoDetails, playFromStart: Bool) {
+        let items = TVPlaybackChannels.items(for: video.channels, settings: CredentialHelper.getPlayerSettings())
+        presentFullscreen(viewController: services.viewer(channels: items, fromBeginning: playFromStart))
     }
     deinit { pageTask?.cancel(); videoTask?.cancel() }
 }

@@ -22,6 +22,7 @@ public struct PlayerSettings: Codable, Identifiable {
     public var previewHeight = 360
     public var startupMaximumHeight: Int?
     public var liveStart = LiveStartPreference.ask
+    public var tvPlayerPreference = TVPlayerPreference.multiview
     public var defaultFeed = DefaultFeed.international
     // ISO language identifiers; "default" and "off" have explicit meanings.
     public var audioDefaults = [Int: String]()
@@ -33,7 +34,7 @@ public struct PlayerSettings: Codable, Identifiable {
     public enum CodingKeys: String, CodingKey {
         case id, preferredChannelLanguage, preferredChannelCaptions, preferredChannelVolume, preferredChannelMute
         case driverChannelSorting, showFunNames, followsHeroBackground, livePreviews, scrubPreviews, previewHeight
-        case startupMaximumHeight, liveStart, defaultFeed, audioDefaults, captionDefaults
+        case startupMaximumHeight, liveStart, tvPlayerPreference, defaultFeed, audioDefaults, captionDefaults
         case f1LiveAudioTrack, discoveredF1LiveAudioTracks
     }
     public init(from decoder: Decoder) throws {
@@ -52,6 +53,7 @@ public struct PlayerSettings: Codable, Identifiable {
         previewHeight = try c.decodeIfPresent(Int.self, forKey: .previewHeight) == 540 ? 540 : 360
         startupMaximumHeight = try c.decodeIfPresent(Int.self, forKey: .startupMaximumHeight)
         liveStart = try c.decodeIfPresent(LiveStartPreference.self, forKey: .liveStart) ?? .ask
+        tvPlayerPreference = (try? c.decode(TVPlayerPreference.self, forKey: .tvPlayerPreference)) ?? .multiview
         defaultFeed = (try? c.decode(DefaultFeed.self, forKey: .defaultFeed)) ?? .international
         audioDefaults = try c.decodeIfPresent([Int: String].self, forKey: .audioDefaults) ?? [:]
         captionDefaults = try c.decodeIfPresent([Int: String].self, forKey: .captionDefaults) ?? [:]
@@ -132,3 +134,12 @@ public struct PlayerSettings: Codable, Identifiable {
 }
 
 public enum LiveStartPreference: String, Codable, CaseIterable { case ask, live, beginning }
+
+/// Only tvOS uses this preference; a single-feed video always uses native controls.
+public enum TVPlayerPreference: String, Codable, CaseIterable {
+    case native, multiview, ask
+
+    public func resolved(channelCount: Int) -> TVPlayerPreference {
+        channelCount > 1 ? self : .native
+    }
+}

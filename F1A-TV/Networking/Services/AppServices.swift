@@ -12,9 +12,9 @@ final class AppServices {
     let fairPlay: any FairPlayService
     let language: String
     let playerController: PlayerController
-    init(catalog: any CatalogService, auth: any AuthService, playback: any PlaybackService, fairPlay: any FairPlayService, language: String) {
+    init(catalog: any CatalogService, auth: any AuthService, playback: any PlaybackService, fairPlay: any FairPlayService, language: String, playerController: PlayerController? = nil) {
         self.catalog = catalog; self.auth = auth; self.playback = playback; self.fairPlay = fairPlay; self.language = language
-        playerController = PlayerController()
+        self.playerController = playerController ?? PlayerController()
     }
     func page(uri: String, destination: ContentItem? = nil) -> PageOverviewCollectionViewController {
         let controller = UIStoryboard(name: "Main", bundle: nil).instantiateViewController(withIdentifier: ConstantsUtil.pageOverviewCollectionViewController) as! PageOverviewCollectionViewController
