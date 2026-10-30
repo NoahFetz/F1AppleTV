@@ -45,6 +45,7 @@ extension PlayerCollectionViewController {
     func setStreamVolume(id: String, volume: Float) {
         guard volume.isFinite, let item = playerItems.first(where: { $0.id == id && !$0.hasFailed }), let player = item.player else { return }
         player.volume = min(max(volume, 0), 1)
+        updateNowPlaying()
         var settings = CredentialHelper.getPlayerSettings()
         settings.setPreferredVolume(for: item.contentItem.channelType ?? ChannelType(), volume: player.volume)
         CredentialHelper.setPlayerSettings(playerSettings: settings)
@@ -53,6 +54,7 @@ extension PlayerCollectionViewController {
     func setStreamMuted(id: String, muted: Bool) {
         guard let item = playerItems.first(where: { $0.id == id && !$0.hasFailed }), let player = item.player else { return }
         player.isMuted = muted
+        updateNowPlaying()
         var settings = CredentialHelper.getPlayerSettings()
         settings.setPreferredMute(for: item.contentItem.channelType ?? ChannelType(), mute: muted)
         CredentialHelper.setPlayerSettings(playerSettings: settings)

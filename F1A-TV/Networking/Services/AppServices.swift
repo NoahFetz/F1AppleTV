@@ -29,10 +29,10 @@ final class AppServices {
     func loginController() -> LoginViewController {
         let controller = LoginViewController(); controller.services = self; return controller
     }
-    func viewer(channels: [ContentItem], fromBeginning: Bool) -> PlayerCollectionViewController {
+    func viewer(channels: [ContentItem], fromBeginning: Bool, sessionItem: ContentItem? = nil) -> PlayerCollectionViewController {
         let controller = UIStoryboard(name: "Main", bundle: nil).instantiateViewController(withIdentifier: ConstantsUtil.playerCollectionViewController) as! PlayerCollectionViewController
         controller.services = self
-        controller.initialize(channelItems: channels, playFromStart: fromBeginning)
+        controller.initialize(channelItems: channels, playFromStart: fromBeginning, sessionItem: sessionItem)
         return controller
     }
     static func live() -> AppServices {

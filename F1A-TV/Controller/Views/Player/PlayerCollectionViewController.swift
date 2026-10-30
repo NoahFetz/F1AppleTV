@@ -32,6 +32,9 @@ class PlayerCollectionViewController: BaseCollectionViewController, ChannelSelec
     var defaultsAppliedPlayerIDs = Set<String>()
     
     // MARK: - Properties
+    var sessionItem: ContentItem?
+    var metadataBindings = [String: PlaybackMetadataBinding]()
+    let nowPlaying = TVNowPlayingCoordinator()
     var channelItems = [ContentItem]()
     var playerItems = [PlayerItem]()
     var lastFocusedPlayer: IndexPath?
@@ -62,6 +65,9 @@ class PlayerCollectionViewController: BaseCollectionViewController, ChannelSelec
     override func viewDidLoad() {
         super.viewDidLoad()
         self.setupCollectionView()
+        nowPlaying.onRefresh = { [weak self] in self?.updateNowPlaying() }
+        nowPlaying.onCommand = { [weak self] in self?.handleRemotePlayback($0) }
+        NotificationCenter.default.addObserver(self, selector: #selector(playbackMetadataChanged), name: FairPlayer.playbackMetadataDidChange, object: nil)
         liveCoordinator.onFailure = { [weak self] in
             guard let self, self.viewIfLoaded?.window != nil else { return }
             UserInteractionHelper.instance.showError(title: "error".localizedString, message: "go_live_failed".localizedString)
@@ -69,7 +75,7 @@ class PlayerCollectionViewController: BaseCollectionViewController, ChannelSelec
         NotificationCenter.default.addObserver(self, selector: #selector(playerResolutionChanged), name: FairPlayer.resolutionDidChange, object: nil)
         NotificationCenter.default.addObserver(self, selector: #selector(playbackWillResignActive), name: UIApplication.willResignActiveNotification, object: nil)
         positionTimer = Timer.scheduledTimer(withTimeInterval: 1, repeats: true) { [weak self] _ in
-            Task { @MainActor in self?.rememberPlaybackPosition() }
+            Task { @MainActor in self?.rememberPlaybackPosition(); self?.updateNowPlaying() }
         }
     }
 
@@ -88,13 +94,19 @@ class PlayerCollectionViewController: BaseCollectionViewController, ChannelSelec
         NotificationCenter.default.removeObserver(self)
     }
 
+    @objc private func playbackMetadataChanged(_ note: Notification) {
+        guard let player = note.object as? FairPlayer, playerItems.contains(where: { $0.player === player }) else { return }
+        updateNowPlaying()
+    }
     @objc private func playerResolutionChanged(_ notification: Notification) {
+        updateNowPlaying()
         guard let player = notification.object as? FairPlayer, player === playerItems.first?.player,
               player.resolutionStatus == .available else { return }
         updatePreferredDisplayCriteria(for: player)
     }
     
-    func initialize(channelItems: [ContentItem], playFromStart: Bool? = false) {
+    func initialize(channelItems: [ContentItem], playFromStart: Bool? = false, sessionItem: ContentItem? = nil) {
+        self.sessionItem = sessionItem
         self.channelItems = channelItems
         self.playFromStart = playFromStart ?? false
         self.startedFromBeginning = self.playFromStart

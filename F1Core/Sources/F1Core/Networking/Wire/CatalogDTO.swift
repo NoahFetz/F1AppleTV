@@ -74,16 +74,18 @@ public struct CatalogMetadataDTO: Decodable {
     }
 }
 public struct CatalogRaceDTO: Decodable {
+    public let meetingName: String?
     public let videoType: String?, meetingKey: WireIdentifier?, meetingCountryKey: String?, meetingCountryName: String?, globalMeetingName: String?
     public let meetingOfficialName: String?, meetingDisplayDate: String?, championshipMeetingOrdinal: WireIdentifier?, series: String?
     public let sessionStartDate: WireMilliseconds?, sessionEndDate: WireMilliseconds?
     public enum CodingKeys: String, CodingKey {
+        case meetingName = "Meeting_Name"
         case videoType = "VideoType", meetingKey = "MeetingKey", meetingCountryKey = "MeetingCountryKey", meetingCountryName = "Meeting_Country_Name", globalMeetingName = "Global_Meeting_Name"
         case meetingOfficialName = "Meeting_Official_Name", meetingDisplayDate = "Meeting_Display_Date", championshipMeetingOrdinal = "Championship_Meeting_Ordinal", series = "Series"
         case sessionStartDate, sessionEndDate
     }
     public var model: RaceMetadata {
-        RaceMetadata(videoType: videoType ?? "", meetingKey: meetingKey?.value ?? "", meetingCountryKey: meetingCountryKey, meetingCountryName: meetingCountryName, globalMeetingName: globalMeetingName, meetingOfficialName: meetingOfficialName, meetingDisplayDate: meetingDisplayDate, championshipMeetingOrdinal: championshipMeetingOrdinal?.value, series: series, sessionStartDate: sessionStartDate?.date, sessionEndDate: sessionEndDate?.date)
+        RaceMetadata(meetingName: meetingName, videoType: videoType ?? "", meetingKey: meetingKey?.value ?? "", meetingCountryKey: meetingCountryKey, meetingCountryName: meetingCountryName, globalMeetingName: globalMeetingName, meetingOfficialName: meetingOfficialName, meetingDisplayDate: meetingDisplayDate, championshipMeetingOrdinal: championshipMeetingOrdinal?.value, series: series, sessionStartDate: sessionStartDate?.date, sessionEndDate: sessionEndDate?.date)
     }
 }
 public struct ChannelDTO: Decodable {

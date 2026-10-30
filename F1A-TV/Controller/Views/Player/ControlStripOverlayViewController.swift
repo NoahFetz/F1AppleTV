@@ -228,17 +228,21 @@ class ControlStripOverlayViewController: BaseViewController {
         editingLabel.backgroundShadow()
 
         let channelTitleLabel = UILabel()
-        channelTitleLabel.text = self.playerItem?.contentItem.title
+        channelTitleLabel.text = self.playerItem?.player?.playbackMetadata?.title ?? self.playerItem?.contentItem.title
         channelTitleLabel.textColor = .white
         channelTitleLabel.font = UIFont.preferredFont(forTextStyle: .title1)
         channelTitleLabel.adjustsFontForContentSizeCategory = true
+        channelTitleLabel.numberOfLines = 2
+        channelTitleLabel.lineBreakMode = .byTruncatingTail
         channelTitleLabel.backgroundShadow()
 
         let channelSubtitleLabel = UILabel()
-        channelSubtitleLabel.text = self.channelSubtitle()
+        channelSubtitleLabel.text = self.playerItem?.player?.playbackMetadata?.subtitle ?? self.channelSubtitle()
         channelSubtitleLabel.textColor = UIColor.white.withAlphaComponent(0.78)
         channelSubtitleLabel.font = UIFont.preferredFont(forTextStyle: .headline)
         channelSubtitleLabel.adjustsFontForContentSizeCategory = true
+        channelSubtitleLabel.numberOfLines = 2
+        channelSubtitleLabel.lineBreakMode = .byTruncatingTail
         channelSubtitleLabel.backgroundShadow()
         channelSubtitleLabel.isHidden = channelSubtitleLabel.text?.isEmpty ?? true
 

@@ -43,6 +43,8 @@ extension PlayerCollectionViewController {
         readyObservations.removeAll()
         self.reportCurrentPlayTime()
         isExitingPlayback = true
+        nowPlaying.stop()
+        metadataBindings.values.forEach { $0.cancel() }; metadataBindings.removeAll()
         positionTimer?.invalidate(); positionTimer = nil
         pendingSeekTime = nil
 
@@ -54,6 +56,7 @@ extension PlayerCollectionViewController {
         defaultsTasks.values.forEach { $0.cancel() }; defaultsTasks.removeAll()
         self.setPreferredDisplayCriteria(displayCriteria: nil)
         updatePlaybackIdleTimer()
+        updateNowPlaying()
     }
 
     @objc func swipeUpRegognized() {
@@ -81,18 +84,20 @@ extension PlayerCollectionViewController {
     func enterFullScreenPlayer(id: String) {
         self.reportCurrentPlayTime()
 
-        guard let playerItem = self.playerItems.first(where: { $0.id == id }) else {
+        guard fullscreenPlayerId == nil,
+              let playerItem = self.playerItems.first(where: { $0.id == id }),
+              let player = playerItem.player else {
             return
         }
 
         self.fullscreenPlayerId = playerItem.id
+        nowPlaying.stop()
 
-        if let player = playerItem.player {
-            self.pauseAll(excludeIds: [playerItem.id])
+        self.pauseAll(excludeIds: [playerItem.id])
 
-            DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
-                self.services.playerController.openPlayer(player: player, fullscreenPlayerDismissedProtocol: self, isLive: self.isLiveSession)
-            }
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
+            guard !self.isExitingPlayback, self.fullscreenPlayerId == playerItem.id, self.playerItems.contains(where: { $0.player === player }) else { return }
+            self.services.playerController.openPlayer(player: player, fullscreenPlayerDismissedProtocol: self, isLive: self.isLiveSession)
         }
     }
 
@@ -141,6 +146,7 @@ extension PlayerCollectionViewController {
         let playerItem = self.playerItems[removedIndex]
         startupTimeouts.removeValue(forKey: id)?.cancel()
         entitlementTasks.removeValue(forKey: id)?.cancel(); entitlementGenerations.removeValue(forKey: id)
+        metadataBindings.removeValue(forKey: id)?.cancel()
         playerItem.thumbnails?.reset()
         playerItem.player?.stopStream()
 
@@ -154,6 +160,7 @@ extension PlayerCollectionViewController {
         if let main = playerItems.first { setPreferredChannelSettings(playerItem: main) }
         refreshPlayerLayout()
         updatePlaybackIdleTimer()
+        updateNowPlaying()
 
     }
 }
@@ -190,6 +197,8 @@ extension PlayerCollectionViewController {
 
             // Update layout and reload
             refreshPlayerLayout(focusedID: focusedID)
+
+            updateNowPlaying()
 
             // Sync all players after swap
             if let mainPlayerItem = self.playerItems.first {

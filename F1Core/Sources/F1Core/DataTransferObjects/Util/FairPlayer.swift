@@ -10,12 +10,25 @@ import AVKit
 
 public class FairPlayer: AVPlayer {
     public static let resolutionDidChange = Notification.Name("FairPlayerResolutionDidChange")
+    public static let playbackMetadataDidChange = Notification.Name("FairPlayerPlaybackMetadataDidChange")
     public enum ResolutionStatus { case loading, available, switching, unavailable }
 
     public var streamEntitlement: PlaybackEntitlement?
     public var fairPlayAsset: AVURLAsset?
     public var reportsPlaybackErrors = true
     public var onPlaybackError: ((Error) -> Void)?
+    public var playbackMetadata: PlaybackMetadata? {
+        didSet {
+            if let item = currentItem { applyPlaybackMetadata(to: item) }
+            NotificationCenter.default.post(name: Self.playbackMetadataDidChange, object: self)
+        }
+    }
+    private func applyPlaybackMetadata(to item: AVPlayerItem) {
+        #if os(tvOS)
+        let identifiers: Set<AVMetadataIdentifier> = [.commonIdentifierTitle, .iTunesMetadataTrackSubTitle, .commonIdentifierArtwork, .commonIdentifierDescription]
+        item.externalMetadata = item.externalMetadata.filter { $0.identifier.map { !identifiers.contains($0) } ?? true } + (playbackMetadata?.externalMetadata ?? [])
+        #endif
+    }
     public private(set) var availableResolutions = [StreamResolution]()
     public private(set) var resolutionStatus: ResolutionStatus = .loading
     public private(set) var resolutionError: String?
@@ -69,6 +82,7 @@ public class FairPlayer: AVPlayer {
 
     public override func replaceCurrentItem(with item: AVPlayerItem?) {
         failureObservation = nil
+        if let item, playbackMetadata != nil { applyPlaybackMetadata(to: item) }
         super.replaceCurrentItem(with: item)
         guard let item else { return }
         failureObservation = item.observe(\.status, options: [.initial, .new]) { [weak self] item, _ in

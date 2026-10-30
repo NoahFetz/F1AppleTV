@@ -93,12 +93,15 @@ class PlayerController: NSObject, @preconcurrency AVPlayerViewControllerDelegate
     private weak var presentedPlayerController: AVPlayerViewController?
     private var availableChannels: [PlaybackChannel] = []
     private var selectedChannel: PlaybackChannel?
+    private var sessionItem: ContentItem?
+    private var metadataBinding = PlaybackMetadataBinding()
     private var feedSwitch: NativeFeedSwitch?
     private let feedSwitchTimeout: TimeInterval
 
     private final class NativeFeedSwitch {
         let channel: PlaybackChannel
         let player = FairPlayer()
+        @MainActor lazy var metadataBinding = PlaybackMetadataBinding()
         lazy var layer = AVPlayerLayer(player: player)
         var task: Task<Void, Never>?
         var observation: NSKeyValueObservation?
@@ -136,6 +139,7 @@ class PlayerController: NSObject, @preconcurrency AVPlayerViewControllerDelegate
         guard let dismissed = notification.object as? AVPlayerViewController,
               dismissed === presentedPlayerController else { return }
         cancelNativeFeedSwitch()
+        metadataBinding.cancel(); sessionItem = nil
         availableChannels = []; selectedChannel = nil
         entitlementGeneration = UUID(); entitlementTask?.cancel(); entitlementTask = nil; pendingOwner = nil
         PlaybackIdleTimer.shared.setPlayers([], owner: self)
@@ -152,6 +156,7 @@ class PlayerController: NSObject, @preconcurrency AVPlayerViewControllerDelegate
         if fullscreenPlayerDismissedProtocol == nil {
             playerItem.player?.stopStream()
         }
+        dismissed.player = nil
         let dismissedProtocol = fullscreenPlayerDismissedProtocol
         fullscreenPlayerDismissedProtocol = nil
         DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
@@ -162,19 +167,21 @@ class PlayerController: NSObject, @preconcurrency AVPlayerViewControllerDelegate
     func playVideo(_ video: VideoDetails, playFromStart: Bool, services: AppServices, owner: UIViewController) {
         guard let channel = PlaybackSelection.initialChannel(in: video.channels, preference: CredentialHelper.getPlayerSettings().defaultFeed) else { return }
         beginStream(contentId: channel.target.uri, playFromStart: playFromStart, services: services, owner: owner,
-                    channel: channel.kind, isLive: video.isLive, channels: video.channels, selected: channel)
+                    channel: channel.kind, isLive: video.isLive, channels: video.channels, selected: channel, sessionItem: video.item)
     }
 
-    func playStream(contentId: String, playFromStart: Bool? = false, services: AppServices, owner: UIViewController, channel: ChannelType = .MainFeed, isLive: Bool = false) {
+    func playStream(contentId: String, playFromStart: Bool? = false, services: AppServices, owner: UIViewController, channel: ChannelType = .MainFeed, isLive: Bool = false, sessionItem: ContentItem? = nil) {
         beginStream(contentId: contentId, playFromStart: playFromStart ?? false, services: services, owner: owner,
-                    channel: channel, isLive: isLive, channels: [], selected: nil)
+                    channel: channel, isLive: isLive, channels: [], selected: nil, sessionItem: sessionItem)
     }
 
     private func beginStream(contentId: String, playFromStart: Bool, services: AppServices, owner: UIViewController,
-                             channel: ChannelType, isLive: Bool, channels: [PlaybackChannel], selected: PlaybackChannel?) {
+                             channel: ChannelType, isLive: Bool, channels: [PlaybackChannel], selected: PlaybackChannel?, sessionItem: ContentItem?) {
         cancelNativeFeedSwitch()
         defaultsObservation = nil; defaultsTask?.cancel(); defaultsTask = nil
         availableChannels = channels; selectedChannel = selected
+        self.sessionItem = sessionItem
+        metadataBinding.cancel()
         self.playFromStart = playFromStart
         self.mediaChannel = channel; self.liveSession = isLive
         self.services = services; pendingOwner = owner
@@ -193,7 +200,7 @@ class PlayerController: NSObject, @preconcurrency AVPlayerViewControllerDelegate
                 UserInteractionHelper.instance.showError(title: "error".localizedString, message: "diagnostics_summary_operation".localizedString, recordsError: false, retry: { [weak self, weak owner] in
                     guard let owner, owner.viewIfLoaded?.window != nil else { return }
                     self?.beginStream(contentId: contentId, playFromStart: playFromStart, services: services, owner: owner,
-                                      channel: channel, isLive: isLive, channels: channels, selected: selected)
+                                      channel: channel, isLive: isLive, channels: channels, selected: selected, sessionItem: sessionItem)
                 })
             }
         }
@@ -212,6 +219,7 @@ class PlayerController: NSObject, @preconcurrency AVPlayerViewControllerDelegate
         localPlayerItem.player?.fairPlayService = services?.fairPlay
         localPlayerItem.player?.playStream(streamEntitlement: streamEntitlement)
         self.playerItem = localPlayerItem
+        if let player = localPlayerItem.player { metadataBinding.bind(player: player, metadata: metadata(for: selectedChannel)) }
         let fromStart = self.playFromStart
         if let player = localPlayerItem.player { self.openPlayer(player: player, standalone: true) }
         let settings = CredentialHelper.getPlayerSettings()
@@ -343,6 +351,7 @@ class PlayerController: NSObject, @preconcurrency AVPlayerViewControllerDelegate
                 guard let self, let attempt, let controller, let source,
                       self.feedSwitch === attempt, self.presentedPlayerController === controller, controller.player === source else { return }
                 attempt.player.playStream(streamEntitlement: entitlement)
+                attempt.metadataBinding.bind(player: attempt.player, metadata: self.metadata(for: attempt.channel))
                 attempt.player.prepareStream(startupMaximumHeight: settings.startupMaximumHeight) { [weak self, weak attempt, weak controller, weak source] item in
                     guard let self, let attempt, let controller, let source,
                           self.feedSwitch === attempt, controller.player === source else { return }
@@ -385,6 +394,7 @@ class PlayerController: NSObject, @preconcurrency AVPlayerViewControllerDelegate
                 self.defaultsObservation = nil; self.defaultsTask?.cancel(); self.defaultsTask = nil
                 self.feedSwitch = nil
                 attempt.timeout?.cancel(); attempt.observation = nil
+                self.metadataBinding.cancel(); self.metadataBinding = attempt.metadataBinding
                 self.selectedChannel = attempt.channel; self.mediaChannel = attempt.channel.kind
                 var next = PlayerItem(contentItem: attempt.channel.displayItem, position: 0)
                 next.player = attempt.player; next.entitlement = attempt.player.streamEntitlement
@@ -416,9 +426,16 @@ class PlayerController: NSObject, @preconcurrency AVPlayerViewControllerDelegate
         guard let attempt = feedSwitch else { return }
         feedSwitch = nil
         attempt.task?.cancel(); attempt.timeout?.cancel(); attempt.observation = nil
+        attempt.metadataBinding.cancel()
         attempt.player.onPlaybackError = nil
         attempt.layer.player = nil; attempt.layer.removeFromSuperlayer()
         attempt.player.stopStream()
+    }
+
+    private func metadata(for channel: PlaybackChannel?) -> PlaybackMetadata? {
+        guard let sessionItem else { return nil }
+        let title = channel.flatMap { TVPlaybackChannels.items(for: [$0], settings: CredentialHelper.getPlayerSettings()).first?.title }
+        return PlaybackMetadata(session: sessionItem, channel: channel, feedTitle: title)
     }
 
     private func updateTransportMenu(controller: AVPlayerViewController, player: AVPlayer) {

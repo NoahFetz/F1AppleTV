@@ -101,11 +101,13 @@ extension PlayerCollectionViewController {
     func pauseAll(excludeIds: [String]? = []) {
         if excludeIds?.isEmpty != false { wantsPlayback = false }
         for item in playerItems where !(excludeIds?.contains(item.id) ?? false) { item.player?.pause() }
+        updateNowPlaying()
     }
 
     func playAll(excludeIds: [String]? = []) {
         wantsPlayback = true
         for item in playerItems where !(excludeIds?.contains(item.id) ?? false) { item.player?.play() }
+        updateNowPlaying()
     }
 
     func orderChannels() {
@@ -225,6 +227,7 @@ extension PlayerCollectionViewController {
             }
             
             self.playerItems[index] = playerItem
+            bindPlaybackMetadata(player: player, feed: playerItem)
             updatePlaybackIdleTimer()
             playerItem.player?.prepareStream(startupMaximumHeight: CredentialHelper.getPlayerSettings().startupMaximumHeight) { [weak self, weak player = playerItem.player] _ in
                 guard let self = self, let player = player,
@@ -246,6 +249,7 @@ extension PlayerCollectionViewController {
                 self.readyObservations.removeValue(forKey: id)
                 guard let current = self.playerItems.first(where: { $0.id == id }) else { return }
                 self.setPreferredChannelSettings(playerItem: current)
+                self.updateNowPlaying()
                 if let audio = self.setupAudio.removeValue(forKey: id) { player.volume = audio.volume; player.isMuted = audio.muted }
                 if self.pendingSeekTime != nil { return }
                 if self.liveCoordinator.hasJump {
@@ -366,6 +370,7 @@ extension PlayerCollectionViewController {
 
 extension PlayerCollectionViewController {
     func discardPlayerResources(id: String) {
+        metadataBindings.removeValue(forKey: id)?.cancel()
         entitlementTasks.removeValue(forKey: id)?.cancel(); entitlementGenerations.removeValue(forKey: id)
         startupTimeouts.removeValue(forKey: id)?.cancel()
         readyObservations.removeValue(forKey: id)
@@ -391,7 +396,7 @@ extension PlayerCollectionViewController {
             cancelSynchronization()
             seekAllPlayersTo(time: target)
         }
-        updatePlaybackIdleTimer(); refreshPlayerLayout()
+        updatePlaybackIdleTimer(); refreshPlayerLayout(); updateNowPlaying()
         guard viewIfLoaded?.window != nil else { return }
         UserInteractionHelper.instance.showError(title: "error".localizedString, message: "stream_failed_retry".localizedString, recordsError: false, retry: { [weak self] in self?.restartPlayer(id: id) })
     }
@@ -407,6 +412,6 @@ extension PlayerCollectionViewController {
         if let uri = item.contentItem.channel?.target.uri ?? item.contentItem.contentId.map({ String($0) }) {
             loadStreamEntitlement(playerId: id, contentId: uri)
         }
-        updatePlaybackIdleTimer(); refreshPlayerLayout()
+        updatePlaybackIdleTimer(); refreshPlayerLayout(); updateNowPlaying()
     }
 }

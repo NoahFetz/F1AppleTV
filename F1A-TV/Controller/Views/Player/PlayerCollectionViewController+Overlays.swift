@@ -95,6 +95,7 @@ extension PlayerCollectionViewController {
 extension PlayerCollectionViewController {
 
     func fullscreenPlayerDidDismiss() {
+        defer { fullscreenPlayerId = nil; updateNowPlaying() }
         if let syncPlayerItem = self.playerItems.first(where: {$0.id == self.fullscreenPlayerId}) {
             wantsPlayback = syncPlayerItem.player?.rate != 0
             self.syncAllPlayers(with: syncPlayerItem)

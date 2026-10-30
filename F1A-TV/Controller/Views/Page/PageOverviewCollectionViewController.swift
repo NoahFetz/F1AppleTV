@@ -508,7 +508,7 @@ class PageOverviewCollectionViewController: BaseCollectionViewController {
                         try Task.checkCancellation()
                         guard self.videoRequestID == requestID, self.view.window != nil else { return }
                         self.offerPlayback(video)
-                    } else { services.playerController.playStream(contentId: target.uri, services: services, owner: self) }
+                    } else { services.playerController.playStream(contentId: target.uri, services: services, owner: self, sessionItem: item) }
                 } catch {
                     guard let self, self.videoRequestID == requestID, self.view.window != nil, !Task.isCancelled, !(error is CancellationError) else { return }
                     recordServiceFailure(error, operation: .video)
@@ -572,7 +572,7 @@ class PageOverviewCollectionViewController: BaseCollectionViewController {
 
     private func startMultiview(_ video: VideoDetails, playFromStart: Bool) {
         let items = TVPlaybackChannels.items(for: video.channels, settings: CredentialHelper.getPlayerSettings())
-        presentFullscreen(viewController: services.viewer(channels: items, fromBeginning: playFromStart))
+        presentFullscreen(viewController: services.viewer(channels: items, fromBeginning: playFromStart, sessionItem: video.item))
     }
     deinit { pageTask?.cancel(); videoTask?.cancel() }
 }

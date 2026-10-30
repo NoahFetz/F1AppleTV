@@ -15,8 +15,9 @@ public struct PlaybackTarget: Equatable, Sendable {
 public enum CatalogAction: Sendable { case destination(CatalogDestination), playback(PlaybackTarget) }
 
 public struct RaceMetadata: Sendable {
-    public init(videoType: String = "", meetingKey: String = "", meetingCountryKey: String? = nil, meetingCountryName: String? = nil, globalMeetingName: String? = nil, meetingOfficialName: String? = nil, meetingDisplayDate: String? = nil, championshipMeetingOrdinal: String? = nil, series: String? = nil, sessionStartDate: Date? = nil, sessionEndDate: Date? = nil) { self.videoType = videoType; self.meetingKey = meetingKey; self.meetingCountryKey = meetingCountryKey; self.meetingCountryName = meetingCountryName; self.globalMeetingName = globalMeetingName; self.meetingOfficialName = meetingOfficialName; self.meetingDisplayDate = meetingDisplayDate; self.championshipMeetingOrdinal = championshipMeetingOrdinal; self.series = series; self.sessionStartDate = sessionStartDate; self.sessionEndDate = sessionEndDate }
+    public init(meetingName: String? = nil, videoType: String = "", meetingKey: String = "", meetingCountryKey: String? = nil, meetingCountryName: String? = nil, globalMeetingName: String? = nil, meetingOfficialName: String? = nil, meetingDisplayDate: String? = nil, championshipMeetingOrdinal: String? = nil, series: String? = nil, sessionStartDate: Date? = nil, sessionEndDate: Date? = nil) { self.meetingName = meetingName; self.videoType = videoType; self.meetingKey = meetingKey; self.meetingCountryKey = meetingCountryKey; self.meetingCountryName = meetingCountryName; self.globalMeetingName = globalMeetingName; self.meetingOfficialName = meetingOfficialName; self.meetingDisplayDate = meetingDisplayDate; self.championshipMeetingOrdinal = championshipMeetingOrdinal; self.series = series; self.sessionStartDate = sessionStartDate; self.sessionEndDate = sessionEndDate }
 
+    public var meetingName: String?
     public var videoType: String = ""
     public var meetingKey: String = ""
     public var meetingCountryKey: String?
