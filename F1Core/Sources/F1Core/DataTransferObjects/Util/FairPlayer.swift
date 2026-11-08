@@ -25,13 +25,17 @@ public class FairPlayer: AVPlayer {
     }
     private func applyPlaybackMetadata(to item: AVPlayerItem) {
         #if os(tvOS)
-        let identifiers: Set<AVMetadataIdentifier> = [.commonIdentifierTitle, .iTunesMetadataTrackSubTitle, .commonIdentifierArtwork, .commonIdentifierDescription]
+        let identifiers: Set<AVMetadataIdentifier> = [.commonIdentifierTitle, .iTunesMetadataTrackSubTitle, .commonIdentifierArtist, .commonIdentifierArtwork, .commonIdentifierDescription]
         item.externalMetadata = item.externalMetadata.filter { $0.identifier.map { !identifiers.contains($0) } ?? true } + (playbackMetadata?.externalMetadata ?? [])
         #endif
     }
     public private(set) var availableResolutions = [StreamResolution]()
     public private(set) var resolutionStatus: ResolutionStatus = .loading
     public private(set) var resolutionError: String?
+    /// Live TV can keep the provider's native master for its default selection.
+    /// Explicit quality choices still use the filtered playlist and rollback.
+    public private(set) var usesNativeMasterForDefault = false
+    private var nativeStartupMaximumHeight: Int?
     public private(set) var previewManifest: String?
     public private(set) var previewBaseURL: URL?
     private var selection = ResolutionSwitchState()
@@ -144,13 +148,15 @@ public class FairPlayer: AVPlayer {
         return self.fairPlayAsset
     }
 
-    public func prepareStream(startupMaximumHeight: Int? = nil, previewMaximumHeight: Int? = nil, cachedManifest: String? = nil, cachedBaseURL: URL? = nil, dynamicRange: StreamDynamicRange = .automatic, completion: @escaping (AVPlayerItem) -> Void) {
+    public func prepareStream(startupMaximumHeight: Int? = nil, previewMaximumHeight: Int? = nil, cachedManifest: String? = nil, cachedBaseURL: URL? = nil, dynamicRange: StreamDynamicRange = .automatic, preferNativeMaster: Bool = false, completion: @escaping (AVPlayerItem) -> Void) {
         guard let urlString = streamEntitlement?.url, let url = URL(string: urlString) else {
             AppErrorStore.shared.record(URLError(.badURL), operation: reportsPlaybackErrors ? .preparation : .preview)
             if reportsPlaybackErrors { onPlaybackError?(URLError(.badURL)) }
             return
         }
         playlistTask?.cancel(); playlistTask = nil
+        usesNativeMasterForDefault = preferNativeMaster && previewMaximumHeight == nil
+        nativeStartupMaximumHeight = startupMaximumHeight
         let requestID = UUID()
         preparationID = requestID
         if let cachedManifest, let cachedBaseURL,
@@ -199,7 +205,14 @@ public class FairPlayer: AVPlayer {
         let previewResolution = (previewMaximumHeight ?? startupMaximumHeight).flatMap { height in
             discovered?.startupResolution(maximumHeight: height, dynamicRange: dynamicRange)
         }
-        if let data = try? discovered?.filtered(resolution: previewResolution, dynamicRange: dynamicRange) {
+        let nativeDefault = usesNativeMasterForDefault && dynamicRange == .automatic
+        if nativeDefault, discovered != nil {
+            // A filtered custom-scheme master can fail with native HTTP 403 even
+            // when the same CDN playlists and original master play successfully.
+            // Keep the service's master, including its native request context.
+            asset = makeFairPlayReady()
+            resolutionStatus = .available
+        } else if let data = try? discovered?.filtered(resolution: previewResolution, dynamicRange: dynamicRange) {
             asset = makeResolutionAsset(data: data)
             resolutionStatus = .available
             if let previewResolution = previewResolution {
@@ -214,6 +227,9 @@ public class FairPlayer: AVPlayer {
         }
         guard let asset = asset else { return }
         let item = AVPlayerItem(asset: asset)
+        if nativeDefault, let height = startupMaximumHeight {
+            item.preferredMaximumResolution = CGSize(width: height * 16 / 9, height: height)
+        }
         if let height = previewMaximumHeight {
             item.preferredMaximumResolution = CGSize(width: height * 16 / 9, height: height)
             item.preferredPeakBitRate = height <= 360 ? 900_000 : 1_600_000
@@ -274,8 +290,15 @@ public class FairPlayer: AVPlayer {
             let snapshot = await initialSnapshot.loadingMediaChoices(from: original)
             guard let self, !Task.isCancelled, self.selection.pending == request else { return }
             self.rollbackSnapshot = snapshot
-            let asset = self.makeResolutionAsset(data: data)
+            let nativeDefault = self.usesNativeMasterForDefault && resolution == nil && dynamicRange == .automatic
+            guard let asset = nativeDefault ? self.makeFairPlayReady() : self.makeResolutionAsset(data: data) else {
+                self.finishResolutionSwitch(request: request, resolution: resolution, succeeded: false)
+                return
+            }
             let candidate = AVPlayerItem(asset: asset)
+            if nativeDefault, let height = self.nativeStartupMaximumHeight {
+                candidate.preferredMaximumResolution = CGSize(width: height * 16 / 9, height: height)
+            }
             self.replaceCurrentItem(with: candidate)
 
             self.switchObservation = candidate.observe(\.status, options: [.initial, .new]) { [weak self] item, _ in
@@ -313,6 +336,8 @@ public class FairPlayer: AVPlayer {
         playlistTask?.cancel()
         playlistTask = nil
         selection.cancel()
+        usesNativeMasterForDefault = false
+        nativeStartupMaximumHeight = nil
         switchObservation = nil
         switchTimeout?.cancel()
         switchTimeout = nil

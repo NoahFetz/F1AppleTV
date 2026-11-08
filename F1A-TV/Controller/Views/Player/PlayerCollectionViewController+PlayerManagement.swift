@@ -229,7 +229,7 @@ extension PlayerCollectionViewController {
             self.playerItems[index] = playerItem
             bindPlaybackMetadata(player: player, feed: playerItem)
             updatePlaybackIdleTimer()
-            playerItem.player?.prepareStream(startupMaximumHeight: CredentialHelper.getPlayerSettings().startupMaximumHeight) { [weak self, weak player = playerItem.player] _ in
+            playerItem.player?.prepareStream(startupMaximumHeight: CredentialHelper.getPlayerSettings().startupMaximumHeight, preferNativeMaster: isLiveSession) { [weak self, weak player = playerItem.player] _ in
                 guard let self = self, let player = player,
                       let currentIndex = self.playerItems.firstIndex(where: { $0.id == playerId && $0.player === player }) else { return }
                 if currentIndex == 0 { self.updatePreferredDisplayCriteria(for: player) }

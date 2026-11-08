@@ -24,11 +24,27 @@ SDR versus HLG/PQ variants with resolution. FairPlayer's optional dynamic-range
 selection reuses its quality-switch restoration and rollback. Existing callers
 keep automatic/native range selection unless they explicitly request a range.
 
+TV live players request `preferNativeMaster` during preparation. Their default
+uses the provider's original master and AVFoundation's adaptive selection,
+retaining discovered quality choices. A configured startup cap is passed as
+`preferredMaximumResolution`. Explicit resolutions continue to use the filtered
+master with rollback on failure; returning to Automatic restores the provider
+master. Replay, Mac and preview preparation retain their existing defaults.
+
 The package exposes AVFoundation playback helpers. LinkedPlaybackCoordinator
 accepts platform player adapters and routes shared transport operations. The macOS
 session supplies a two-second drift timer, while each window owns local audio and
 media selection. Existing tvOS controllers retain their behavior and use the
 shared live-seek helpers.
+
+`PlaybackMetadata` retains parent-session titles, feed names and artwork identity
+independently of feed URLs. `PlaybackMetadataBinding` attaches it immediately and
+loads artwork asynchronously through a bounded, coalescing cache. Canceled or
+superseded bindings cannot overwrite a newer session. On tvOS, FairPlayer applies
+the value to every replacement item's external metadata, including quality
+switches and rollbacks. The TV application owns its custom multiview Now Playing
+session and releases it before native AVKit fullscreen playback. Mac UI metadata
+publishing is separate from this TV integration.
 
 `Resources/Localizable.xcstrings` is the translation source of truth. Use the
 shared `localizedString` extension, which resolves the package resource bundle.

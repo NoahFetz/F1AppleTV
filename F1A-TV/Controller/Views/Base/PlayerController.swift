@@ -225,7 +225,7 @@ class PlayerController: NSObject, @preconcurrency AVPlayerViewControllerDelegate
         let settings = CredentialHelper.getPlayerSettings()
         let channel = mediaChannel
         let isF1Live = selectedChannel.map { StreamSelection(channel: $0) == .f1Live } ?? false
-        localPlayerItem.player?.prepareStream(startupMaximumHeight: settings.startupMaximumHeight) { [weak self, weak player = localPlayerItem.player] item in
+        localPlayerItem.player?.prepareStream(startupMaximumHeight: settings.startupMaximumHeight, preferNativeMaster: liveSession) { [weak self, weak player = localPlayerItem.player] item in
             guard let self = self, let player = player, self.playerItem.player === player,
                   self.presentedPlayerController?.player === player else { return }
             self.defaultsObservation = item.observe(\.status, options: [.initial, .new]) { [weak self, weak player] item, _ in
@@ -352,7 +352,7 @@ class PlayerController: NSObject, @preconcurrency AVPlayerViewControllerDelegate
                       self.feedSwitch === attempt, self.presentedPlayerController === controller, controller.player === source else { return }
                 attempt.player.playStream(streamEntitlement: entitlement)
                 attempt.metadataBinding.bind(player: attempt.player, metadata: self.metadata(for: attempt.channel))
-                attempt.player.prepareStream(startupMaximumHeight: settings.startupMaximumHeight) { [weak self, weak attempt, weak controller, weak source] item in
+                attempt.player.prepareStream(startupMaximumHeight: settings.startupMaximumHeight, preferNativeMaster: self.liveSession) { [weak self, weak attempt, weak controller, weak source] item in
                     guard let self, let attempt, let controller, let source,
                           self.feedSwitch === attempt, controller.player === source else { return }
                     attempt.observation = item.observe(\.status, options: [.initial, .new]) { [weak self, weak attempt, weak controller, weak source] item, _ in

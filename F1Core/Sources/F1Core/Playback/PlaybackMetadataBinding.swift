@@ -11,7 +11,7 @@ import ImageIO
         cancel()
         player.playbackMetadata = metadata
         guard let metadata, let request = CatalogArtworkRequest(pictureID: metadata.artworkID,
-            size: CGSize(width: 512, height: 288), scale: 1, maximumPixelDimension: 512) else { return }
+            size: CGSize(width: 1024, height: 576), scale: 1, maximumPixelDimension: 1024) else { return }
         let identity = generation
         task = Task { [weak self, weak player] in
             let data = await cache.data(for: request.url)

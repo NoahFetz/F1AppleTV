@@ -45,7 +45,7 @@ extension FairPlayer {
             return UIMenu(title: "Resolution", image: symbol, children: [UIAction(title: title, attributes: .disabled) { _ in }])
         }
         let disabled: UIMenuElement.Attributes = resolutionStatus == .switching ? .disabled : []
-        let defaultTitle = availableResolutions.first.map { "Default (\($0.label(in: availableResolutions)))" } ?? "Default"
+        let defaultTitle = usesNativeMasterForDefault ? "resolution_automatic".localizedString : availableResolutions.first.map { "Default (\($0.label(in: availableResolutions)))" } ?? "Default"
         var actions: [UIMenuElement] = [UIAction(title: defaultTitle, attributes: disabled, state: selectedResolution == nil ? .on : .off) { [weak self] _ in
             self?.selectResolution(nil)
         }]

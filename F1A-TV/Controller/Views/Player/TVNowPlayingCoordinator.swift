@@ -31,7 +31,9 @@ enum TVRemotePlaybackAction: Sendable {
               let player = owner.player else { stop(); return }
         let players = ordered.filter { feed in states.contains { $0.id == feed.id && $0.isAvailable } }.compactMap(\.player)
         if let session, players.count != session.players.count ||
-            zip(players, session.players).contains(where: { $0 !== $1 }) {
+            players.contains(where: { player in !session.players.contains(where: { $0 === player }) }) {
+            // Membership, not ordering, determines the session. Reordering tiles
+            // changes the metadata owner without replacing its system center.
             // Replace the session as a unit. removePlayer() attempts to remove
             // automatic metadata observers even when automatic publishing is off
             // on tvOS, which can raise an Objective-C KVO exception.

@@ -3,6 +3,8 @@ import AVFoundation
 extension PlaybackMetadata {
     public var externalMetadata: [AVMetadataItem] {
         var values: [(AVMetadataIdentifier, Any)] = [(.commonIdentifierTitle, title), (.iTunesMetadataTrackSubTitle, subtitle)]
+        // AVKit uses the subtitle on the TV and can export the artist to remote Now Playing.
+        if !subtitle.isEmpty { values.append((.commonIdentifierArtist, subtitle)) }
         if let description { values.append((.commonIdentifierDescription, description)) }
         if let artworkData { values.append((.commonIdentifierArtwork, artworkData)) }
         return values.compactMap { identifier, value in
