@@ -14,10 +14,10 @@ import AVKit
 // MARK: - Player Lifecycle & Synchronization
 extension PlayerCollectionViewController {
     
-    func syncAllPlayers(with syncPlayerItem: PlayerItem) {
+    func syncAllPlayers(with syncPlayerItem: PlayerItem, where shouldSync: (PlayerItem) -> Bool = { _ in true }) {
         guard let reference = syncPlayerItem.player else { return }
         let identity = synchronizationGeneration
-        for playerItem in playerItems where playerItem.id != syncPlayerItem.id {
+        for playerItem in playerItems where playerItem.id != syncPlayerItem.id && shouldSync(playerItem) {
             guard let player = playerItem.player, player.currentItem?.status == .readyToPlay else { continue }
             let seekID = UUID(); playerSeekGenerations[playerItem.id] = seekID
             restoringPlayerIDs.insert(playerItem.id)
@@ -33,6 +33,23 @@ extension PlayerCollectionViewController {
                 self.restoringPlayerIDs.remove(playerItem.id)
                 if !self.wantsPlayback { player.pause() } else { player.play() }
             }
+        }
+    }
+
+    func correctOnDemandPlaybackDrift() {
+        guard !isLiveSession, !isExitingPlayback, wantsPlayback, fullscreenPlayerId == nil,
+              transportPreviewSession == nil, pendingSeekTime == nil, restoringPlayerIDs.isEmpty,
+              let reference = synchronizationReference, let source = reference.player,
+              source.timeControlStatus == .playing, source.resolutionStatus != .switching else { return }
+        let date = source.currentItem?.currentDate()
+        let seconds = source.currentTime().seconds
+        syncAllPlayers(with: reference) { item in
+            guard let player = item.player, player.timeControlStatus == .playing,
+                  player.resolutionStatus != .switching else { return false }
+            if let date, let targetDate = player.currentItem?.currentDate() {
+                return abs(date.timeIntervalSince(targetDate)) > 0.5
+            }
+            return abs(seconds - player.currentTime().seconds) > 0.5
         }
     }
 
@@ -202,6 +219,7 @@ extension PlayerCollectionViewController {
             playerItem.entitlement = streamEntitlement
             
             let player = FairPlayer()
+            player.applyPlaybackSpeed(playbackSpeed)
             player.preventsDisplaySleepDuringVideoPlayback = true
             player.onPlaybackError = { [weak self, weak player] _ in
                 guard let self, let player, self.playerItems.contains(where: { $0.id == playerId && $0.player === player }) else { return }
@@ -229,7 +247,7 @@ extension PlayerCollectionViewController {
             self.playerItems[index] = playerItem
             bindPlaybackMetadata(player: player, feed: playerItem)
             updatePlaybackIdleTimer()
-            playerItem.player?.prepareStream(startupMaximumHeight: CredentialHelper.getPlayerSettings().startupMaximumHeight, preferNativeMaster: isLiveSession) { [weak self, weak player = playerItem.player] _ in
+            playerItem.player?.preparePlayback(startupMaximumHeight: CredentialHelper.getPlayerSettings().startupMaximumHeight) { [weak self, weak player = playerItem.player] _ in
                 guard let self = self, let player = player,
                       let currentIndex = self.playerItems.firstIndex(where: { $0.id == playerId && $0.player === player }) else { return }
                 if currentIndex == 0 { self.updatePreferredDisplayCriteria(for: player) }
@@ -361,10 +379,9 @@ extension PlayerCollectionViewController {
     
     func reportCurrentPlayTime() {
         rememberPlaybackPosition()
-        guard !isLiveSession, let first = playerItems.first, let id = first.contentItem.contentId,
-              let subtype = first.contentItem.contentSubtype, let seconds = lastPlaybackPosition?.seconds,
-              seconds.isFinite, seconds >= 0, seconds < Double(Int.max) else { return }
-        progressReporter.submit(.init(contentID: id, subtype: subtype, position: Int(seconds), timestamp: Int(Date().timeIntervalSince1970)))
+        guard !isLiveSession, let item = playerItems.first?.contentItem,
+              let seconds = lastPlaybackPosition?.seconds else { return }
+        progressReporter.submit(item: item, seconds: seconds)
     }
 }
 

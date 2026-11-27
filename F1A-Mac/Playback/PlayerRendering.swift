@@ -1,10 +1,14 @@
 import AppKit
 import AVKit
+import F1Core
 import SwiftUI
 
 enum PlayerDynamicRange: String, CaseIterable, Identifiable {
     case automatic, sdr, hdr
     var id: String { rawValue }
+    var streamPreference: StreamDynamicRange {
+        switch self { case .automatic: .automatic; case .sdr: .sdr; case .hdr: .hdr }
+    }
     var label: String {
         switch self { case .automatic: "Automatic"; case .sdr: "SDR"; case .hdr: "HDR" }
     }

@@ -8,6 +8,7 @@ import XCTest
     var programDate: Date?
     var seekRange: ClosedRange<Double>? = 0...120
     var playing = false
+    var speed = PlaybackSpeed.normal
     var plays = 0, cancels = 0
     var seeks: [Double] = []
     var dates: [Date] = []
@@ -15,6 +16,7 @@ import XCTest
     var dateSucceeds = true
     var completions: [(Bool) -> Void] = []
     init(_ id: String) { self.id = id }
+    func setPlaybackSpeed(_ speed: PlaybackSpeed) { self.speed = speed }
     func play() { playing = true; plays += 1 }
     func pause() { playing = false }
     func cancelSeek() { cancels += 1 }
@@ -54,6 +56,43 @@ final class DesktopPlaybackTests: XCTestCase {
         session.add(a); session.add(b); session.setPlaying(false)
         XCTAssertFalse(a.playing); XCTAssertFalse(b.playing)
         session.setPlaying(true); XCTAssertTrue(a.playing); XCTAssertTrue(b.playing)
+    }
+    @MainActor func testSpeedAppliesToPlayingPausedAndLateJoiningFeeds() async {
+        let session = LinkedPlaybackCoordinator(clock: { Date(timeIntervalSince1970: 2000) })
+        let a = TestFeed("a"), b = TestFeed("b")
+        session.add(a); session.add(b)
+        session.setPlaybackSpeed(.oneAndAHalf)
+        XCTAssertEqual([a.speed, b.speed], [.oneAndAHalf, .oneAndAHalf])
+        XCTAssertTrue(a.playing && b.playing)
+        session.setPlaying(false)
+        session.setPlaybackSpeed(.threeQuarters)
+        session.seek(from: a.id, seconds: 40)
+        let c = TestFeed("c")
+        session.add(c)
+        XCTAssertEqual([a.speed, b.speed, c.speed], [.threeQuarters, .threeQuarters, .threeQuarters])
+        XCTAssertEqual([a.position, b.position, c.position], [40, 40, 40])
+        XCTAssertFalse(a.playing || b.playing || c.playing)
+        session.setPlaying(true)
+        XCTAssertTrue(a.playing && b.playing && c.playing)
+    }
+    @MainActor func testPendingAnchorProjectsAtOldAndNewSpeedsAcrossChange() async throws {
+        var now = Date(timeIntervalSince1970: 2000)
+        let session = LinkedPlaybackCoordinator(clock: { now })
+        session.setPlaybackSpeed(.oneAndAHalf)
+        session.restore(PlaybackAnchor(seconds: 20, date: now, lag: nil, capturedAt: now, playing: true, speed: .oneAndAHalf))
+        now += 4
+        session.setPlaybackSpeed(.half)
+        now += 2
+        let anchor = try XCTUnwrap(session.capture())
+        let feed = TestFeed("new")
+        XCTAssertEqual(session.targetPosition(for: feed, anchor: anchor), 27)
+        session.add(feed)
+        XCTAssertEqual(feed.position, 27)
+        XCTAssertEqual(feed.speed, .half)
+        session.remove(id: feed.id)
+        XCTAssertEqual(session.playbackSpeed, .half)
+        session.reset()
+        XCTAssertEqual(session.playbackSpeed, .normal)
     }
     @MainActor func testSeekFromSecondaryMovesWholeSession() async {
         let session = LinkedPlaybackCoordinator(clock: { Date(timeIntervalSince1970: 2000) }), a = TestFeed("a"), b = TestFeed("b")

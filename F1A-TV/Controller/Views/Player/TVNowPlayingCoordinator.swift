@@ -52,8 +52,8 @@ enum TVRemotePlaybackAction: Sendable {
                                  MPNowPlayingInfoPropertyMediaType: MPNowPlayingInfoMediaType.video.rawValue,
                                  MPNowPlayingInfoPropertyExternalContentIdentifier: owner.contentItem.contentId ?? id,
                                  MPNowPlayingInfoPropertyIsLiveStream: live,
-                                 MPNowPlayingInfoPropertyPlaybackRate: playing ? 1.0 : 0.0,
-                                 MPNowPlayingInfoPropertyDefaultPlaybackRate: 1.0]
+                                 MPNowPlayingInfoPropertyPlaybackRate: playing ? player.rate : 0,
+                                 MPNowPlayingInfoPropertyDefaultPlaybackRate: player.defaultRate]
         let time = player.currentTime().seconds
         if time.isFinite, time >= 0 { info[MPNowPlayingInfoPropertyElapsedPlaybackTime] = time }
         if !live, let duration = player.currentItem?.duration.seconds, duration.isFinite, duration > 0 {

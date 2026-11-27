@@ -7,13 +7,17 @@ import UIKit
 @MainActor
 final class AppServices {
     let catalog: any CatalogService
+    let personalizedCatalog: F1PersonalizedCatalog?
     let auth: any AuthService
     let playback: any PlaybackService
     let fairPlay: any FairPlayService
     let language: String
     let playerController: PlayerController
-    init(catalog: any CatalogService, auth: any AuthService, playback: any PlaybackService, fairPlay: any FairPlayService, language: String, playerController: PlayerController? = nil) {
+    lazy var progressReporter = PlaybackProgressReporter(playback: playback)
+    init(catalog: any CatalogService, auth: any AuthService, playback: any PlaybackService, fairPlay: any FairPlayService,
+         language: String, playerController: PlayerController? = nil, personalizedCatalog: F1PersonalizedCatalog? = nil) {
         self.catalog = catalog; self.auth = auth; self.playback = playback; self.fairPlay = fairPlay; self.language = language
+        self.personalizedCatalog = personalizedCatalog
         self.playerController = playerController ?? PlayerController()
     }
     func page(uri: String, destination: ContentItem? = nil) -> PageOverviewCollectionViewController {
@@ -40,7 +44,11 @@ final class AppServices {
         let client = APIClient(transport: AlamofireHTTPTransport())
         let legacy = F1AuthService(client: client, endpoints: endpoints, storage: KeychainSessionStore())
         let auth = F1DeviceAuthService(client: client, fallback: legacy, store: KeychainDeviceSessionStore())
-        return AppServices(catalog: F1CatalogService(client: client, endpoints: endpoints), auth: auth, playback: F1PlaybackService(endpoints: endpoints, auth: auth), fairPlay: F1FairPlayService(client: client, endpoints: endpoints, auth: auth), language: endpoints.language)
+        return AppServices(catalog: F1CatalogService(client: client, endpoints: endpoints), auth: auth,
+                           playback: F1PlaybackService(endpoints: endpoints, auth: auth),
+                           fairPlay: F1FairPlayService(client: client, endpoints: endpoints, auth: auth),
+                           language: endpoints.language,
+                           personalizedCatalog: F1PersonalizedCatalog(client: client, endpoints: endpoints, auth: auth))
     }
 }
 

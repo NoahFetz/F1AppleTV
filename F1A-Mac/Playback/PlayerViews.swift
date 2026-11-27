@@ -45,6 +45,17 @@ struct FeedPlayerView: View {
             .background(PlayerActivitySurface(controlsVisible: chrome.visible, presence: { chrome.presence($0) }, activity: { chrome.activity() }, trafficLightsHover: { trafficLightsHovered = $0; updateChromeHold() }))
             .ignoresSafeArea()
             .animation(.easeInOut(duration: 0.2), value: chrome.visible)
+            .overlay(alignment: .topTrailing) {
+                if session.feeds.first?.id == feed.id {
+                    LiveUpNextBanner(monitor: session.liveUpNext) { item in
+                        session.liveUpNext.dismiss()
+                        session.requestPlayback(item, watchLive: true)
+                    }
+                    .frame(maxWidth: 320)
+                    .padding(.horizontal, 16)
+                    .padding(.top, 34)
+                }
+            }
             .overlay(alignment: .top) {
                 if let message = session.message {
                     HStack { Text(message).font(.callout); Spacer(); Button("Dismiss") { session.message = nil } }
@@ -116,6 +127,19 @@ struct FeedPlayerView: View {
                 Button { session.coordinator.skip(from: feed.id, seconds: 10) } label: { Image(systemName: "goforward.10").frame(width: 24, height: 24) }
                     .accessibilityLabel("Forward 10 seconds in all feeds")
                 if feed.live { Button("Go Live") { session.coordinator.goLive(from: feed.id) }.disabled(feed.seekRange == nil) }
+                else {
+                    Menu {
+                        Picker(CoreLocalization.string("playback_speed"), selection: Binding(get: { session.playbackSpeed }, set: { session.setPlaybackSpeed($0) })) {
+                            ForEach(PlaybackSpeed.allCases, id: \.self) { speed in Text(verbatim: speed.label).tag(speed) }
+                        }.pickerStyle(.inline)
+                    } label: {
+                        Text(verbatim: session.playbackSpeed.label).monospacedDigit()
+                    }
+                    .fixedSize()
+                    .help(CoreLocalization.string("playback_speed"))
+                    .accessibilityLabel(CoreLocalization.string("playback_speed"))
+                    .accessibilityValue(session.playbackSpeed.label)
+                }
                 Spacer(minLength: 4)
                 Button { feed.muted.toggle() } label: { Image(systemName: feed.muted ? "speaker.slash.fill" : "speaker.wave.2.fill").frame(height: 24) }
                     .accessibilityLabel(feed.muted ? "Unmute this feed" : "Mute this feed")
@@ -244,7 +268,8 @@ struct FeedPicker: View {
                     ForEach(channels) { channel in
                         Button { select(channel) } label: {
                             HStack(spacing: 14) {
-                                FeedPreviewThumbnail(channel: channel, feed: previews.feeds[channel.id])
+                                FeedPreviewThumbnail(channel: channel, feed: previews.feeds[channel.id],
+                                                     compositeTile: previews.tile(for: channel.id))
                                     .frame(width: 144, height: 81).clipShape(.rect(cornerRadius: 8))
                                 VStack(alignment: .leading, spacing: 4) {
                                     Text(channel.kind == .OnBoardCamera ? [channel.driverFirstName, channel.driverLastName].compactMap { $0 }.joined(separator: " ") : channel.title).font(.headline)

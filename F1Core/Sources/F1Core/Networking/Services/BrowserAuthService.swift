@@ -127,13 +127,13 @@ public actor F1BrowserAuthService: StoredAuthService {
         try await load()
         guard let snapshot = session else { return try await fallback.authorizedData(request, mode: mode) }
         let generation = epoch
-        func authorized(_ session: BrowserAccountSession) -> URLRequest {
-            PlaybackAuthorizationHeaders.apply(to: request, subscriptionToken: session.subscriptionToken, accountSessionID: session.sessionID, playbackSessionID: playbackSessionID, mode: mode)
+        func authorized(_ session: BrowserAccountSession) throws -> URLRequest {
+            try PlaybackAuthorizationHeaders.apply(to: request, subscriptionToken: session.subscriptionToken, accountSessionID: session.sessionID, playbackSessionID: playbackSessionID, mode: mode)
         }
         do {
             let data = try await client.data(authorized(snapshot))
             try Task.checkCancellation(); guard epoch == generation else { throw CancellationError() }; return data
-        } catch APIError.http(401) where mode != .reporting {
+        } catch APIError.http(401) where mode.refreshesOnUnauthorized {
             guard epoch == generation else { throw CancellationError() }
             try await refresh(snapshot, generation: generation)
             try Task.checkCancellation(); guard epoch == generation, let session else { throw CancellationError() }

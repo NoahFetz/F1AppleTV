@@ -37,9 +37,7 @@ import F1Core
     var startup = PlaybackStartup()
     private var resolutionObserver: NSObjectProtocol?
     var ready: Bool { !loading && error == nil && player.currentItem?.status == .readyToPlay }
-    // Prefer the higher-resolution HDR source even on SDR displays. AVKit's
-    // output policy still follows the display; explicit SDR remains available.
-    var streamDynamicRange: StreamDynamicRange { dynamicRange == .sdr ? .sdr : .hdr }
+    var streamDynamicRange: StreamDynamicRange { dynamicRange.streamPreference }
     var streamRangeName: String {
         switch player.effectiveDynamicRange {
         case .sdr: return "SDR stream"
@@ -119,6 +117,7 @@ import F1Core
         else if let group = captions.first?.group, group.allowsEmptySelection { item.select(nil, in: group) }
         updateSelection()
     }
+    func setPlaybackSpeed(_ speed: PlaybackSpeed) { player.applyPlaybackSpeed(speed) }
     func play() { if ready { player.play() } }
     func pause() { player.pause() }
     func cancelSeek() { player.currentItem?.cancelPendingSeeks() }
@@ -161,9 +160,12 @@ import F1Core
     @Published var setupName = ""
     @Published var setups: [DesktopSetup] = []
     @Published var playing = true
+    var playbackSpeed: PlaybackSpeed { coordinator.playbackSpeed }
     let services: MacServices
     let coordinator = LinkedPlaybackCoordinator()
+    let liveUpNext = LiveUpNextMonitor()
     lazy var previews = FeedPreviewPool(session: self)
+    lazy var progressReporter = PlaybackProgressReporter(playback: services.playback)
     private let setupStore = DesktopSetupStore()
     private var utility: NSWindow?
     private var windows: [String: FeedPlaybackWindow] = [:]
@@ -180,6 +182,7 @@ import F1Core
     init(services: MacServices) {
         self.services = services; setups = setupStore.load()
         coordinator.onSeekFailure = { [weak self] _ in self?.message = "A feed could not synchronize. Use Sync All to retry." }
+        coordinator.onUserSeekCompleted = { [weak self] seconds in self?.reportCurrentPlayTime(at: seconds) }
         clockTimer = Timer.scheduledTimer(withTimeInterval: 0.25, repeats: true) { [weak self] _ in
             Task { @MainActor in self?.poll() }
         }
@@ -204,10 +207,10 @@ import F1Core
         if ticks % 8 == 0 { coordinator.tick() }
         if playing != coordinator.wantsPlayback { playing = coordinator.wantsPlayback }
     }
-    func requestPlayback(_ item: ContentItem) {
+    func requestPlayback(_ item: ContentItem, watchLive: Bool = false) {
         guard item.canPlay else { return }
         if details?.item.contentId == item.contentId { windows.values.first?.makeKeyAndOrderFront(nil); showFeedPicker(); return }
-        if !feeds.isEmpty {
+        if !feeds.isEmpty && !watchLive {
             let alert = NSAlert(); alert.messageText = "Replace the current session?"
             alert.informativeText = "The open feed windows will close before the selected video opens."
             alert.addButton(withTitle: "Replace Session"); alert.addButton(withTitle: "Cancel")
@@ -217,11 +220,10 @@ import F1Core
         requestTask = Task { [weak self] in
             guard let self else { return }
             do {
-                guard let id = item.contentId else { throw APIError.invalidPlayback }
-                let video = try await services.playback.video(id)
+                let video = try await services.playback.resolveStart(for: item).details
                 try Task.checkCancellation(); guard generation == loadGeneration else { return }
                 var beginning = !video.isLive
-                if video.isLive {
+                if video.isLive && !watchLive {
                     switch services.preferences.player.liveStart {
                     case .beginning: beginning = true
                     case .live: beginning = false
@@ -251,6 +253,12 @@ import F1Core
         if let fixtureURL { return PlaybackEntitlement(url: fixtureURL.absoluteString, channelID: channel.id, drmType: nil, licenseURL: nil, entitlementToken: "") }
         #endif
         return try await services.playback.entitlement(channel.target)
+    }
+    func previewFeedBundle(contentID: String) async -> PreviewFeedBundle? {
+        #if DEBUG
+        if fixtureURL != nil { return nil }
+        #endif
+        return try? await services.playback.previewFeedBundle(contentID: contentID)
     }
     func open(_ channel: PlaybackChannel, saved: DesktopSavedFeed? = nil) {
         if let window = windows[channel.id] { window.makeKeyAndOrderFront(nil); return }
@@ -327,7 +335,7 @@ import F1Core
                         operation = .playback
                         feed.preparationError = nil
                         feed.player.playStream(streamEntitlement: entitlement)
-                        feed.player.prepareStream(startupMaximumHeight: settings.startupMaximumHeight, dynamicRange: feed.streamDynamicRange) { _ in }
+                        feed.player.preparePlayback(startupMaximumHeight: settings.startupMaximumHeight, dynamicRange: feed.streamDynamicRange) { _ in }
                         for _ in 0..<150 {
                             try await Task.sleep(nanoseconds: 200_000_000)
                             guard feed.startup.accepts(attempt), feeds.contains(where: { $0 === feed }) else { throw CancellationError() }
@@ -357,13 +365,14 @@ import F1Core
                     if let target {
                         coordinator.restore(PlaybackAnchor(seconds: target, date: nil,
                             lag: feed.live ? feed.seekRange.map { $0.upperBound - target } : nil,
-                            capturedAt: Date(), playing: coordinator.wantsPlayback))
+                            capturedAt: Date(), playing: coordinator.wantsPlayback, speed: playbackSpeed))
                     }
                 }
                 try Task.checkCancellation(); guard feed.startup.accepts(attempt), feeds.contains(where: { $0 === feed }) else { return }
                 feed.startup.prepared(attempt)
                 coordinator.add(feed); feed.applyDynamicRange()
                 previews.configure(channels: details?.channels ?? [])
+                startLiveUpNext()
                 // Track labels and HDR metadata must not hold up transport startup.
                 await feed.refreshTracks()
                 if feed.startup.accepts(attempt) { feed.loadTask = nil }
@@ -383,14 +392,20 @@ import F1Core
     }
     func remove(id: String) {
         guard !suppressClose else { return }
+        reportCurrentPlayTime()
         if feedPickerAnchor == id { feedPickerAnchor = nil }
         feeds.first { $0.id == id }?.stop(); coordinator.remove(id: id)
         feeds.removeAll { $0.id == id }; windows.removeValue(forKey: id); delegates.removeValue(forKey: id)
-        if feeds.isEmpty { previews.stop(); details = nil; requestTask?.cancel(); generation = UUID(); loading = false }
+        if feeds.isEmpty {
+            liveUpNext.stop()
+            previews.stop(); details = nil; requestTask?.cancel(); generation = UUID(); loading = false
+        }
     }
     func closeAll(preservingRequest: Bool = false) {
+        reportCurrentPlayTime()
         if !preservingRequest { requestTask?.cancel(); requestTask = nil; generation = UUID(); loading = false }
         feedPickerAnchor = nil; savingSetup = false; previews.stop()
+        liveUpNext.stop()
         suppressClose = true
         feeds.forEach { $0.stop() }; coordinator.reset(); windows.values.forEach { $0.close() }
         windows.removeAll(); delegates.removeAll(); feeds.removeAll(); details = nil; suppressClose = false
@@ -398,7 +413,31 @@ import F1Core
         fixtureURL = nil
         #endif
     }
-    func togglePlayback() { coordinator.setPlaying(!coordinator.wantsPlayback); playing = coordinator.wantsPlayback }
+    func togglePlayback() {
+        reportCurrentPlayTime()
+        coordinator.setPlaying(!coordinator.wantsPlayback)
+        playing = coordinator.wantsPlayback
+    }
+    func setPlaybackSpeed(_ speed: PlaybackSpeed) {
+        guard details?.isLive == false, speed != playbackSpeed else { return }
+        objectWillChange.send()
+        coordinator.setPlaybackSpeed(speed)
+        previews.syncPlayback()
+    }
+    func reportCurrentPlayTime(at seconds: Double? = nil) {
+        #if DEBUG
+        if fixtureURL != nil { return }
+        #endif
+        guard let item = details?.item, let readyFeed = feeds.first(where: \.ready) else { return }
+        progressReporter.submit(item: item, seconds: seconds ?? coordinator.reference?.position ?? readyFeed.position)
+    }
+    private func startLiveUpNext() {
+        #if DEBUG
+        if fixtureURL != nil { return }
+        #endif
+        guard let id = details?.item.contentId, let catalog = services.personalizedCatalog else { return }
+        liveUpNext.start(for: id, catalog: catalog)
+    }
     func saveSetup() {
         let saved = feeds.map { feed in
             let window = windows[feed.id]
@@ -413,10 +452,12 @@ import F1Core
         let resolved = setup.resolve(channels: current.channels)
         guard !resolved.isEmpty else { message = "None of this setup’s feeds are available in this session."; return }
         let anchor = coordinator.capture()
+        let speed = playbackSpeed
         #if DEBUG
         let restoringFixture = fixtureURL
         #endif
         closeAll(); details = current; coordinator.restore(anchor)
+        coordinator.setPlaybackSpeed(speed)
         #if DEBUG
         fixtureURL = restoringFixture
         #endif

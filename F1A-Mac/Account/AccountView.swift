@@ -29,7 +29,11 @@ struct AccountView: View {
                     Button("logout_button_title".localizedString) {
                         working = true; session.closeAll()
                         task = Task { @MainActor in
-                            do { try await services.auth.signOut(); self.profile = nil; hasOAuthSession = false; status = "account_signed_out".localizedString }
+                            do {
+                                try await services.auth.signOut()
+                                self.profile = nil; hasOAuthSession = false; status = "account_signed_out".localizedString
+                                NotificationCenter.default.post(name: .catalogAccountDidChange, object: nil)
+                            }
                             catch { recordServiceFailure(error, operation: .logout); status = "account_sign_out_failed".localizedString }
                             working = false
                         }
@@ -61,6 +65,7 @@ struct AccountView: View {
                 profile = try await browserLogin.signIn(using: services.auth)
                 try Task.checkCancellation()
                 hasOAuthSession = true; working = false; showingBrowser = false; status = "device_login_success".localizedString
+                NotificationCenter.default.post(name: .catalogAccountDidChange, object: nil)
             } catch {
                 guard !Task.isCancelled else { return }
                 recordServiceFailure(error, operation: .login)

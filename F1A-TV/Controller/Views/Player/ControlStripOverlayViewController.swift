@@ -32,6 +32,7 @@ class ControlStripOverlayViewController: BaseViewController {
     var languageSelectorButton: UIButton?
     var captionSelectorButton: UIButton?
     var resolutionSelectorButton: UIButton?
+    private var playbackSpeedButton: UIButton?
     private var lastFocusedControl: UIView?
     private var hasFocusedControls = false
     private var liveButton: UIButton?
@@ -406,6 +407,7 @@ class ControlStripOverlayViewController: BaseViewController {
         self.setupRewindButton()
         self.setupPlayPauseButton()
         self.setupForwardButton()
+        if !isLiveSession { setupPlaybackSpeedButton() }
 
         self.setupFlexibleSpacerView()
 
@@ -523,6 +525,26 @@ class ControlStripOverlayViewController: BaseViewController {
         self.resolutionSelectorButton?.menu = player.resolutionMenu()
         let value = player.selectedResolution?.label(in: player.availableResolutions) ?? "Default"
         self.resolutionSelectorButton?.accessibilityValue = value
+    }
+
+    private func setupPlaybackSpeedButton() {
+        let button = makeControlButton(normalSymbolName: "speedometer", focusedSymbolName: "speedometer",
+                                       accessibilityLabel: "playback_speed".localizedString)
+        button.accessibilityIdentifier = "multiview.playbackSpeed"
+        button.showsMenuAsPrimaryAction = true
+        playbackSpeedButton = button
+        updatePlaybackSpeedMenu()
+        controlsBarView?.addArrangedSubview(button)
+    }
+
+    func updatePlaybackSpeedMenu() {
+        guard let button = playbackSpeedButton, let actions = controlStripActionProtocol else { return }
+        button.accessibilityValue = actions.playbackSpeed.label
+        button.menu = UIMenu(title: "playback_speed".localizedString, children: PlaybackSpeed.allCases.map { speed in
+            UIAction(title: speed.label, state: speed == actions.playbackSpeed ? .on : .off) { [weak actions] _ in
+                actions?.setPlaybackSpeed(speed)
+            }
+        })
     }
 
     func makeControlButton(normalSymbolName: String, focusedSymbolName: String, accessibilityLabel: String, pointSize: CGFloat = 28) -> UIButton {

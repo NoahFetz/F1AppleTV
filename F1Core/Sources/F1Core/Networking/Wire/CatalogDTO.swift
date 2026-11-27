@@ -45,6 +45,14 @@ public struct CatalogActionDTO: Decodable { public let key: String; public let u
 public struct CatalogPropertyDTO: Decodable { public let series: String? }
 public struct CatalogVariantDTO: Decodable { public let pictureUrl: String? }
 public struct CatalogResumeDTO: Decodable { public let playHeadPosition: Double? }
+public struct WireDuration: Decodable {
+    public let seconds: Double?
+    public init(from decoder: Decoder) throws {
+        let container = try decoder.singleValueContainer()
+        let value = (try? container.decode(Double.self)) ?? (try? container.decode(String.self)).flatMap(Double.init)
+        seconds = value.flatMap { $0.isFinite && $0 > 0 ? $0 : nil }
+    }
+}
 public struct CatalogUserDTO: Decodable { public let resume: CatalogResumeDTO? }
 public struct CatalogNodeDTO: Decodable {
     public let id: WireIdentifier?
@@ -59,17 +67,19 @@ public struct CatalogNodeDTO: Decodable {
     public let eventShortName: String?
     public let events: LossyArray<CatalogNodeDTO>?
     public let user: CatalogUserDTO?
+    public let coverageStartTimestamp: WireMilliseconds?
 }
 public struct CatalogMetadataDTO: Decodable {
     public let title: String?, titleBrief: String?, label: String?, longDescription: String?, pictureUrl: String?
     public let contentId: WireIdentifier?
     public let contentType: String?, objectType: String?, contentSubtype: String?, uiDuration: String?
+    public let duration: WireDuration?
     public let interactive: Bool?, locked: Bool?
     public let emfAttributes: CatalogRaceDTO?
     public let additionalStreams: LossyArray<ChannelDTO>?
     public let type: String?, featureIdentifier: String?
     public enum CodingKeys: String, CodingKey {
-        case title, titleBrief, label, longDescription, pictureUrl, contentId, contentType, objectType, contentSubtype, uiDuration, interactive, locked, emfAttributes, additionalStreams, type
+        case title, titleBrief, label, longDescription, pictureUrl, contentId, contentType, objectType, contentSubtype, uiDuration, duration, interactive, locked, emfAttributes, additionalStreams, type
         case featureIdentifier = "feature_indentifier"
     }
 }

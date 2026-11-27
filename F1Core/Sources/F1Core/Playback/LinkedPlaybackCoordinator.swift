@@ -10,6 +10,7 @@ import Foundation
     var programDate: Date? { get }
     var seekRange: ClosedRange<Double>? { get }
     var live: Bool { get }
+    func setPlaybackSpeed(_ speed: PlaybackSpeed)
     func play()
     func pause()
     func cancelSeek()
@@ -23,16 +24,23 @@ public struct PlaybackAnchor {
     public var lag: Double?
     public var capturedAt: Date
     public var playing: Bool
-    public init(seconds: Double, date: Date?, lag: Double?, capturedAt: Date, playing: Bool) {
+    public var speed: PlaybackSpeed
+    public init(seconds: Double, date: Date?, lag: Double?, capturedAt: Date, playing: Bool, speed: PlaybackSpeed = .normal) {
         self.seconds = seconds; self.date = date; self.lag = lag; self.capturedAt = capturedAt; self.playing = playing
+        self.speed = speed
+    }
+    func elapsed(at now: Date) -> Double {
+        playing ? max(0, now.timeIntervalSince(capturedAt)) * Double(speed.rawValue) : 0
     }
 }
 
 @MainActor public final class LinkedPlaybackCoordinator {
     public private(set) var participants: [any LinkedPlaybackParticipant] = []
     public private(set) var wantsPlayback = true
+    public private(set) var playbackSpeed = PlaybackSpeed.normal
     public var isScrubbing = false
     public var onSeekFailure: ((String) -> Void)?
+    public var onUserSeekCompleted: ((Double) -> Void)?
     private var referenceID: String?
     private var generation = UUID()
     private var pending = Set<String>()
@@ -54,14 +62,18 @@ public struct PlaybackAnchor {
     }
     public func add(_ participant: any LinkedPlaybackParticipant) {
         guard !participants.contains(where: { $0.id == participant.id }) else { return }
+        participant.setPlaybackSpeed(participant.live ? .normal : playbackSpeed)
         participants.append(participant); joining.insert(participant.id); tick()
     }
     public func remove(id: String) {
-        participants.first { $0.id == id }?.cancelSeek()
+        guard let participant = participants.first(where: { $0.id == id }) else { return }
+        participant.cancelSeek()
         participants.removeAll { $0.id == id }; joining.remove(id); pending.remove(id); pendingSince.removeValue(forKey: id)
         seekIDs.removeValue(forKey: id)
         if referenceID == id { referenceID = nil }
-        if participants.isEmpty { reset() }
+        if participants.isEmpty {
+            resumeAnchor = nil; isScrubbing = false; wantsPlayback = true
+        }
     }
     public func reset() {
         generation = UUID()
@@ -69,6 +81,7 @@ public struct PlaybackAnchor {
         participants.removeAll(); pending.removeAll(); pendingSince.removeAll(); joining.removeAll()
         seekIDs.removeAll()
         referenceID = nil; resumeAnchor = nil; isScrubbing = false; wantsPlayback = true
+        playbackSpeed = .normal
     }
     public func capture() -> PlaybackAnchor? {
         guard let reference, reference.position.isFinite else { return resumeAnchor }
@@ -76,7 +89,24 @@ public struct PlaybackAnchor {
     }
     public func restore(_ anchor: PlaybackAnchor?) {
         resumeAnchor = anchor
-        if let anchor { wantsPlayback = anchor.playing }
+        if let anchor {
+            wantsPlayback = anchor.playing
+            setPlaybackSpeed(anchor.speed)
+        }
+    }
+    public func setPlaybackSpeed(_ speed: PlaybackSpeed) {
+        guard speed != playbackSpeed, !participants.contains(where: \.live) else { return }
+        if var anchor = resumeAnchor {
+            let now = clock()
+            let elapsed = anchor.elapsed(at: now)
+            anchor.seconds += elapsed
+            anchor.date = anchor.date?.addingTimeInterval(elapsed)
+            anchor.capturedAt = now
+            anchor.speed = speed
+            resumeAnchor = anchor
+        }
+        playbackSpeed = speed
+        participants.forEach { $0.setPlaybackSpeed(speed) }
     }
     public func setPlaying(_ playing: Bool) {
         invalidateSeeks(); wantsPlayback = playing
@@ -87,7 +117,10 @@ public struct PlaybackAnchor {
         invalidateSeeks()
         let target = anchor(source, seconds: seconds)
         resumeAnchor = target
-        participants.forEach { $0.pause(); align($0, to: target) }
+        for participant in participants {
+            participant.pause()
+            align(participant, to: target, onSuccess: participant.id == id ? onUserSeekCompleted : nil)
+        }
     }
     public func skip(from id: String, seconds: Double) {
         guard let source = participants.first(where: { $0.id == id }) else { return }
@@ -136,20 +169,20 @@ public struct PlaybackAnchor {
         let delta = seconds - source.position
         return PlaybackAnchor(seconds: seconds, date: source.programDate?.addingTimeInterval(delta),
                               lag: source.live ? source.seekRange.map { max(0.1, $0.upperBound - seconds) } : nil,
-                              capturedAt: clock(), playing: wantsPlayback)
+                              capturedAt: clock(), playing: wantsPlayback, speed: source.live ? .normal : playbackSpeed)
     }
-    private func elapsed(_ anchor: PlaybackAnchor) -> Double { anchor.playing ? max(0, clock().timeIntervalSince(anchor.capturedAt)) : 0 }
     private func desiredSeconds(_ participant: any LinkedPlaybackParticipant, _ anchor: PlaybackAnchor) -> Double? {
         guard let range = participant.seekRange else { return nil }
         let value: Double
         if let date = anchor.date, let ownDate = participant.programDate {
-            value = participant.position + date.addingTimeInterval(elapsed(anchor)).timeIntervalSince(ownDate)
+            value = participant.position + date.addingTimeInterval(anchor.elapsed(at: clock())).timeIntervalSince(ownDate)
         } else if participant.live, let lag = anchor.lag { value = range.upperBound - lag }
-        else { value = anchor.seconds + elapsed(anchor) }
+        else { value = anchor.seconds + anchor.elapsed(at: clock()) }
         guard value.isFinite else { return nil }
         return min(max(value, range.lowerBound), max(range.lowerBound, range.upperBound - 0.1))
     }
-    private func align(_ participant: any LinkedPlaybackParticipant, to target: PlaybackAnchor) {
+    private func align(_ participant: any LinkedPlaybackParticipant, to target: PlaybackAnchor,
+                       onSuccess: ((Double) -> Void)? = nil) {
         guard participant.ready, !participant.buffering, !participant.changingQuality, !pending.contains(participant.id),
               let seconds = desiredSeconds(participant, target) else { joining.insert(participant.id); return }
         let epoch = generation; let id = participant.id; let seekID = UUID()
@@ -163,11 +196,12 @@ public struct PlaybackAnchor {
             if success {
                 self.joining.remove(id)
                 if self.wantsPlayback { participant.play() } else { participant.pause() }
+                onSuccess?(participant.position)
             } else { participant.pause(); self.joining.insert(id); self.onSeekFailure?(id) }
             if self.joining.isEmpty && self.pending.isEmpty { self.resumeAnchor = nil }
         }
         if let date = target.date, let ownDate = participant.programDate {
-            let adjusted = date.addingTimeInterval(elapsed(target))
+            let adjusted = date.addingTimeInterval(target.elapsed(at: clock()))
             let withinRange = abs(seconds - (participant.position + adjusted.timeIntervalSince(ownDate))) < 0.2
             if withinRange {
                 participant.seek(date: adjusted) { [weak self, weak participant] success in

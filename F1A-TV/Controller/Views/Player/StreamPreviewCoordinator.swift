@@ -31,21 +31,21 @@ final class StreamPreviewCoordinator {
         self.items = items; self.reference = reference; self.maximumHeight = maximumHeight; self.referenceProvider = referenceProvider
         timer = Timer.scheduledTimer(withTimeInterval: 0.5, repeats: true) { [weak self] _ in Task { @MainActor in self?.synchronize() } }
     }
-    func update(visibleIndices: Set<Int>) {
+    func update(visibleIndices: Set<Int>, excluding covered: Set<String> = []) {
         visible = Set(visibleIndices.filter { items.indices.contains($0) }.map { items[$0].previewIdentity })
         let window = PreviewWindow.indices(visible: visibleIndices, count: items.count)
-        let wanted = Set(window.map { items[$0].previewIdentity })
+        let wanted = Set(window.map { items[$0].previewIdentity }).subtracting(covered)
         for key in Array(sessions.keys) where !wanted.contains(key) {
             sessions.removeValue(forKey: key)?.stop(); ready.remove(key)
             onReady?(key, nil)
         }
         for index in window.sorted() {
             let item = items[index], key = item.previewIdentity
-            guard sessions[key] == nil else { continue }
+            guard wanted.contains(key), sessions[key] == nil else { continue }
             let session = makeSession(); sessions[key] = session
             session.start(item: item, referencePlayer: reference, maximumHeight: maximumHeight) { [weak self, weak session] player in
                 guard let self, let session, self.sessions[key] === session else { return }
-                if player != nil { self.ready.insert(key) }
+                if player != nil { self.ready.insert(key) } else { self.ready.remove(key) }
                 self.synchronize()
                 self.onReady?(key, player)
             }

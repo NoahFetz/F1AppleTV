@@ -32,6 +32,7 @@ class PageOverviewCollectionViewController: BaseCollectionViewController {
     private weak var lastFocusedView: UIView?
     private var redirectingFocus = false
     private var artworkPrefetchers = [IndexPath: ImagePrefetcher]()
+    private var homeRowsTask: Task<Void, Never>?
 
     override func viewDidLoad() {
         super.viewDidLoad()
@@ -64,6 +65,10 @@ class PageOverviewCollectionViewController: BaseCollectionViewController {
         collectionView.remembersLastFocusedIndexPath = true
         collectionView.prefetchDataSource = self
         collectionView.setCollectionViewLayout(makeLayout(), animated: false)
+        let notifications = NotificationCenter.default
+        notifications.addObserver(self, selector: #selector(refreshHomeRows), name: .playbackHistoryDidChange, object: nil)
+        notifications.addObserver(self, selector: #selector(refreshHomeRows), name: UIApplication.willEnterForegroundNotification, object: nil)
+        notifications.addObserver(self, selector: #selector(accountDidChange), name: .catalogAccountDidChange, object: nil)
     }
 
     func initialize(pageUri: String) { self.pageUri = pageUri }
@@ -77,6 +82,7 @@ class PageOverviewCollectionViewController: BaseCollectionViewController {
         super.viewDidAppear(animated)
         // Retain cells and orthogonal row offsets when returning from a destination or playback.
         if contentSections == nil && !isLoading { loadPage() }
+        else { refreshHomeRows() }
     }
 
     override func pressesBegan(_ presses: Set<UIPress>, with event: UIPressesEvent?) {
@@ -258,6 +264,7 @@ class PageOverviewCollectionViewController: BaseCollectionViewController {
     private func loadPage() {
         guard let pageUri, !isLoading else { return }
         isLoading = true
+        homeRowsTask?.cancel()
         loadingSpinner.startAnimating()
         loadFailed = false
         updateStatus()
@@ -286,6 +293,7 @@ class PageOverviewCollectionViewController: BaseCollectionViewController {
         loadFailed = false
         updateStatus()
         collectionView.reloadData()
+        refreshHomeRows()
         collectionView.layoutIfNeeded()
         // Nested schedule controls finish laying out after the collection reload.
         DispatchQueue.main.async { [weak self] in
@@ -302,6 +310,46 @@ class PageOverviewCollectionViewController: BaseCollectionViewController {
                 self.updateFocusIfNeeded()
             }
             self.onReady?()
+        }
+    }
+
+    @objc private func accountDidChange() {
+        homeRowsTask?.cancel()
+        guard let pageUri, HomeCatalogRows.isHome(pageUri), let sections = contentSections else { return }
+        applyHomeRows([], to: sections)
+        refreshHomeRows()
+    }
+
+    @objc private func refreshHomeRows() {
+        guard !isLoading, let pageUri, HomeCatalogRows.isHome(pageUri),
+              let sections = contentSections, let catalog = services.personalizedCatalog else { return }
+        homeRowsTask?.cancel()
+        let featured = HomeCatalogRows.featured(in: sections)
+        homeRowsTask = Task { [weak self] in
+            let rows = await catalog.homeSections(featured: featured)
+            guard let self, !Task.isCancelled, let current = self.contentSections else { return }
+            self.applyHomeRows(rows, to: current)
+        }
+    }
+
+    private func applyHomeRows(_ rows: [ContentSection], to sections: [ContentSection]) {
+        let updated = HomeCatalogRows.replacing(in: sections, with: rows)
+        if updated.map(\.id) == sections.map(\.id) {
+            let indices = updated.indices.filter { index in
+                guard rows.contains(where: { $0.id == updated[index].id }) else { return false }
+                let before = sections[index].items
+                let after = updated[index].items
+                return before.map(\.id) != after.map(\.id) || before.map(\.resumePosition) != after.map(\.resumePosition)
+            }
+            guard !indices.isEmpty else { return }
+            contentSections = updated
+            collectionView.reloadSections(IndexSet(indices))
+        } else {
+            cancelArtworkPrefetching()
+            viewAllVisibility.removeAll()
+            rowFocus.removeAll()
+            contentSections = updated
+            collectionView.reloadData()
         }
     }
 
@@ -491,10 +539,10 @@ class PageOverviewCollectionViewController: BaseCollectionViewController {
         else { presentFullscreen(viewController: page) }
     }
 
-    private func openItem(_ item: ContentItem) {
+    func openItem(_ item: ContentItem, watchLive: Bool = false) {
         switch item.action {
         case .destination(let destination): openPage(uri: destination.uri, item: item)
-        case .playback(let target):
+        case .playback:
             guard item.canPlay else { return }
             videoTask?.cancel(); let requestID = UUID(); videoRequestID = requestID
             let services = services!
@@ -503,19 +551,24 @@ class PageOverviewCollectionViewController: BaseCollectionViewController {
                     guard let profile = try await services.auth.account(), profile.hasSubscription else { throw APIError.authentication }
                     try Task.checkCancellation()
                     guard let self, self.videoRequestID == requestID, self.view.window != nil else { return }
-                    if target.requiresVideoDetails, let id = item.contentId {
-                        let video = try await services.playback.video(id)
-                        try Task.checkCancellation()
-                        guard self.videoRequestID == requestID, self.view.window != nil else { return }
-                        self.offerPlayback(video)
-                    } else { services.playerController.playStream(contentId: target.uri, services: services, owner: self, sessionItem: item) }
+                    let start = try await services.playback.resolveStart(for: item)
+                    try Task.checkCancellation()
+                    guard self.videoRequestID == requestID, self.view.window != nil else { return }
+                    switch start {
+                    case .session(let video):
+                        if watchLive && video.isLive { self.prepareToStartStream(video, playFromStart: false) }
+                        else { self.offerPlayback(video) }
+                    case .direct(let item, let channel):
+                        services.playerController.playStream(contentId: channel.target.uri, services: services,
+                                                             owner: self, isLive: item.contentSubtype == "LIVE", sessionItem: item)
+                    }
                 } catch {
                     guard let self, self.videoRequestID == requestID, self.view.window != nil, !Task.isCancelled, !(error is CancellationError) else { return }
                     recordServiceFailure(error, operation: .video)
                     if error as? APIError == .authentication {
                         UserInteractionHelper.instance.showError(title: "account_no_subscription_title".localizedString, message: "account_no_subscription_message".localizedString, recordsError: false)
                     } else {
-                        UserInteractionHelper.instance.showError(title: "error".localizedString, message: "diagnostics_summary_operation".localizedString, recordsError: false, retry: { [weak self] in self?.openItem(item) })
+                        UserInteractionHelper.instance.showError(title: "error".localizedString, message: "diagnostics_summary_operation".localizedString, recordsError: false, retry: { [weak self] in self?.openItem(item, watchLive: watchLive) })
                     }
                 }
             }
@@ -572,9 +625,15 @@ class PageOverviewCollectionViewController: BaseCollectionViewController {
 
     private func startMultiview(_ video: VideoDetails, playFromStart: Bool) {
         let items = TVPlaybackChannels.items(for: video.channels, settings: CredentialHelper.getPlayerSettings())
-        presentFullscreen(viewController: services.viewer(channels: items, fromBeginning: playFromStart, sessionItem: video.item))
+        let viewer = services.viewer(channels: items, fromBeginning: playFromStart, sessionItem: video.item)
+        viewer.watchUpcoming = { [weak self, weak viewer] item in
+            guard let self, let viewer else { return }
+            viewer.stopPlayback()
+            viewer.dismiss(animated: true) { self.openItem(item, watchLive: true) }
+        }
+        presentFullscreen(viewController: viewer)
     }
-    deinit { pageTask?.cancel(); videoTask?.cancel() }
+    deinit { pageTask?.cancel(); videoTask?.cancel(); homeRowsTask?.cancel() }
 }
 
 extension PageOverviewCollectionViewController: UICollectionViewDataSourcePrefetching {

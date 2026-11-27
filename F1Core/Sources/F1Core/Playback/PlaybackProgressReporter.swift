@@ -22,6 +22,24 @@ public final class PlaybackProgressReporter {
     public init(deliver: @escaping (Progress) async throws -> Void, onError: @escaping (Error) -> Void) {
         self.deliver = deliver; self.onError = onError
     }
+
+    public convenience init(playback: any PlaybackService) {
+        self.init(deliver: { progress in
+            try await playback.report(contentID: progress.contentID, subtype: progress.subtype,
+                                      position: progress.position, timestamp: progress.timestamp)
+            NotificationCenter.default.post(name: .playbackHistoryDidChange, object: nil)
+        }, onError: { recordServiceFailure($0, operation: .action) })
+    }
+
+    public var hasPendingReports: Bool { task != nil }
+
+    public func submit(item: ContentItem, seconds: Double) {
+        guard let contentID = item.contentId, let subtype = item.contentSubtype, subtype != "LIVE",
+              seconds.isFinite, seconds >= 0, seconds < Double(Int.max) else { return }
+        submit(.init(contentID: contentID, subtype: subtype, position: Int(seconds),
+                     timestamp: Int(Date().timeIntervalSince1970)))
+    }
+
     public func submit(_ progress: Progress) {
         guard progress.position >= 0 else { return }
         pending.removeAll { $0.contentID == progress.contentID }

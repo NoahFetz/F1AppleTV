@@ -91,8 +91,41 @@ public struct APIEndpoints: Sendable {
         return URLRequest(url: URL(string: "/3.0/R/\(language)/\(playbackProvider)/ALL/CONTENT/VIDEO/\(id)/F1_TV_Pro_Annual/14", relativeTo: catalogBase)!)
     }
     public func entitlement(_ target: String) throws -> URLRequest {
+        try entitlementRequest(target, player: "player_bm")
+    }
+    func previewFeedBundle(_ contentID: String) throws -> URLRequest {
+        guard let id = UInt64(contentID), id > 0 else { throw APIError.invalidPlayback }
+        var request = try entitlementRequest(String(id), player: "player_tm")
+        request.timeoutInterval = 5
+        return request
+    }
+    func userEntitlement() -> URLRequest {
+        let url = URL(string: "/2.0/R/\(language)/\(playbackProvider)/ALL/USER/ENTITLEMENT", relativeTo: catalogBase)!
+        return URLRequest(url: url, cachePolicy: .reloadIgnoringLocalAndRemoteCacheData, timeoutInterval: 5)
+    }
+    func userLocation() -> URLRequest {
+        let url = URL(string: "/1.0/R/\(language)/\(playbackProvider)/ALL/USER/LOCATION", relativeTo: catalogBase)!
+        return URLRequest(url: url, cachePolicy: .reloadIgnoringLocalAndRemoteCacheData, timeoutInterval: 5)
+    }
+    func videoV4(_ id: String, entitlement: String, groupID: Int, homeCountry: String?) throws -> URLRequest {
+        guard let id = UInt64(id), id > 0, groupID > 0,
+              !entitlement.isEmpty, entitlement.utf8.allSatisfy({ (48...57).contains($0) || (65...90).contains($0) || (97...122).contains($0) || $0 == 95 || $0 == 45 }),
+              var components = URLComponents(url: catalogBase, resolvingAgainstBaseURL: true) else { throw APIError.invalidPlayback }
+        components.path = "/4.0/R/\(language)/\(playbackProvider)/ALL/CONTENT/VIDEO/\(id)/\(entitlement)/\(groupID)"
+        if let homeCountry, !homeCountry.isEmpty { components.queryItems = [URLQueryItem(name: "homeCountry", value: homeCountry)] }
+        guard let url = components.url else { throw APIError.invalidPlayback }
+        return URLRequest(url: url, cachePolicy: .reloadIgnoringLocalAndRemoteCacheData, timeoutInterval: 8)
+    }
+    private func entitlementRequest(_ target: String, player: String) throws -> URLRequest {
         let uri = target.hasPrefix("CONTENT/") ? target : "CONTENT/PLAY?contentId=\(target)"
-        guard uri.hasPrefix("CONTENT/PLAY?"), let url = URL(string: "/2.0/R/\(language)/\(playbackProvider)/ALL/\(uri)", relativeTo: catalogBase) else { throw APIError.invalidPlayback }
+        guard uri.hasPrefix("CONTENT/PLAY?"),
+              let baseURL = URL(string: "/3.0/R/\(language)/\(playbackProvider)/ALL/\(uri)", relativeTo: catalogBase),
+              var components = URLComponents(url: baseURL, resolvingAgainstBaseURL: true) else { throw APIError.invalidPlayback }
+        var query = components.percentEncodedQueryItems ?? []
+        query.removeAll { $0.name.removingPercentEncoding == "player" }
+        query.append(URLQueryItem(name: "player", value: player))
+        components.percentEncodedQueryItems = query
+        guard let url = components.url else { throw APIError.invalidPlayback }
         // Entitlements contain expiring signed media URLs and must be reissued on retry.
         var request = URLRequest(url: url, cachePolicy: .reloadIgnoringLocalAndRemoteCacheData)
         request.setValue("no-cache", forHTTPHeaderField: "Cache-Control")

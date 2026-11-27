@@ -148,6 +148,38 @@ public class FairPlayer: AVPlayer {
         return self.fairPlayAsset
     }
 
+    public func preparePlayback(startupMaximumHeight: Int?, dynamicRange: StreamDynamicRange = .automatic,
+                                completion: @escaping (AVPlayerItem) -> Void) {
+        prepareStream(startupMaximumHeight: startupMaximumHeight, dynamicRange: dynamicRange,
+                      preferNativeMaster: true, completion: completion)
+    }
+
+    @MainActor
+    public func prepareFeedPreview(_ entitlement: PlaybackEntitlement, maximumHeight: Int, timeout: Duration,
+                                   cachedPlayer: FairPlayer? = nil, failure: () -> Error?) async throws {
+        try Task.checkCancellation()
+        playStream(streamEntitlement: entitlement)
+        var ready = false
+        defer { if !ready { stopStream() } }
+        automaticallyWaitsToMinimizeStalling = false
+        prepareStream(previewMaximumHeight: maximumHeight, cachedManifest: cachedPlayer?.previewManifest,
+                      cachedBaseURL: cachedPlayer?.previewBaseURL, dynamicRange: .sdr) {
+            $0.preferredForwardBufferDuration = 1
+        }
+        let clock = ContinuousClock()
+        let deadline = clock.now.advanced(by: timeout)
+        while clock.now < deadline {
+            try Task.checkCancellation()
+            if let error = failure() { throw error }
+            if let item = currentItem {
+                if item.status == .readyToPlay { ready = true; return }
+                if item.status == .failed { throw item.error ?? APIError.invalidPlayback }
+            }
+            try await Task.sleep(for: .milliseconds(50))
+        }
+        throw URLError(.timedOut)
+    }
+
     public func prepareStream(startupMaximumHeight: Int? = nil, previewMaximumHeight: Int? = nil, cachedManifest: String? = nil, cachedBaseURL: URL? = nil, dynamicRange: StreamDynamicRange = .automatic, preferNativeMaster: Bool = false, completion: @escaping (AVPlayerItem) -> Void) {
         guard let urlString = streamEntitlement?.url, let url = URL(string: urlString) else {
             AppErrorStore.shared.record(URLError(.badURL), operation: reportsPlaybackErrors ? .preparation : .preview)
@@ -394,7 +426,7 @@ public class FairPlayer: AVPlayer {
             if let dynamicRange { selectedDynamicRange = dynamicRange }
             availableResolutions = playlist?.resolutions(for: selectedDynamicRange) ?? []
             fairPlayAsset = currentItem?.asset as? AVURLAsset
-            if let snapshot = snapshot { rate = snapshot.rate }
+            if let snapshot { rate = snapshot.rate > 0 ? defaultRate : snapshot.rate }
         } else if let original = original {
             currentItem?.cancelPendingSeeks()
             replaceCurrentItem(with: original)
@@ -405,7 +437,7 @@ public class FairPlayer: AVPlayer {
                 restore(snapshot: snapshot, on: original) { [weak self] _ in
                     DispatchQueue.main.async {
                         guard resumePlayback, let self = self, self.currentItem === original, self.selection.pending == nil else { return }
-                        self.rate = snapshot.rate
+                        self.rate = snapshot.rate > 0 ? self.defaultRate : snapshot.rate
                     }
                 }
             }

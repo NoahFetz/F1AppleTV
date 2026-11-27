@@ -23,6 +23,7 @@ import Foundation
         let suspended = session.isScrubbing || session.hasPendingSeek || session.participants.contains { $0.changingQuality }
         for participant in participants.values {
             guard visible.contains(participant.id), !suspended else { participant.pause(); continue }
+            participant.setPlaybackSpeed(participant.live ? .normal : session.playbackSpeed)
             if !session.wantsPlayback { participant.pause() }
             guard participant.ready, !participant.buffering, !participant.changingQuality, pending[participant.id] == nil else { continue }
             guard let anchor = session.capture(), let seconds = session.targetPosition(for: participant, anchor: anchor) else { participant.pause(); continue }
@@ -38,12 +39,12 @@ import Foundation
             guard let self, let participant, self.participants[id] === participant, self.pending[id]?.0 == seek else { return }
             self.pending.removeValue(forKey: id)
             if success && self.visible.contains(id) && self.session.wantsPlayback && !self.session.isScrubbing && !self.session.hasPendingSeek && !self.session.participants.contains(where: { $0.changingQuality }) {
+                participant.setPlaybackSpeed(participant.live ? .normal : self.session.playbackSpeed)
                 participant.play()
             } else { participant.pause() }
         }
         if let date = anchor.date, let ownDate = participant.programDate {
-            let elapsed = anchor.playing ? max(0, clock().timeIntervalSince(anchor.capturedAt)) : 0
-            let target = date.addingTimeInterval(elapsed)
+            let target = date.addingTimeInterval(anchor.elapsed(at: clock()))
             if abs(participant.position + target.timeIntervalSince(ownDate) - seconds) < 0.2 {
                 participant.seek(date: target) { [weak self, weak participant] success in
                     guard let self, let participant, self.participants[id] === participant, self.pending[id]?.0 == seek else { return }

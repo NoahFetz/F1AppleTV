@@ -10,6 +10,27 @@ import F1Core
 
 import Foundation
 import AVKit
+import Combine
+import SwiftUI
+
+extension UIViewController {
+    func installLiveUpNextBanner(in container: UIView, monitor: LiveUpNextMonitor, watch: ((ContentItem) -> Void)? = nil) {
+        let banner = LiveUpNextBanner(monitor: monitor, watch: watch).frame(maxWidth: 460)
+        let host = UIHostingController(rootView: banner)
+        host.sizingOptions = .intrinsicContentSize
+        addChild(host)
+        let overlay = host.view!
+        overlay.backgroundColor = .clear
+        overlay.isUserInteractionEnabled = watch != nil
+        overlay.translatesAutoresizingMaskIntoConstraints = false
+        container.addSubview(overlay)
+        NSLayoutConstraint.activate([
+            overlay.topAnchor.constraint(equalTo: container.safeAreaLayoutGuide.topAnchor, constant: 32),
+            overlay.trailingAnchor.constraint(equalTo: container.safeAreaLayoutGuide.trailingAnchor, constant: -36)
+        ])
+        host.didMove(toParent: self)
+    }
+}
 
 /// Playback owners register real feeds only; muted browsing previews must not
 /// keep the TV awake. A fullscreen transition can temporarily have two owners.
@@ -74,7 +95,10 @@ class PlayerController: NSObject, @preconcurrency AVPlayerViewControllerDelegate
     private var entitlementTask: Task<Void, Never>?
     private var entitlementGeneration = UUID()
     private weak var pendingOwner: UIViewController?
+    private weak var playbackOwner: PageOverviewCollectionViewController?
     private weak var services: AppServices?
+    private let liveUpNext = LiveUpNextMonitor()
+    private var upcomingObservation: AnyCancellable?
     
     var playFromStart = false
     var playerItem = PlayerItem()
@@ -86,6 +110,8 @@ class PlayerController: NSObject, @preconcurrency AVPlayerViewControllerDelegate
     private let liveCoordinator = LivePlaybackCoordinator()
     private var nativeTimeObserver: Any?
     private var nativeRateObservation: NSKeyValueObservation?
+    private var nativeSpeedObservation: NSKeyValueObservation?
+    private var onPlaybackSpeedChange: ((PlaybackSpeed) -> Void)?
     private weak var observedPlayer: AVPlayer?
     private var liveMenuState: String?
     private var mediaChannel = ChannelType.MainFeed
@@ -116,6 +142,7 @@ class PlayerController: NSObject, @preconcurrency AVPlayerViewControllerDelegate
         super.init()
         
         NotificationCenter.default.addObserver(self, selector: #selector(self.avPlayerDidDismiss), name: .avPlayerDidDismiss, object: nil)
+        NotificationCenter.default.addObserver(self, selector: #selector(reportStandaloneProgress), name: UIApplication.willResignActiveNotification, object: nil)
     }
     
     deinit {
@@ -138,6 +165,15 @@ class PlayerController: NSObject, @preconcurrency AVPlayerViewControllerDelegate
     @objc func avPlayerDidDismiss(_ notification: Notification) {
         guard let dismissed = notification.object as? AVPlayerViewController,
               dismissed === presentedPlayerController else { return }
+        if !liveSession, let rate = dismissed.player?.defaultRate, let speed = PlaybackSpeed(rawValue: rate) {
+            onPlaybackSpeedChange?(speed)
+        }
+        onPlaybackSpeedChange = nil
+        nativeSpeedObservation = nil
+        reportStandaloneProgress()
+        liveUpNext.stop()
+        upcomingObservation = nil
+        playbackOwner = nil
         cancelNativeFeedSwitch()
         metadataBinding.cancel(); sessionItem = nil
         availableChannels = []; selectedChannel = nil
@@ -163,6 +199,12 @@ class PlayerController: NSObject, @preconcurrency AVPlayerViewControllerDelegate
             dismissedProtocol?.fullscreenPlayerDidDismiss()
         }
     }
+
+    @objc private func reportStandaloneProgress() {
+        guard fullscreenPlayerDismissedProtocol == nil, !liveSession, let sessionItem,
+              let player = presentedPlayerController?.player, player.currentItem?.status == .readyToPlay else { return }
+        services?.progressReporter.submit(item: sessionItem, seconds: player.currentTime().seconds)
+    }
     
     func playVideo(_ video: VideoDetails, playFromStart: Bool, services: AppServices, owner: UIViewController) {
         guard let channel = PlaybackSelection.initialChannel(in: video.channels, preference: CredentialHelper.getPlayerSettings().defaultFeed) else { return }
@@ -185,6 +227,7 @@ class PlayerController: NSObject, @preconcurrency AVPlayerViewControllerDelegate
         self.playFromStart = playFromStart
         self.mediaChannel = channel; self.liveSession = isLive
         self.services = services; pendingOwner = owner
+        playbackOwner = owner as? PageOverviewCollectionViewController
         entitlementTask?.cancel(); let generation = UUID(); entitlementGeneration = generation
         let playback = services.playback
         entitlementTask = Task { [weak self, weak owner] in
@@ -221,11 +264,12 @@ class PlayerController: NSObject, @preconcurrency AVPlayerViewControllerDelegate
         self.playerItem = localPlayerItem
         if let player = localPlayerItem.player { metadataBinding.bind(player: player, metadata: metadata(for: selectedChannel)) }
         let fromStart = self.playFromStart
-        if let player = localPlayerItem.player { self.openPlayer(player: player, standalone: true) }
+        let resume = !fromStart && !liveSession ? sessionItem?.continuationPosition : nil
+        if let player = localPlayerItem.player { self.openPlayer(player: player, standalone: true, automaticallyPlay: resume == nil) }
         let settings = CredentialHelper.getPlayerSettings()
         let channel = mediaChannel
         let isF1Live = selectedChannel.map { StreamSelection(channel: $0) == .f1Live } ?? false
-        localPlayerItem.player?.prepareStream(startupMaximumHeight: settings.startupMaximumHeight, preferNativeMaster: liveSession) { [weak self, weak player = localPlayerItem.player] item in
+        localPlayerItem.player?.preparePlayback(startupMaximumHeight: settings.startupMaximumHeight) { [weak self, weak player = localPlayerItem.player] item in
             guard let self = self, let player = player, self.playerItem.player === player,
                   self.presentedPlayerController?.player === player else { return }
             self.defaultsObservation = item.observe(\.status, options: [.initial, .new]) { [weak self, weak player] item, _ in
@@ -240,27 +284,44 @@ class PlayerController: NSObject, @preconcurrency AVPlayerViewControllerDelegate
                     }
                     player.volume = settings.getPreferredVolume(for: channel)
                     player.isMuted = settings.getPreferredMute(for: channel)
+                    guard let resume else { return }
+                    let duration = item.duration.seconds
+                    guard !duration.isFinite || resume < duration else { player.play(); return }
+                    player.seek(to: CMTime(seconds: resume, preferredTimescale: 600), toleranceBefore: .zero, toleranceAfter: .zero) { [weak self, weak player] _ in
+                        Task { @MainActor in
+                            guard let self, let player, self.presentedPlayerController?.player === player,
+                                  player.currentItem === item else { return }
+                            player.play()
+                        }
+                    }
                 }
             }
             if fromStart {
                 player.seek(to: CMTimeMakeWithSeconds(1, preferredTimescale: 1))
             }
-            player.play()
+            if resume == nil { player.play() }
         }
     }
     
-    func openPlayer(player: AVPlayer, fullscreenPlayerDismissedProtocol: FullscreenPlayerDismissedProtocol? = nil, isLive: Bool? = nil, standalone: Bool = false) {
+    func openPlayer(player: AVPlayer, fullscreenPlayerDismissedProtocol: FullscreenPlayerDismissedProtocol? = nil, isLive: Bool? = nil,
+                    standalone: Bool = false, automaticallyPlay: Bool = true,
+                    upNext: (monitor: LiveUpNextMonitor, watch: (ContentItem) -> Void)? = nil,
+                    onPlaybackSpeedChange: ((PlaybackSpeed) -> Void)? = nil) {
         if !standalone {
             cancelNativeFeedSwitch()
             availableChannels = []; selectedChannel = nil
         }
         PlaybackIdleTimer.shared.setPlayers([player], owner: self)
         self.fullscreenPlayerDismissedProtocol = fullscreenPlayerDismissedProtocol
+        self.onPlaybackSpeedChange = onPlaybackSpeedChange
         if let isLive { liveSession = isLive }
         
         let playerViewController = AVPlayerViewController()
         self.presentedPlayerController = playerViewController
         
+        playerViewController.speeds = liveSession ? [] : PlaybackSpeed.allCases.map {
+            AVPlaybackSpeed(rate: $0.rawValue, localizedName: $0.label)
+        }
         playerViewController.player = player
         // Native transport and trick-play remain available independently of the
         // custom multiview preview preference.
@@ -270,8 +331,40 @@ class PlayerController: NSObject, @preconcurrency AVPlayerViewControllerDelegate
         playerViewController.delegate = self
         playerViewController.allowsPictureInPicturePlayback = true
         bindPlayer(player, controller: playerViewController)
-        UserInteractionHelper.instance.getPresentingViewController()?.present(playerViewController, animated: true) {
-            if playerViewController.player?.currentItem != nil { playerViewController.player?.play() }
+        UserInteractionHelper.instance.getPresentingViewController()?.present(playerViewController, animated: true) { [weak self] in
+            if standalone { self?.configureLiveUpNext(in: playerViewController) }
+            else if let upNext { self?.attachLiveUpNext(in: playerViewController, monitor: upNext.monitor, watch: upNext.watch) }
+            if automaticallyPlay && playerViewController.player?.currentItem != nil { playerViewController.player?.play() }
+        }
+    }
+
+    private func configureLiveUpNext(in controller: AVPlayerViewController) {
+        guard let catalog = services?.personalizedCatalog, let id = sessionItem?.contentId,
+              let owner = playbackOwner else { return }
+        attachLiveUpNext(in: controller, monitor: liveUpNext) { [weak owner] item in
+            owner?.openItem(item, watchLive: true)
+        }
+        liveUpNext.start(for: id, catalog: catalog)
+    }
+
+    private func attachLiveUpNext(in controller: AVPlayerViewController, monitor: LiveUpNextMonitor, watch: @escaping (ContentItem) -> Void) {
+        guard presentedPlayerController === controller, let overlay = controller.contentOverlayView else { return }
+        controller.installLiveUpNextBanner(in: overlay, monitor: monitor)
+        upcomingObservation = monitor.$notice.removeDuplicates { first, second in
+            first?.item.contentId == second?.item.contentId && (first?.state == .live) == (second?.state == .live)
+        }.sink { [weak self, weak controller, weak monitor] notice in
+            guard let controller else { return }
+            guard let notice else { controller.contextualActions = []; return }
+            let dismiss = UIAction(title: "playback_dismiss_up_next".localizedString) { [weak monitor] _ in monitor?.dismiss() }
+            guard notice.state == .live else { controller.contextualActions = [dismiss]; return }
+            let action = UIAction(title: "playback_watch_live".localizedString, image: UIImage(systemName: "play.fill")) { [weak self, weak controller, weak monitor] _ in
+                guard let self, let controller, let monitor,
+                      self.presentedPlayerController === controller, monitor.notice?.item.contentId == notice.item.contentId,
+                      monitor.notice?.state == .live else { return }
+                monitor.dismiss()
+                controller.dismiss(animated: true) { watch(notice.item) }
+            }
+            controller.contextualActions = [action, dismiss]
         }
     }
 
@@ -291,11 +384,22 @@ class PlayerController: NSObject, @preconcurrency AVPlayerViewControllerDelegate
         }
         if let nativeTimeObserver { observedPlayer?.removeTimeObserver(nativeTimeObserver) }
         observedPlayer = player; liveMenuState = nil
+        nativeSpeedObservation = nil
+        if !liveSession {
+            nativeSpeedObservation = player.observe(\.defaultRate, options: [.new]) { [weak self, weak player] _, _ in
+                DispatchQueue.main.async {
+                    guard let self, let player, self.presentedPlayerController?.player === player,
+                          let speed = PlaybackSpeed(rawValue: player.defaultRate) else { return }
+                    self.onPlaybackSpeedChange?(speed)
+                }
+            }
+        }
         nativeRateObservation = player.observe(\.rate, options: [.old, .new]) { [weak self, weak player] _, change in
             guard let old = change.oldValue, let new = change.newValue, old > 0, new == 0 else { return }
             DispatchQueue.main.async {
-                guard let self, self.observedPlayer === player, self.liveCoordinator.hasJump else { return }
-                self.liveCoordinator.cancel()
+                guard let self, self.observedPlayer === player else { return }
+                if self.liveCoordinator.hasJump { self.liveCoordinator.cancel() }
+                self.reportStandaloneProgress()
             }
         }
         nativeTimeObserver = player.addPeriodicTimeObserver(forInterval: CMTime(seconds: 0.5, preferredTimescale: 600), queue: .main) { [weak self, weak playerViewController, weak player] _ in
@@ -352,7 +456,7 @@ class PlayerController: NSObject, @preconcurrency AVPlayerViewControllerDelegate
                       self.feedSwitch === attempt, self.presentedPlayerController === controller, controller.player === source else { return }
                 attempt.player.playStream(streamEntitlement: entitlement)
                 attempt.metadataBinding.bind(player: attempt.player, metadata: self.metadata(for: attempt.channel))
-                attempt.player.prepareStream(startupMaximumHeight: settings.startupMaximumHeight, preferNativeMaster: self.liveSession) { [weak self, weak attempt, weak controller, weak source] item in
+                attempt.player.preparePlayback(startupMaximumHeight: settings.startupMaximumHeight) { [weak self, weak attempt, weak controller, weak source] item in
                     guard let self, let attempt, let controller, let source,
                           self.feedSwitch === attempt, controller.player === source else { return }
                     attempt.observation = item.observe(\.status, options: [.initial, .new]) { [weak self, weak attempt, weak controller, weak source] item, _ in
@@ -390,7 +494,7 @@ class PlayerController: NSObject, @preconcurrency AVPlayerViewControllerDelegate
                 guard let self, let attempt, let source, let controller, self.feedSwitch === attempt,
                       self.presentedPlayerController === controller, controller.player === source else { return }
                 guard done else { self.failNativeFeedSwitch(attempt, error: URLError(.cannotDecodeContentData)); return }
-                let playing = source.rate != 0
+                let playing = source.timeControlStatus != .paused
                 self.defaultsObservation = nil; self.defaultsTask?.cancel(); self.defaultsTask = nil
                 self.feedSwitch = nil
                 attempt.timeout?.cancel(); attempt.observation = nil
@@ -402,6 +506,7 @@ class PlayerController: NSObject, @preconcurrency AVPlayerViewControllerDelegate
                 attempt.player.onPlaybackError = tvPlaybackError
                 attempt.player.volume = settings.getPreferredVolume(for: attempt.channel.kind)
                 attempt.player.isMuted = settings.getPreferredMute(for: attempt.channel.kind)
+                if let speed = PlaybackSpeed(rawValue: source.defaultRate) { attempt.player.applyPlaybackSpeed(speed) }
                 controller.player = attempt.player
                 attempt.layer.player = nil; attempt.layer.removeFromSuperlayer()
                 self.bindPlayer(attempt.player, controller: controller)

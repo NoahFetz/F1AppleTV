@@ -13,8 +13,15 @@ class ChannelSelectorOverlayViewController: BaseViewController {
     weak var referencePlayer: AVPlayer?
     var referencePlayerProvider: (() -> AVPlayer?)?
     var services: AppServices!
-    private lazy var previews = StreamPreviewCoordinator(makeSession: { [services = self.services!] in StreamPreviewSession(services: services) })
+    private lazy var previewFeeds = PreviewFeedLoader { [playback = self.services.playback as? any PreviewFeedBundleLoading] id in
+        try await playback?.previewFeedBundle(contentID: id)
+    }
+    private lazy var previews = StreamPreviewCoordinator(makeSession: { [services = self.services!, previewFeeds = self.previewFeeds] in
+        StreamPreviewSession(services: services, previewFeeds: previewFeeds)
+    })
+    private let compositePreview = TVCompositePreviewCoordinator()
     private var previewUpdate: DispatchWorkItem?
+    private var previewsActive = false
 
     override var preferredFocusEnvironments: [UIFocusEnvironment] {
         channelsTableView.map { [$0] } ?? super.preferredFocusEnvironments
@@ -47,8 +54,16 @@ class ChannelSelectorOverlayViewController: BaseViewController {
         super.viewDidAppear(animated)
         let settings = CredentialHelper.getPlayerSettings()
         if settings.livePreviews {
+            previewsActive = true
             previews.configure(items: channelItems, reference: referencePlayer, maximumHeight: settings.previewHeight, referenceProvider: referencePlayerProvider)
             previews.onReady = { [weak self] _, _ in self?.attachPreviews() }
+            compositePreview.onChanged = { [weak self] in self?.updatePreviews() }
+            compositePreview.onFrame = { [weak self] in
+                self?.channelsTableView?.visibleCells.forEach { ($0 as? ChannelPreviewCell)?.drawCompositePreview() }
+            }
+            compositePreview.start(items: channelItems, loader: previewFeeds) { [weak self] in
+                self?.referencePlayerProvider?() ?? self?.referencePlayer
+            }
             updatePreviews()
         }
     }
@@ -99,21 +114,28 @@ class ChannelSelectorOverlayViewController: BaseViewController {
     }
 
     private func stopPreview() {
+        previewsActive = false
         previewUpdate?.cancel(); previewUpdate = nil
+        compositePreview.stop()
         previews.stop()
-        channelsTableView?.visibleCells.compactMap { $0 as? ChannelPreviewCell }.forEach { $0.setPreviewPlayer(nil) }
+        previewFeeds.reset()
+        channelsTableView?.visibleCells.compactMap { $0 as? ChannelPreviewCell }.forEach { $0.clearPreview() }
     }
     private func updatePreviews() {
-        guard view.window != nil, CredentialHelper.getPlayerSettings().livePreviews else { return }
+        guard previewsActive, view.window != nil, !compositePreview.isLoading else { return }
         let indices = Set((channelsTableView?.indexPathsForVisibleRows ?? []).map(\.row))
-        previews.update(visibleIndices: indices)
+        let covered = Set(channelItems.filter { compositePreview.tile(for: $0) != nil }.map(\.previewIdentity))
+        previews.update(visibleIndices: indices, excluding: covered)
         attachPreviews()
     }
     private func attachPreviews() {
-        guard let table = channelsTableView else { return }
-        for index in table.indexPathsForVisibleRows ?? [] {
-            let key = ChannelPreviewCell.channelKey(channelItems[index.row])
-            (table.cellForRow(at: index) as? ChannelPreviewCell)?.setPreviewPlayer(previews.player(for: key))
+        guard previewsActive, let table = channelsTableView else { return }
+        for index in table.indexPathsForVisibleRows ?? [] where channelItems.indices.contains(index.row) {
+            guard let cell = table.cellForRow(at: index) as? ChannelPreviewCell else { continue }
+            let item = channelItems[index.row]
+            let tile = compositePreview.tile(for: item)
+            cell.setCompositePreview(tile)
+            if tile == nil { cell.setPreviewPlayer(previews.player(for: ChannelPreviewCell.channelKey(item))) }
         }
     }
     private func schedulePreviewUpdate() {
@@ -151,7 +173,7 @@ extension ChannelSelectorOverlayViewController: UITableViewDelegate, UITableView
     }
 
     func tableView(_ tableView: UITableView, didEndDisplaying cell: UITableViewCell, forRowAt indexPath: IndexPath) {
-        (cell as? ChannelPreviewCell)?.setPreviewPlayer(nil)
+        (cell as? ChannelPreviewCell)?.clearPreview()
         schedulePreviewUpdate()
     }
 }

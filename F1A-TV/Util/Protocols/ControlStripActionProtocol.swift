@@ -13,6 +13,8 @@ import Foundation
 @MainActor protocol ControlStripActionProtocol: AnyObject {
     var transportReference: PlayerItem? { get }
     var transportIsPlaying: Bool { get }
+    var playbackSpeed: PlaybackSpeed { get }
+    func setPlaybackSpeed(_ speed: PlaybackSpeed)
     func beginTransportPreview() -> MultiviewScrubSession?
     func commitTransportPreview(_ session: MultiviewScrubSession, time: Double)
     func cancelTransportPreview(_ session: MultiviewScrubSession, restorePlayback: Bool)

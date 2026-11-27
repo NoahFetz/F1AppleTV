@@ -14,7 +14,18 @@ public protocol SessionCredentialStore: Sendable {
     func clear() async throws
 }
 
-public enum AuthorizationMode: Sendable { case video, entitlement, reporting }
+public enum AuthorizationMode: Sendable, Equatable {
+    case video, entitlement, reporting
+    case entitlementLookup(subscription: String)
+    case dedicatedEntitlement(token: String, subscription: String)
+
+    var refreshesOnUnauthorized: Bool {
+        switch self {
+        case .video, .entitlement: return true
+        case .reporting, .entitlementLookup, .dedicatedEntitlement: return false
+        }
+    }
+}
 public protocol AuthorizedRequestSending: Sendable {
     func authorizedData(_ request: URLRequest, mode: AuthorizationMode) async throws -> Data
     func subscriptionToken() async throws -> String
@@ -25,11 +36,24 @@ public protocol StoredAuthService: AuthService, AuthorizedRequestSending {
 }
 
 public enum PlaybackAuthorizationHeaders {
-    public static func apply(to request: URLRequest, subscriptionToken: String, accountSessionID: String, playbackSessionID: String, mode: AuthorizationMode) -> URLRequest {
+    public static func apply(to request: URLRequest, subscriptionToken: String, accountSessionID: String, playbackSessionID: String, mode: AuthorizationMode) throws -> URLRequest {
         var request = request
-        request.setValue(playbackSessionID, forHTTPHeaderField: "sessionid")
-        request.setValue(mode == .video ? subscriptionToken : accountSessionID, forHTTPHeaderField: "entitlementtoken")
         request.setValue(subscriptionToken, forHTTPHeaderField: "ascendontoken")
+        let entitlement: String
+        switch mode {
+        case .entitlementLookup(let expected):
+            guard subscriptionToken == expected else { throw CancellationError() }
+            return request
+        case .dedicatedEntitlement(let token, let expected):
+            guard subscriptionToken == expected else { throw CancellationError() }
+            entitlement = token
+        case .video:
+            entitlement = subscriptionToken
+        case .entitlement, .reporting:
+            entitlement = accountSessionID
+        }
+        request.setValue(playbackSessionID, forHTTPHeaderField: "sessionid")
+        request.setValue(entitlement, forHTTPHeaderField: "entitlementtoken")
         return request
     }
 }
@@ -135,15 +159,15 @@ public actor F1AuthService: StoredAuthService {
         try await task.value
         guard generation == epoch else { throw CancellationError() }
     }
-    private func headers(_ request: URLRequest, credentials value: DeviceRegistrationResultDto, mode: AuthorizationMode) -> URLRequest {
-        PlaybackAuthorizationHeaders.apply(to: request, subscriptionToken: value.data.subscriptionToken, accountSessionID: value.sessionId, playbackSessionID: sessionID, mode: mode)
+    private func headers(_ request: URLRequest, credentials value: DeviceRegistrationResultDto, mode: AuthorizationMode) throws -> URLRequest {
+        try PlaybackAuthorizationHeaders.apply(to: request, subscriptionToken: value.data.subscriptionToken, accountSessionID: value.sessionId, playbackSessionID: sessionID, mode: mode)
     }
     public func authorizedData(_ request: URLRequest, mode: AuthorizationMode) async throws -> Data {
         let value = try await credentials(); let generation = epoch
         do {
             let data = try await client.data(headers(request, credentials: value, mode: mode))
             try Task.checkCancellation(); guard generation == epoch else { throw CancellationError() }; return data
-        } catch APIError.http(401) where mode != .reporting {
+        } catch APIError.http(401) where mode.refreshesOnUnauthorized {
             guard generation == epoch else { throw CancellationError() }
             try await refresh(ifMatching: value)
             try Task.checkCancellation(); guard generation == epoch else { throw CancellationError() }

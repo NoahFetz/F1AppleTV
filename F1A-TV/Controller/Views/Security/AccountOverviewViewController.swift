@@ -58,6 +58,7 @@ final class AccountOverviewViewController: UIViewController {
             do {
                 try await auth.signOut(); try Task.checkCancellation()
                 self?.profile = nil; self?.isWorking = false; self?.render()
+                NotificationCenter.default.post(name: .catalogAccountDidChange, object: nil)
             } catch {
                 guard !Task.isCancelled, !(error is CancellationError) else { return }
                 recordServiceFailure(error, operation: .logout)

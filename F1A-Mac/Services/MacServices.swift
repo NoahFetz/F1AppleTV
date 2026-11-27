@@ -108,8 +108,9 @@ actor MacOAuthSessionStore: DeviceSessionCredentialStore {
 
 @MainActor final class MacServices {
     let catalog: any CatalogService
+    let personalizedCatalog: F1PersonalizedCatalog?
     let auth: F1OAuthAuthService
-    let playback: any PlaybackService
+    let playback: F1PlaybackService
     let fairPlay: any FairPlayService
     let language: String
     let preferences = MacPreferences()
@@ -127,9 +128,14 @@ actor MacOAuthSessionStore: DeviceSessionCredentialStore {
         #if DEBUG
         if let directory = ProcessInfo.processInfo.environment["F1_CATALOG_FIXTURES"] {
             catalog = FixtureCatalog(directory: URL(fileURLWithPath: directory))
-        } else { catalog = F1CatalogService(client: client, endpoints: endpoints) }
+            personalizedCatalog = nil
+        } else {
+            catalog = F1CatalogService(client: client, endpoints: endpoints)
+            personalizedCatalog = F1PersonalizedCatalog(client: client, endpoints: endpoints, auth: auth)
+        }
         #else
         catalog = F1CatalogService(client: client, endpoints: endpoints)
+        personalizedCatalog = F1PersonalizedCatalog(client: client, endpoints: endpoints, auth: auth)
         #endif
         playback = F1PlaybackService(endpoints: endpoints, auth: auth)
         fairPlay = F1FairPlayService(client: client, endpoints: endpoints, auth: auth)

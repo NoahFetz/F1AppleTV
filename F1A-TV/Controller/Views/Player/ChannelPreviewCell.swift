@@ -16,6 +16,7 @@ final class ChannelPreviewCell: UITableViewCell {
     private let actionLabel = UILabel()
     private let spinner = UIActivityIndicatorView(style: .medium)
     private var playerLayer: AVPlayerLayer?
+    private var compositeView: TVCompositeTileView?
     private var displayObservation: NSKeyValueObservation?
     private var displayTimeout: DispatchWorkItem?
     private var subtitleHeightConstraint: NSLayoutConstraint?
@@ -107,7 +108,7 @@ final class ChannelPreviewCell: UITableViewCell {
     }
 
     func configure(item: ContentItem, added: Bool) {
-        setPreviewPlayer(nil)
+        clearPreview()
         artworkView.kf.cancelDownloadTask()
         artworkView.image = nil
         let metadata: ContentItem? = item
@@ -194,6 +195,28 @@ final class ChannelPreviewCell: UITableViewCell {
         }
     }
 
+    func setCompositePreview(_ tile: TVCompositeTile?) {
+        if let tile, compositeView?.renderer === tile.renderer, compositeView?.rect == tile.rect { return }
+        guard tile != nil || compositeView != nil else { return }
+        compositeView?.removeFromSuperview()
+        compositeView = nil
+        setPreviewPlayer(nil)
+        guard let tile else { return }
+        let view = TVCompositeTileView(tile: tile)
+        view.frame = previewView.bounds
+        view.autoresizingMask = [.flexibleWidth, .flexibleHeight]
+        previewView.insertSubview(view, aboveSubview: artworkView)
+        compositeView = view
+        fallbackIcon.isHidden = true
+    }
+
+    func drawCompositePreview() { compositeView?.setNeedsDisplay() }
+
+    func clearPreview() {
+        setCompositePreview(nil)
+        setPreviewPlayer(nil)
+    }
+
     override func layoutSubviews() {
         super.layoutSubviews()
         CATransaction.begin()
@@ -204,7 +227,7 @@ final class ChannelPreviewCell: UITableViewCell {
 
     override func prepareForReuse() {
         super.prepareForReuse()
-        setPreviewPlayer(nil)
+        clearPreview()
         teamLogo.kf.cancelDownloadTask(); teamLogo.image = nil
         artworkView.kf.cancelDownloadTask()
         artworkView.image = nil
@@ -224,75 +247,84 @@ final class ChannelPreviewCell: UITableViewCell {
 
 @MainActor
 final class StreamPreviewSession: PreviewPlaybackSession {
-    private var entitlementRequest: Task<Void, Never>?
     private let services: AppServices
-    init(services: AppServices) { self.services = services }
-    private var observation: NSKeyValueObservation?
-    private var timeout: DispatchWorkItem?
-    private var requestID = UUID().uuidString
+    private let previewFeeds: PreviewFeedLoader
+    private var entitlementRequest: Task<Void, Never>?
+    private var requestID = UUID()
     private(set) var player: FairPlayer?
     private var completion: ((FairPlayer?) -> Void)?
     private var synchronizing = false
-    private var hasStarted = false
-    private var maximumHeight = 360
+    private var preparationError: Error?
+    private var retryIndividual: (() -> Void)?
+
+    init(services: AppServices, previewFeeds: PreviewFeedLoader) {
+        self.services = services
+        self.previewFeeds = previewFeeds
+    }
 
     func start(item: ContentItem, referencePlayer: AVPlayer?, maximumHeight: Int = 360, completion: @escaping (FairPlayer?) -> Void) {
         stop()
         self.completion = completion
-        self.maximumHeight = maximumHeight
-        let target: PlaybackTarget
-        if case .playback(let action) = item.action { target = action }
-        else { fail(error: APIError.invalidPlayback); return }
-        let identity = requestID, playback = services.playback
-        entitlementRequest = Task { [weak self] in
-            do {
-                let entitlement = try await playback.entitlement(target)
-                try Task.checkCancellation()
-                guard let self, self.requestID == identity else { return }
-                self.didLoadStreamEntitlement(playerId: identity, streamEntitlement: entitlement)
-            } catch {
-                guard let self, self.requestID == identity, !(error is CancellationError) else { return }
-                recordServiceFailure(error, operation: .preview)
-                self.fail(error: error, recordsError: false)
-            }
-        }
-        let timeout = DispatchWorkItem { [weak self] in
-            guard self?.requestID == identity else { return }
-            self?.fail(error: URLError(.timedOut))
-        }
-        self.timeout = timeout
-        DispatchQueue.main.asyncAfter(deadline: .now() + 20, execute: timeout)
-    }
-
-    func didLoadStreamEntitlement(playerId: String, streamEntitlement: PlaybackEntitlement) {
-        guard playerId == requestID else { return }
+        guard case .playback(let target) = item.action else { fail(error: APIError.invalidPlayback); return }
         let player = FairPlayer()
         player.fairPlayService = services.fairPlay
         player.reportsPlaybackErrors = false
-        self.player = player
-        player.playStream(streamEntitlement: streamEntitlement)
         player.isMuted = true
         player.volume = 0
-        player.prepareStream(previewMaximumHeight: maximumHeight) { [weak self, weak player] item in
-            guard let self = self, let player = player, self.player === player else { return }
-            self.observation = item.observe(\.status, options: [.initial, .new]) { [weak self, weak player] item, _ in
-                DispatchQueue.main.async {
-                    guard let self = self, let player = player, self.player === player else { return }
-                    if item.status == .failed { self.fail(error: item.error ?? URLError(.cannotDecodeContentData), recordsError: false) }
-                    else if item.status == .readyToPlay && !self.hasStarted {
-                        self.hasStarted = true
-                        self.timeout?.cancel()
-                        player.pause()
-                        self.completion?(player)
+        self.player = player
+        player.onPlaybackError = { [weak self, weak player] error in
+            guard let self, let player, self.player === player else { return }
+            self.preparationError = error
+        }
+        loadPreview(channel: item.channel, target: target, maximumHeight: maximumHeight, allowBundle: true)
+    }
 
+    private func loadPreview(channel: PlaybackChannel?, target: PlaybackTarget, maximumHeight: Int, allowBundle: Bool) {
+        guard let player else { return }
+        let identity = UUID()
+        requestID = identity
+        entitlementRequest = Task { [weak self] in
+            guard let self else { return }
+            do {
+                let usesBundle = try await self.previewFeeds.prepare(
+                    channel: channel, allowBundle: allowBundle,
+                    individual: { try await self.services.playback.entitlement(target) }
+                ) { entitlement, timeout in
+                    self.preparationError = nil
+                    try await player.prepareFeedPreview(entitlement, maximumHeight: maximumHeight,
+                                                        timeout: timeout, failure: { self.preparationError })
+                }
+                try Task.checkCancellation()
+                guard self.requestID == identity else { return }
+                self.entitlementRequest = nil
+                if usesBundle {
+                    self.retryIndividual = { [weak self] in
+                        self?.loadPreview(channel: channel, target: target, maximumHeight: maximumHeight, allowBundle: false)
                     }
                 }
+                self.completion?(player)
+            } catch {
+                guard self.requestID == identity, !Task.isCancelled else { return }
+                self.fail(error: error)
             }
         }
     }
 
     func synchronize(reference: AVPlayer?, visible: Bool) {
-        guard let player, let item = player.currentItem, item.status == .readyToPlay else { return }
+        guard let player, let item = player.currentItem else { return }
+        if let error = preparationError ?? (item.status == .failed ? (item.error ?? APIError.invalidPlayback) : nil) {
+            if let retryIndividual {
+                self.retryIndividual = nil
+                synchronizing = false
+                player.stopStream()
+                completion?(nil)
+                retryIndividual()
+            } else {
+                fail(error: error)
+            }
+            return
+        }
+        guard item.status == .readyToPlay else { return }
         guard visible else { player.pause(); return }
         let rate = reference?.rate ?? 1
         if rate == 0 { player.pause() } else if player.rate != rate { player.rate = rate }
@@ -328,28 +360,26 @@ final class StreamPreviewSession: PreviewPlaybackSession {
     }
 
     func stop() {
-        requestID = UUID().uuidString
+        requestID = UUID()
         entitlementRequest?.cancel()
         entitlementRequest = nil
-        observation = nil
-        timeout?.cancel()
-        timeout = nil
         player?.stopStream()
         player = nil
         completion = nil
-        hasStarted = false
+        preparationError = nil
+        retryIndividual = nil
         synchronizing = false
     }
 
-    private func fail(error: Error, recordsError: Bool = true) {
-        if recordsError { recordServiceFailure(error, operation: .preview) }
+    private func fail(error: Error) {
+        recordServiceFailure(error, operation: .preview)
         let callback = completion
         stop()
         callback?(nil)
     }
 
     deinit {
-        entitlementRequest?.cancel(); timeout?.cancel()
+        entitlementRequest?.cancel()
         let closingPlayer = player
         Task { @MainActor in closingPlayer?.stopStream() }
     }

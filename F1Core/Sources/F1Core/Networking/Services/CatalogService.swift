@@ -48,6 +48,9 @@ public enum CatalogMapper {
         item.race = m?.emfAttributes?.model; item.series = item.race?.series ?? node.properties?.values.first?.series
         item.contentSubtype = m?.contentSubtype; item.uiDuration = m?.uiDuration
         item.interactive = m?.interactive; item.locked = m?.locked; item.resumePosition = node.user?.resume?.playHeadPosition
+        item.duration = m?.duration?.seconds
+        item.coverageStartsAt = node.coverageStartTimestamp?.date
+        item.resumePosition = item.continuationPosition
         if item.objectType == .Video, let contentID = item.contentId {
             let uri = m?.additionalStreams?.values.first?.playbackUrl ?? contentID
             item.action = .playback(PlaybackTarget(uri: uri, requiresVideoDetails: item.race?.videoType == "meetingSession"))

@@ -43,6 +43,7 @@ extension PlayerCollectionViewController {
         readyObservations.removeAll()
         self.reportCurrentPlayTime()
         isExitingPlayback = true
+        liveUpNext.stop()
         nowPlaying.stop()
         metadataBindings.values.forEach { $0.cancel() }; metadataBindings.removeAll()
         positionTimer?.invalidate(); positionTimer = nil
@@ -95,9 +96,13 @@ extension PlayerCollectionViewController {
 
         self.pauseAll(excludeIds: [playerItem.id])
 
-        DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
-            guard !self.isExitingPlayback, self.fullscreenPlayerId == playerItem.id, self.playerItems.contains(where: { $0.player === player }) else { return }
-            self.services.playerController.openPlayer(player: player, fullscreenPlayerDismissedProtocol: self, isLive: self.isLiveSession)
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) { [weak self] in
+            guard let self, !self.isExitingPlayback, self.fullscreenPlayerId == playerItem.id,
+                  self.playerItems.contains(where: { $0.player === player }) else { return }
+            let upNext = self.watchUpcoming.map { (monitor: self.liveUpNext, watch: $0) }
+            self.services.playerController.openPlayer(player: player, fullscreenPlayerDismissedProtocol: self,
+                                                     isLive: self.isLiveSession, automaticallyPlay: self.wantsPlayback,
+                                                     upNext: upNext, onPlaybackSpeedChange: { [weak self] in self?.setPlaybackSpeed($0) })
         }
     }
 

@@ -80,6 +80,7 @@ final class CatalogCardCell: UICollectionViewCell {
     static let reuseID = "CatalogCardCell"
     enum Style { case thumbnail, poster, hero }
     private let artwork = CatalogArtworkImageView()
+    private let progressView = UIProgressView(progressViewStyle: .default)
     private let cardButton = CatalogCardFocusButton(type: .custom)
     private let titleLabel = FontAdjustedUILabel()
     private let detailLabel = FontAdjustedUILabel()
@@ -110,9 +111,17 @@ final class CatalogCardCell: UICollectionViewCell {
         contentView.addSubview(artwork)
         gradient.translatesAutoresizingMaskIntoConstraints = false
         contentView.addSubview(gradient)
+        progressView.translatesAutoresizingMaskIntoConstraints = false
+        progressView.progressTintColor = ConstantsUtil.brandingRed
+        progressView.trackTintColor = UIColor.white.withAlphaComponent(0.35)
+        progressView.isAccessibilityElement = false
+        contentView.addSubview(progressView)
         NSLayoutConstraint.activate([
             gradient.leadingAnchor.constraint(equalTo: artwork.leadingAnchor), gradient.trailingAnchor.constraint(equalTo: artwork.trailingAnchor),
-            gradient.topAnchor.constraint(equalTo: artwork.topAnchor), gradient.bottomAnchor.constraint(equalTo: artwork.bottomAnchor)
+            gradient.topAnchor.constraint(equalTo: artwork.topAnchor), gradient.bottomAnchor.constraint(equalTo: artwork.bottomAnchor),
+            progressView.leadingAnchor.constraint(equalTo: artwork.leadingAnchor, constant: 12),
+            progressView.trailingAnchor.constraint(equalTo: artwork.trailingAnchor, constant: -12),
+            progressView.bottomAnchor.constraint(equalTo: artwork.bottomAnchor, constant: -8)
         ])
         textStack.axis = .vertical
         textStack.spacing = 8
@@ -155,6 +164,9 @@ final class CatalogCardCell: UICollectionViewCell {
         self.style = style
         NSLayoutConstraint.deactivate(styleConstraints)
         let metadata = item
+        let progress = item?.watchProgress
+        progressView.isHidden = progress == nil
+        progressView.progress = Float(progress ?? 0)
         let title = style == .hero ? metadata?.titleBrief.flatMap { $0.isEmpty ? nil : $0 } ?? metadata?.title : metadata?.title
         titleLabel.text = viewAllTitle ?? loadingTitle ?? title ?? metadata?.longDescription ?? ""
         titleLabel.font = UIFont(name: "Formula1-Display-Bold", size: style == .hero ? 36 : 24)
@@ -219,6 +231,9 @@ final class CatalogCardCell: UICollectionViewCell {
         accessibilityLabel = [titleLabel.text, detailLabel.text, descriptionLabel.text, seriesName, style == .hero ? actionButton.title(for: .normal) : nil].compactMap { $0 }.joined(separator: ", ")
         actionButton.accessibilityLabel = accessibilityLabel
         cardButton.accessibilityLabel = accessibilityLabel
+        let progressText = progress?.formatted(.percent.precision(.fractionLength(0)))
+        cardButton.accessibilityValue = progressText
+        actionButton.accessibilityValue = progressText
         updateAppearance()
     }
 

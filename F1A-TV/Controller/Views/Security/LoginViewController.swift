@@ -93,6 +93,7 @@ final class LoginViewController: BaseViewController {
                 guard self.generation == identity else { return }
                 self.expiryTask?.cancel(); self.expiryTask = nil
                 self.status.text = "device_login_success".localizedString
+                NotificationCenter.default.post(name: .catalogAccountDidChange, object: nil)
                 self.dismiss(animated: true)
             } catch {
                 guard !Task.isCancelled, !(error is CancellationError), self?.generation == identity else { return }

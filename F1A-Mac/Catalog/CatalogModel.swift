@@ -14,6 +14,7 @@ import F1Core
     }
     private let services: MacServices
     private var task: Task<Void, Never>?
+    private var homeRowsTask: Task<Void, Never>?
     private var generation = UUID()
     init(services: MacServices) { self.services = services }
     var title: String { history.last?.title ?? "Vroom TV" }
@@ -33,7 +34,7 @@ import F1Core
     func back() { guard history.count > 1 else { return }; history.removeLast(); load() }
     func load() {
         guard let route = history.last else { Task { await start() }; return }
-        task?.cancel(); generation = UUID(); let epoch = generation
+        task?.cancel(); homeRowsTask?.cancel(); generation = UUID(); let epoch = generation
         loading = true; error = nil
         task = Task { [weak self] in
             guard let self else { return }
@@ -43,11 +44,26 @@ import F1Core
                 sections = CatalogPresentation.sections(document.sections, destination: route.item)
                 artworkID = route.item?.pictureUrl ?? sections.first(where: { [.Hero, .GpBanner, .PageHeader].contains($0.layoutType) })?.items.first?.pictureUrl
                 loading = false
+                refreshHomeRows()
             } catch {
                 guard !Task.isCancelled, generation == epoch else { return }
                 recordServiceFailure(error, operation: .page); loading = false; self.error = "Could not load this page. Please retry."
             }
         }
     }
-    deinit { task?.cancel() }
+    func refreshHomeRows(clear: Bool = false) {
+        guard let route = history.last, HomeCatalogRows.isHome(route.destination.uri),
+              let catalog = services.personalizedCatalog else { return }
+        homeRowsTask?.cancel()
+        if clear { sections = HomeCatalogRows.base(in: sections) }
+        guard !loading else { return }
+        let featured = HomeCatalogRows.featured(in: sections)
+        let epoch = generation
+        homeRowsTask = Task { [weak self] in
+            let rows = await catalog.homeSections(featured: featured)
+            guard let self, !Task.isCancelled, self.generation == epoch else { return }
+            self.sections = HomeCatalogRows.replacing(in: self.sections, with: rows)
+        }
+    }
+    deinit { task?.cancel(); homeRowsTask?.cancel() }
 }

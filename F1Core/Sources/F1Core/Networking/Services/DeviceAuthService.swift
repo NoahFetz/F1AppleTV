@@ -271,18 +271,21 @@ public actor F1DeviceAuthService: AuthService, AuthorizedRequestSending, DeviceS
         let generation = epoch
         _ = try await subscriptionToken()
         guard generation == epoch, let snapshot = session else { throw CancellationError() }
-        func authorized(_ value: DeviceAccountSession) -> URLRequest {
-            PlaybackAuthorizationHeaders.apply(to: request, subscriptionToken: value.playback.subscriptionToken,
-                                               accountSessionID: value.playback.sessionID, playbackSessionID: playbackSessionID, mode: mode)
+        func authorized(_ value: DeviceAccountSession) throws -> URLRequest {
+            try PlaybackAuthorizationHeaders.apply(to: request, subscriptionToken: value.playback.subscriptionToken,
+                                                   accountSessionID: value.playback.sessionID, playbackSessionID: playbackSessionID, mode: mode)
         }
         do {
             let data = try await client.data(authorized(snapshot))
             try Task.checkCancellation(); guard generation == epoch else { throw CancellationError() }; return data
-        } catch APIError.http(401) where mode != .reporting {
+        } catch APIError.http(401) where mode.refreshesOnUnauthorized {
             try await refresh(snapshot, generation: generation)
             guard generation == epoch, let session else { throw CancellationError() }
             let data = try await client.data(authorized(session))
             try Task.checkCancellation(); guard generation == epoch else { throw CancellationError() }; return data
+        } catch {
+            guard generation == epoch else { throw CancellationError() }
+            throw error
         }
     }
     private func refresh(_ snapshot: DeviceAccountSession, generation: UUID) async throws {

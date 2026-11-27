@@ -15,9 +15,7 @@ class PlayerCollectionViewController: BaseCollectionViewController, ChannelSelec
     var services: AppServices!
     var entitlementGenerations = [String: UUID]()
     var entitlementTasks = [String: Task<Void, Never>]()
-    lazy var progressReporter = PlaybackProgressReporter(deliver: { [playback = services.playback] progress in
-        try await playback.report(contentID: progress.contentID, subtype: progress.subtype, position: progress.position, timestamp: progress.timestamp)
-    }, onError: { recordServiceFailure($0, operation: .action) })
+    var progressReporter: PlaybackProgressReporter { services.progressReporter }
     var startupTimeouts = [String: DispatchWorkItem]()
     var pendingSeekTime: Double?
     var pendingSeekReferenceID: String?
@@ -33,6 +31,8 @@ class PlayerCollectionViewController: BaseCollectionViewController, ChannelSelec
     
     // MARK: - Properties
     var sessionItem: ContentItem?
+    let liveUpNext = LiveUpNextMonitor()
+    var watchUpcoming: ((ContentItem) -> Void)?
     var metadataBindings = [String: PlaybackMetadataBinding]()
     let nowPlaying = TVNowPlayingCoordinator()
     var channelItems = [ContentItem]()
@@ -53,6 +53,7 @@ class PlayerCollectionViewController: BaseCollectionViewController, ChannelSelec
     var liveCoordinator = LivePlaybackCoordinator()
     var synchronizationGeneration = UUID()
     var wantsPlayback = true
+    private(set) var playbackSpeed = PlaybackSpeed.normal
     var transportPreviewSession: MultiviewScrubSession?
     var startupAnchors = [String: (PlaybackPositionSnapshot, UUID)]()
     var isLiveSession: Bool { channelItems.contains { $0.contentSubtype == "LIVE" } }
@@ -60,11 +61,27 @@ class PlayerCollectionViewController: BaseCollectionViewController, ChannelSelec
 
     var isFirstPlayer = true
     var playFromStart = false
+
+    func setPlaybackSpeed(_ speed: PlaybackSpeed) {
+        guard !isLiveSession, speed != playbackSpeed else { return }
+        playbackSpeed = speed
+        playerItems.forEach { $0.player?.applyPlaybackSpeed(speed) }
+        correctOnDemandPlaybackDrift()
+        controlStripViewController?.updatePlaybackSpeedMenu()
+        updateNowPlaying()
+    }
     
     // MARK: - Lifecycle
     override func viewDidLoad() {
         super.viewDidLoad()
         self.setupCollectionView()
+        if let catalog = services.personalizedCatalog, let id = sessionItem?.contentId, let watchUpcoming {
+            installLiveUpNextBanner(in: view, monitor: liveUpNext) { [weak self] item in
+                self?.liveUpNext.dismiss()
+                watchUpcoming(item)
+            }
+            liveUpNext.start(for: id, catalog: catalog)
+        }
         nowPlaying.onRefresh = { [weak self] in self?.updateNowPlaying() }
         nowPlaying.onCommand = { [weak self] in self?.handleRemotePlayback($0) }
         NotificationCenter.default.addObserver(self, selector: #selector(playbackMetadataChanged), name: FairPlayer.playbackMetadataDidChange, object: nil)
@@ -75,7 +92,12 @@ class PlayerCollectionViewController: BaseCollectionViewController, ChannelSelec
         NotificationCenter.default.addObserver(self, selector: #selector(playerResolutionChanged), name: FairPlayer.resolutionDidChange, object: nil)
         NotificationCenter.default.addObserver(self, selector: #selector(playbackWillResignActive), name: UIApplication.willResignActiveNotification, object: nil)
         positionTimer = Timer.scheduledTimer(withTimeInterval: 1, repeats: true) { [weak self] _ in
-            Task { @MainActor in self?.rememberPlaybackPosition(); self?.updateNowPlaying() }
+            Task { @MainActor in
+                guard let self else { return }
+                if self.playbackSpeed != .normal { self.correctOnDemandPlaybackDrift() }
+                self.rememberPlaybackPosition()
+                self.updateNowPlaying()
+            }
         }
     }
 

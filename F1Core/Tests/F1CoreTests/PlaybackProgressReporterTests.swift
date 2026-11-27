@@ -58,6 +58,22 @@ final class PlaybackProgressReporterTests: XCTestCase {
         await reporter.flush()
         XCTAssertEqual(delivered, [10, 99]); XCTAssertEqual(failures, 1)
     }
+    @MainActor func testSessionProgressReportsReplayPositionsAndSkipsLiveContent() async {
+        var reports: [PlaybackProgressReporter.Progress] = []
+        let reporter = PlaybackProgressReporter(deliver: { reports.append($0) }, onError: { _ in XCTFail() })
+        var item = ContentItem()
+        item.contentId = "123"
+        item.contentSubtype = "LIVE"
+        reporter.submit(item: item, seconds: 80)
+        item.contentSubtype = "REPLAY"
+        reporter.submit(item: item, seconds: .nan)
+        reporter.submit(item: item, seconds: 19.7)
+        await reporter.flush()
+        XCTAssertEqual(reports.map(\.contentID), ["123"])
+        XCTAssertEqual(reports.map(\.position), [19])
+        XCTAssertEqual(reports.map(\.subtype), ["REPLAY"])
+    }
+
     func testF1LiveAudioDefaultsDecodeOldSettingsAndPreserveDistinctTrackNames() throws {
         let legacy = try JSONDecoder().decode(PlayerSettings.self, from: Data("{}".utf8))
         XCTAssertNil(legacy.f1LiveAudioTrack); XCTAssertTrue(legacy.discoveredF1LiveAudioTracks.isEmpty)

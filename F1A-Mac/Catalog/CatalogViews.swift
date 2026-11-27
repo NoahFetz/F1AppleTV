@@ -1,4 +1,5 @@
 import SwiftUI
+import AppKit
 import F1Core
 
 struct CatalogCard: View {
@@ -11,7 +12,14 @@ struct CatalogCard: View {
             VStack(alignment: .leading, spacing: 8) {
                 GeometryReader { geometry in
                     CatalogArtwork(picture: item.pictureUrl, size: geometry.size)
-                }.aspectRatio(poster ? 2 / 3 : 16 / 9, contentMode: .fit).clipShape(.rect(cornerRadius: 10))
+                }.aspectRatio(poster ? 2 / 3 : 16 / 9, contentMode: .fit)
+                    .overlay(alignment: .bottom) {
+                        if let progress = item.watchProgress {
+                            ProgressView(value: progress).tint(.red).padding(8)
+                                .accessibilityLabel("catalog_watch_progress".localizedString)
+                        }
+                    }
+                    .clipShape(.rect(cornerRadius: 10))
                 Text(item.title ?? item.label ?? "").font(DesktopTypography.heading(14)).lineLimit(2, reservesSpace: true).frame(maxWidth: .infinity, alignment: .leading)
                 CatalogFacts(item: item).frame(height: 20, alignment: .leading)
                 if item.objectType == .Video { CatalogSeriesBadge(name: item.race?.series ?? item.series).frame(height: 18, alignment: .leading) }
@@ -76,18 +84,29 @@ struct MainCatalogView: View {
             if session.loading { LoadingStatus(title: "Preparing playback…").padding(24) }
         }
         .task { await model.start() }
+        .onReceive(NotificationCenter.default.publisher(for: .playbackHistoryDidChange)) { _ in model.refreshHomeRows() }
+        .onReceive(NotificationCenter.default.publisher(for: .catalogAccountDidChange)) { _ in model.refreshHomeRows(clear: true) }
+        .onReceive(NotificationCenter.default.publisher(for: NSApplication.didBecomeActiveNotification)) { _ in model.refreshHomeRows() }
         .alert("Playback", isPresented: Binding(get: { session.message != nil }, set: { if !$0 { session.message = nil } })) { Button("OK") { session.message = nil } } message: { Text(session.message ?? "") }
         .preferredColorScheme(.dark)
     }
+    private var selectedSidebarItem: String? {
+        guard section == "catalog" else { return section }
+        return model.menu.first { $0.uri == model.history.first?.destination.uri }.map { "catalog:" + $0.identity }
+    }
     private var sidebarSelection: Binding<String?> {
-        Binding(get: {
-            guard section == "catalog" else { return section }
-            return model.menu.first { $0.uri == model.history.first?.destination.uri }.map { "catalog:" + $0.identity }
-        }, set: { selection in
-            guard let selection else { return }
-            if let entry = model.menu.first(where: { "catalog:" + $0.identity == selection }) {
-                section = "catalog"; model.select(entry)
-            } else { section = selection }
+        Binding(get: { selectedSidebarItem }, set: { selection in
+            guard let selection, selection != selectedSidebarItem else { return }
+            // SwiftUI can write selection back while AppKit is updating the sidebar.
+            DispatchQueue.main.async {
+                guard selection != selectedSidebarItem else { return }
+                if let entry = model.menu.first(where: { "catalog:" + $0.identity == selection }) {
+                    section = "catalog"
+                    model.select(entry)
+                } else {
+                    section = selection
+                }
+            }
         })
     }
     private var catalog: some View {

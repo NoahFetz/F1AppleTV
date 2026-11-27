@@ -44,6 +44,8 @@ public struct ContentItem: Identifiable, Sendable {
     public var contentId: String?
     public var pictureUrl: String?
     public var uiDuration: String?
+    public var duration: Double?
+    public var coverageStartsAt: Date?
     public var contentSubtype: String?
     public var race: RaceMetadata?
     public var series: String?
@@ -52,6 +54,15 @@ public struct ContentItem: Identifiable, Sendable {
     public var action: CatalogAction?
     public var channel: PlaybackChannel?
     public var resumePosition: Double?
+    public var continuationPosition: Double? {
+        guard contentSubtype != "LIVE", let resumePosition, resumePosition.isFinite, resumePosition > 0,
+              duration.map({ resumePosition < $0 }) ?? true else { return nil }
+        return resumePosition
+    }
+    public var watchProgress: Double? {
+        guard let duration, duration > 0, let position = continuationPosition else { return nil }
+        return position / duration
+    }
     public var channelType: ChannelType? { channel?.kind }
     public var previewIdentity: String { channel?.id ?? id }
     public var canPlay: Bool { objectType == .Video && (contentId.flatMap(Int64.init) ?? 0) > 0 && interactive != false && locked != true }
